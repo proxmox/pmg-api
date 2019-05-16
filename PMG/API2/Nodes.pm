@@ -110,6 +110,7 @@ __PACKAGE__->register_method ({
 	    { name => 'postfix' },
 	    { name => 'services' },
 	    { name => 'syslog' },
+	    { name => 'journal' },
 	    { name => 'tasks' },
 	    { name => 'tracker' },
 	    { name => 'time' },
