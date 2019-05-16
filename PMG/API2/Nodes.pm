@@ -312,18 +312,15 @@ __PACKAGE__->register_method({
     code => sub {
 	my ($param) = @_;
 
-	my $lines = [];
-
-	my $parser = sub {
-	    push @$lines, shift;
-	};
-
 	my $cmd = ["/usr/bin/mini-journalreader"];
 	push @$cmd, '-n', $param->{lastentries} if $param->{lastentries};
 	push @$cmd, '-b', $param->{since} if $param->{since};
 	push @$cmd, '-e', $param->{until} if $param->{until};
 	push @$cmd, '-f', $param->{startcursor} if $param->{startcursor};
 	push @$cmd, '-t', $param->{endcursor} if $param->{endcursor};
+
+	my $lines = [];
+	my $parser = sub { push @$lines, shift };
 
 	PVE::Tools::run_command($cmd, outfunc => $parser);
 
