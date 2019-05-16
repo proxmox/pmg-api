@@ -274,27 +274,30 @@ __PACKAGE__->register_method({
 	properties => {
 	    node => get_standard_option('pve-node'),
 	    since => {
-		type=> 'number',
-		description => "Display all log since this UNIX epoch.",
+		description => "Display all log since this UNIX epoch. Conflicts with 'startcursor'.",
+		type => 'integer',
+		minimum => 0,
 		optional => 1,
 	    },
 	    until => {
-		type=> 'number',
-		description => "Display all log until this UNIX epoch.",
+		description => "Display all log until this UNIX epoch. Conflicts with 'endcursor'.",
+		type => 'integer',
+		minimum => 0,
 		optional => 1,
 	    },
 	    lastentries => {
-		description => "Limit to the last X lines.",
+		description => "Limit to the last X lines. Conflicts with a range.",
 		type => 'integer',
+		minimum => 0,
 		optional => 1,
 	    },
 	    startcursor => {
-		description => "Start after the given Cursor.",
+		description => "Start after the given Cursor. Conflicts with 'since'.",
 		type => 'string',
 		optional => 1,
 	    },
 	    endcursor => {
-		description => "End before the given Cursor.",
+		description => "End before the given Cursor. Conflicts with 'until'.",
 		type => 'string',
 		optional => 1,
 	    },
