@@ -1,3 +1,13 @@
+pmg-api (5.2-3) unstable; urgency=medium
+
+  * node: add api endpoint for new mini-journalreader
+
+  * allow one to use cidr(6) for passing IP/CIDR to the network api
+
+  * Add rule name to RuleAction logging
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 16 May 2019 13:29:42 +0200
+
 pmg-api (5.2-2) unstable; urgency=medium
 
   * Fix setresuid to postgres error handling
