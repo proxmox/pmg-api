@@ -459,7 +459,7 @@ sub analyze_virus_avast {
 		"virus analyze (avast) failed: ERROR";
 	};
 
-	open(my $cmd, '-|', '/bin/scan', $dname) ||
+	open(my $cmd, '-|', 'scan', $dname) ||
 	    die "$queue->{logid}: can't exec avast scan: $! : ERROR";
 
 	my $response = '';
