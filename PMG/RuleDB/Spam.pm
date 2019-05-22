@@ -421,8 +421,8 @@ sub analyze_spam {
 	    $sa_max = $status->get_required_score();
 	    $autolearn = $status->get_autolearn_status();
 
-	    $bayes = defined($status->{bayes_score}) ? 
-		$status->{bayes_score} : "undefined";
+	    $bayes = defined($status->{bayes_score}) ?
+		sprintf('%0.2f', $status->{bayes_score}) : "undefined";
 
 	    my $salist = $status->get_names_of_tests_hit();
 
