@@ -9,8 +9,6 @@ $ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
 
 my $cmd_timeout = 10; # generous timeout
 
-my $sa_awl_db = '/root/.spamassassin/auto-whitelist';
-
 # NOTE: always add new sections to the report_order array!
 my $report_def = {
     general => {
@@ -46,7 +44,6 @@ my $report_def = {
 	sub { dir2text('/etc/pmg/','(?:domains|mynetworks|tls_policy|transport)' ) },
 	sub { dir2text('/etc/pmg/templates/', '[^.].*' ) },
 	'pmgdb dump',
-	"[ -f '$sa_awl_db' ] && sa-awl '$sa_awl_db'",
     ],
 };
 
