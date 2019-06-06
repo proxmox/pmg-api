@@ -114,7 +114,7 @@ sub execute {
 
     my $subgroups = $mod_group->subgroups($targets, 1);
 
-    my $rulename = $vars->{RULE};
+    my $rulename = $vars->{RULE} // 'unknown';
 
     my $bcc_to = PMG::Utils::subst_values($self->{target}, $vars);
 

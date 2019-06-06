@@ -91,7 +91,7 @@ sub execute {
 
     my $subgroups = $mod_group->subgroups($targets, 1);
 
-    my $rulename = $vars->{RULE};
+    my $rulename = $vars->{RULE} // 'unknown';
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);

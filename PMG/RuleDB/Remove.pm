@@ -171,7 +171,7 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets,
 	$msginfo, $vars, $marks) = @_;
 
-    my $rulename = $vars->{RULE};
+    my $rulename = $vars->{RULE} // 'unknown';
 
     if (!$self->{all} && ($#$marks == -1)) {
 	# no marks
