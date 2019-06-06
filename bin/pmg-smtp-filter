@@ -353,7 +353,7 @@ sub apply_rules {
     if ($unmatched) {
 	my $accept = PMG::RuleDB::Accept->new ();
 	$accept->execute ($queue, $self->{ruledb}, $mod_group, $unmatched,
-			  $msginfo, undef, undef, undef);
+			  $msginfo, { RULE => 'default-accept' }, undef);
     }
 
     return $matching_rules;
