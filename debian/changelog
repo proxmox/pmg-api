@@ -1,3 +1,15 @@
+pmg-api (5.2-4) unstable; urgency=medium
+
+  * limit precision of bayes-score in log
+
+  * Drop sa-awl output from pmg-system-report
+
+  * fix #2232: set rulename for default accept
+
+  * pmg config: fix avast scan executable path documentation
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 06 Jun 2019 14:00:49 +0200
+
 pmg-api (5.2-3) unstable; urgency=medium
 
   * node: add api endpoint for new mini-journalreader
