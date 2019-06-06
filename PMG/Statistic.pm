@@ -901,24 +901,24 @@ sub traffic_stat_graph {
 	"GROUP BY index ORDER BY index";
 
     my $sth =  $rdb->{dbh}->prepare($cmd);
-
     $sth->execute ();
 
+	my $max_entry = int(($to - $from) / $span);
     while (my $ref = $sth->fetchrow_hashref()) {
-	@$res[$ref->{index}] = $ref;
+	my $i = $ref->{index};
+	$res->[$i] = $ref;
+	$max_entry = $i if $i > $max_entry;
     }
 
-    my $c = int (($to - $from) / $span);
-
-    for (my $i = 0; $i < $c; $i++) {
-	@$res[$i] //= {
+    for my $i (0..$max_entry) {
+	$res->[$i] //= {
 	    index => $i,
 	    count => 0, count_in => 0, count_out => 0,
 	    spamcount_in => 0, spamcount_out => 0,
 	    viruscount_in => 0, viruscount_out => 0,
 	    bounces_in => 0, bounces_out => 0 };
 
-	my $d = @$res[$i];
+	my $d = $res->[$i];
 
 	$d->{time} = $from + $i*$span - $timezone;
 	$d->{count} = $d->{count_in} + $d->{count_out};
