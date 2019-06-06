@@ -2,7 +2,7 @@ Source: pmg-api
 Section: perl
 Priority: optional
 Maintainer: Proxmox Support Team <support@proxmox.com>
-Build-Depends: debhelper (>= 9),
+Build-Depends: debhelper (>= 10~),
                dh-systemd,
                libarchive-perl,
                libarchive-zip-perl,
@@ -11,24 +11,25 @@ Build-Depends: debhelper (>= 9),
                libdbi-perl,
                libfile-sync-perl,
                libnet-server-perl,
-               libxdgmime-perl,
                libpve-common-perl (>= 5.0-51),
+               libxdgmime-perl,
                p7zip-full,
                perl (>= 5.10.0-19),
                pmg-doc-generator,
                postgresql-9.6,
                proxmox-spamassassin,
-               tnef
+               tnef,
 Standards-Version: 3.9.5
 Homepage: http://www.proxmox.com
 
 Package: pmg-api
 Architecture: all
 Depends: apt,
-	 apt-transport-https,
+         apt-transport-https,
          clamav-daemon,
          clamav-freshclam,
          clamdscan,
+         fetchmail,
          fonts-font-awesome,
          libapt-pkg-perl,
          libarchive-perl,
@@ -69,13 +70,12 @@ Depends: apt,
          proxmox-spamassassin,
          pve-xtermjs (>= 1.0-1),
          rrdcached,
+         rsync,
          shared-mime-info,
          spf-tools-perl,
          sudo,
-	 rsync,
-	 fetchmail,
          tnef,
          ${misc:Depends},
-         ${perl:Depends}
+         ${perl:Depends},
 Description: Proxmox Mailgateway API Server Implementation
  This implements a REST API to configure Proxmox Mailgateway.
