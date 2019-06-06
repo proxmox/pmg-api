@@ -93,7 +93,7 @@ sub properties {
 	    pattern => "http://.*",
 	},
 	avast => {
-	    description => "Use Avast Virus Scanner (/bin/scan). You need to buy and install 'Avast Core Security' before you can enable this feature.",
+	    description => "Use Avast Virus Scanner (/usr/bin/scan). You need to buy and install 'Avast Core Security' before you can enable this feature.",
 	    type => 'boolean',
 	    default => 0,
 	},
