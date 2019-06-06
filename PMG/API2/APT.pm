@@ -512,11 +512,14 @@ __PACKAGE__->register_method({
 
 	my @pkgs = qw(
 	    libarchive-perl
+	    libjs-framework7
+	    libjs-extjs
 	    libpve-common-perl
 	    libpve-http-server-perl
 	    libxdgmime-perl
 	    lvm2
 	    pmg-docs
+	    proxmox-mini-journalreader
 	    proxmox-spamassassin
 	    proxmox-widget-toolkit
 	    pve-xtermjs
