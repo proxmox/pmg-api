@@ -903,7 +903,7 @@ sub traffic_stat_graph {
     my $sth =  $rdb->{dbh}->prepare($cmd);
     $sth->execute ();
 
-	my $max_entry = int(($to - $from) / $span);
+    my $max_entry = int(($to - $from) / $span);
     while (my $ref = $sth->fetchrow_hashref()) {
 	my $i = $ref->{index};
 	$res->[$i] = $ref;
