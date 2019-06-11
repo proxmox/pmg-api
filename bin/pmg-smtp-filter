@@ -643,7 +643,8 @@ sub handle_smtp {
 	my $resolv = PVE::INotify::read_file('resolvconf');
 
 	$msginfo->{domain} = $resolv->{search};
-	$msginfo->{fqdn} = "$msginfo->{hostname}.$msginfo->{domain}";
+	$msginfo->{fqdn} = $msginfo->{hostname};
+	$msginfo->{fqdn} .= ".$msginfo->{domain}" if $msginfo->{domain};
 	$msginfo->{lcid} = $lcid;
 
 	# $msginfo->{targets} is case sensitive,
