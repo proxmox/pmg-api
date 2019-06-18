@@ -57,13 +57,14 @@ my $verify_optional_pmail = sub {
 sub decode_spaminfo {
     my ($info) = @_;
 
+    my $res = [];
+    return $res if !defined($info);
+
     my $saversion = Mail::SpamAssassin->VERSION;
 
     my $salocaldir = "/var/lib/spamassassin/$saversion/updates_spamassassin_org";
 
     $spamdesc = PMG::Utils::load_sa_descriptions([$salocaldir]) if !$spamdesc;
-
-    my $res = [];
 
     foreach my $test (split (',', $info)) {
 	my ($name, $score) = split (':', $test);
