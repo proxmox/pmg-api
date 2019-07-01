@@ -1,3 +1,13 @@
+pmg-api (5.2-5) unstable; urgency=medium
+
+  * avast: change scan invocation path
+
+  * extended fix #1974: traffic_stat_graph: go through all entries
+
+  * fall back to hostname only if no domain defined
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 01 Jul 2019 17:52:43 +0200
+
 pmg-api (5.2-4) unstable; urgency=medium
 
   * limit precision of bayes-score in log
