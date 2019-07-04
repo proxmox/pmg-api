@@ -75,7 +75,7 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $server_id = PMG::Utils::get_hwaddress();
-	my $url = "https://www.proxmox.com/en/proxmox-mail-gateway/pricing";
+	my $url = "https://www.proxmox.com/proxmox-mail-gateway/pricing";
 	my $info = PVE::INotify::read_file('subscription');
 	if (!$info) {
 	    return {
