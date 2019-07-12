@@ -100,7 +100,7 @@ sub execute {
 	    if (my $qid = $queue->quarantine_mail($ruledb, 'V', $entity, $tg, $msginfo, $vars, $ldap)) {
 
 		foreach (@$tg) {
-		    syslog ('info', "$queue->{logid}: moved mail for <%s> to virus quarantine (rule: %s, %s)", $_, $rulename, $qid);
+		    syslog ('info', "$queue->{logid}: moved mail for <%s> to virus quarantine - %s (rule: %s)", $_, $qid, $rulename);
 		}
 
 		$queue->set_status ($tg, 'delivered');
@@ -110,7 +110,7 @@ sub execute {
 	    if (my $qid = $queue->quarantine_mail($ruledb, 'S', $entity, $tg, $msginfo, $vars, $ldap)) {
 
 		foreach (@$tg) {
-		    syslog ('info', "$queue->{logid}: moved mail for <%s> to spam quarantine (rule: %s, %s)", $_, $rulename, $qid);
+		    syslog ('info', "$queue->{logid}: moved mail for <%s> to spam quarantine - %s (rule: %s)", $_, $qid, $rulename);
 		}
 
 		$queue->set_status($tg, 'delivered');

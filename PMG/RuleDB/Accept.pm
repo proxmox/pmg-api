@@ -113,7 +113,7 @@ sub execute {
 		$msginfo->{xforward}, $msginfo->{fqdn});
 	    if ($qid) {
 		foreach (@$tg) {
-		    syslog('info', "%s: accept mail to <%s> (rule: %s, %s)", $queue->{logid}, encode('UTF-8', $_), $rulename, $qid);
+		    syslog('info', "%s: accept mail to <%s> (%s) (rule: %s)", $queue->{logid}, encode('UTF-8', $_), $qid, $rulename);
 		}
 		$queue->set_status ($tg, 'delivered', $qid);
 	    } else {
