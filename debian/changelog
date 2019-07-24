@@ -1,3 +1,9 @@
+pmg-api (6.0-1+1) pmg; urgency=medium
+
+  * improve packaging compatibillity with postgres 11 slightly
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Jul 2019 21:11:24 +0200
+
 pmg-api (6.0-1) pmg; urgency=medium
 
   * bump for Proxmox Mailgateway 6 based on Debian Buster
