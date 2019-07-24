@@ -702,7 +702,7 @@ sub find_local_network_for_ip {
 
 my $service_aliases = {
     'postfix' =>  'postfix@-',
-    'postgres' => 'postgresql@9.6-main',
+    'postgres' => 'postgresql@11-main',
 };
 
 sub lookup_real_service_name {

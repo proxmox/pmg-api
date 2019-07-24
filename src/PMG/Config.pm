@@ -1399,7 +1399,7 @@ sub rewrite_config_freshclam {
 sub rewrite_config_postgres {
     my ($self) = @_;
 
-    my $pgconfdir = "/etc/postgresql/9.6/main";
+    my $pgconfdir = "/etc/postgresql/11/main";
 
     my $changes = 0;
 
