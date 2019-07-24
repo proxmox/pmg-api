@@ -1,8 +1,8 @@
-pmg-api (6.0-1) UNRELEASED; urgency=medium
+pmg-api (6.0-1) pmg; urgency=medium
 
   * bump for Proxmox Mailgateway 6 based on Debian Buster
 
- -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Jul 2019 16:37:03 +0200
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Jul 2019 20:48:06 +0200
 
 pmg-api (5.2-6) unstable; urgency=medium
 
