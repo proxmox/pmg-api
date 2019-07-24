@@ -19,16 +19,14 @@ my $greylist_awlifetime = 3600*24*36;
 
 initlog($0, 'mail');
 
-system("systemctl stop pmgpolicy");
+my $testdb = 'Proxmox_testdb';
+my $testport = 10122;
+my $testpidfn = "greylist-test-$$.pid";
 
-my $pidfile = "/var/run/pmgpolicy.pid";
-
-system("kill `cat $pidfile`") if -f $pidfile;
-
-system ("perl -I.. ../bin/pmgpolicy -d Proxmox_testdb -t");
+system ("perl -I.. ../bin/pmgpolicy -d $testdb -t --port $testport --pidfile '$testpidfn'");
 
 sub reset_gldb {
-    my $dbh = PMG::DBTools::open_ruledb("Proxmox_testdb");
+    my $dbh = PMG::DBTools::open_ruledb($testdb);
     $dbh->do ("DELETE FROM CGreylist");
     $dbh->disconnect();
 }
@@ -36,8 +34,8 @@ sub reset_gldb {
 reset_gldb();
 
 my $sock = IO::Socket::INET->new(
-    PeerAddr => '127.0.0.1', 
-    PeerPort => 10022) ||
+    PeerAddr => '127.0.0.1',
+    PeerPort => $testport) ||
     die "unable to open socket -  $!";
 
 $/ = "\n\n";
@@ -49,7 +47,7 @@ my $icount = 0;
 
 sub gltest {
     my ($data, $ttime, $eres) = @_;
-    
+
     $icount++;
 
     print $sock "testtime=$ttime\ninstance=$icount\n$data\n";
@@ -57,7 +55,7 @@ sub gltest {
     my $res = <$sock>;
     chomp $res;
     my $timediff = $ttime - $starttime;
-    die "unectpexted result at time $timediff: $res != $eres\n$data" if !($res =~ m/^action=$eres(\s.*)?/);
+    die "unexpected result at time $timediff: $res != $eres\n$data" if !($res =~ m/^action=$eres(\s.*)?/);
 }
 
 # a normal record
@@ -182,11 +180,11 @@ _EOD
 
 gltest ($data_fail, $testtime, 'reject');
 
-system("kill `cat $pidfile`") if -f $pidfile;
+system("kill `cat $testpidfn`") if -f $testpidfn;
+unlink($testpidfn);
 
 print "ALL TESTS OK\n";
 
-system("systemctl start pmgpolicy");
+$sock->close();
 
 exit (0);
-

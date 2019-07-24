@@ -32,17 +32,22 @@ my $greylist_lifetime = 3600*24*2;    # retry window
 my $greylist_awlifetime = 3600*24*36; # expire window
 
 my $opt_commandline = [$0, @ARGV];
-my $opt_policy_port = 10022;
+
 my $opt_max_dequeue = 1;
 my $opt_dequeue_time = 60*2;
 
 my $opt_testmode;
 my $opt_pidfile;
 my $opt_database;
+my $opt_policy_port = 10022;
 
-if (!GetOptions ('pidfile=s' => \$opt_pidfile,
-		 'testmode' => \$opt_testmode,
-		 'database=s' => \$opt_database)) {
+my %_opts = (
+    'pidfile=s' => \$opt_pidfile,
+    'testmode' => \$opt_testmode,
+    'database=s' => \$opt_database,
+    'port=i' => \$opt_policy_port,
+);
+if (!GetOptions(%_opts)) {
     die "usage error\n";
     exit (-1);
 }
