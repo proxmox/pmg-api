@@ -166,7 +166,7 @@ sub get_prox_vars {
 	'DOMAIN' =>  $msginfo->{domain},
 	'FQDN' => $msginfo->{fqdn},
 	'MSGID' => $queue->{msgid},
-	'VERSION' => PMG::pmgcfg::package() . "/" . PMG::pmgcfg::version() . "/" . PMG::pmgcfg::repoid(),
+	'VERSION' => PMG::pmgcfg::package() . "/" . PMG::pmgcfg::release() . "/" . PMG::pmgcfg::repoid(),
     };
 
     $vars->{__spaminfo} = $spaminfo;

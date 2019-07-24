@@ -171,14 +171,14 @@ sub pmg_backup {
 	}
 
 	my $pkg = PMG::pmgcfg::package();
-	my $ver = PMG::pmgcfg::version();
+	my $release = PMG::pmgcfg::release();
 
 	my $vfh = PMG::AtomicFile->open ("$dirname/$verfn", "w") ||
 	    die "cant open '$dirname/$verfn' - $! :ERROR";
 
 	$time = time;
 	my $now = localtime;
-	print $vfh "product: $pkg\nversion: $ver\nbackuptime:$time:$now\n";
+	print $vfh "product: $pkg\nversion: $release\nbackuptime:$time:$now\n";
 	$vfh->close(1);
 
 	my $extra_cfgs =  [];
