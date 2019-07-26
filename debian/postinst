@@ -32,6 +32,7 @@ case "$1" in
 		    deb-systemd-invoke reload-or-try-restart postgresql.service
 		fi
 		pmgconfig sync --restart
+		deb-systemd-invoke restart postfix.service
 	    fi
 
 	    pmgdb update  >/dev/null 2>&1 &
