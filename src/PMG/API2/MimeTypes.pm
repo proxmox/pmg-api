@@ -66,8 +66,6 @@ my $load_mime_types = sub {
     }
 };
 
-$load_mime_types->();
-
 __PACKAGE__->register_method ({
     name => 'index',
     path => '',
@@ -88,6 +86,8 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
+
+	$mime = $load_mime_types->();
 
 	return $mime;
     }});
