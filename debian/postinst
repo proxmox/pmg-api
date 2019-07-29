@@ -11,7 +11,7 @@ case "$1" in
 	# Note: reload-or-try-restart fails if service is not active
 	for service in pmgdaemon pmgproxy pmg-smtp-filter pmgpolicy pmgtunnel pmgmirror; do
 	    if systemctl --quiet is-active $service.service ; then
-		deb-systemd-invoke reload-or-try-restart $service.service
+		deb-systemd-invoke reload-or-try-restart $service.service >/dev/null || true
 	    fi
 	done
 
@@ -29,10 +29,10 @@ case "$1" in
 		pmgconfig sync
 	    else
 		if systemctl --quiet is-active pmgpolicy.service ; then
-		    deb-systemd-invoke reload-or-try-restart postgresql.service
+		    deb-systemd-invoke reload-or-try-restart postgresql.service >/dev/null || true
 		fi
 		pmgconfig sync --restart
-		deb-systemd-invoke restart postfix.service
+		deb-systemd-invoke restart postfix.service >/dev/null || true
 	    fi
 
 	    pmgdb update  >/dev/null 2>&1 &
@@ -63,10 +63,10 @@ if test ! -e /proxmox_install_mode ; then
 	if [ -n "$2" ]; then
 	    # Note: reload-or-try-restart fails if service is not active
 	    if systemctl --quiet is-active $service.service ; then
-		deb-systemd-invoke reload-or-try-restart $service.service
+		deb-systemd-invoke reload-or-try-restart $service.service >/dev/null || true
 	    fi
 	else
-	    deb-systemd-invoke start $service.service
+	    deb-systemd-invoke start $service.service > /dev/null || true
 	fi
     done
 fi
