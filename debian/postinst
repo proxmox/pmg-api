@@ -24,14 +24,12 @@ case "$1" in
 
 	    pmgconfig init
 	    pmgdb init
+	    pmgconfig sync --restart
 
-	    if [ -n "$2" ]; then
-		pmgconfig sync
-	    else
+	    if [ -z "$2" ]; then
 		if systemctl --quiet is-active pmgpolicy.service ; then
 		    deb-systemd-invoke reload-or-try-restart postgresql.service >/dev/null || true
 		fi
-		pmgconfig sync --restart
 		deb-systemd-invoke restart postfix.service >/dev/null || true
 	    fi
 
