@@ -11,7 +11,7 @@ After=remote-fs.target
 ExecStart=/usr/bin/pmgtunnel start
 ExecStop=/usr/bin/pmgtunnel stop
 ExecReload=/usr/bin/pmgtunnel restart
-PIDFile=/var/run/pmgtunnel.pid
+PIDFile=/run/pmgtunnel.pid
 Type=forking
 
 [Install]

@@ -35,7 +35,7 @@ my $workers = {};
 my $delayed_exec = {};
 my $startcount = {};
 
-my $socketdir = "/var/run/pmgtunnel";
+my $socketdir = "/run/pmgtunnel";
 
 my $socketfile = sub {
     my ($cid) = @_;

@@ -39,9 +39,9 @@ sub open_ruledb {
 
     if ($host) {
 
-	# Note: pmgtunnel uses UDP sockets inside directory '/var/run/pmgtunnel',
+	# Note: pmgtunnel uses UDP sockets inside directory '/run/pmgtunnel',
 	# and the cluster 'cid' as port number. You can connect to the
-	# socket with: host => /var/run/pmgtunnel, port => $cid
+	# socket with: host => /run/pmgtunnel, port => $cid
 
 	my $dsn = "dbi:Pg:dbname=$database;host=$host;port=$port;";
 
@@ -1275,7 +1275,7 @@ sub reload_ruledb {
 	}
     }
 
-    my $pid_file = '/var/run/pmg-smtp-filter.pid';
+    my $pid_file = '/run/pmg-smtp-filter.pid';
     my $pid = PVE::Tools::file_read_firstline($pid_file);
 
     return 0 if !$pid;

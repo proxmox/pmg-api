@@ -35,7 +35,7 @@ my %daemon_options = (
     leave_children_open_on_reload => 1,
     setuid => 'www-data',
     setgid => 'www-data',
-    pidfile => '/var/run/pmgproxy/pmgproxy.pid',
+    pidfile => '/run/pmgproxy/pmgproxy.pid',
 );
 
 my $daemon = __PACKAGE__->new('pmgproxy', $cmdline, %daemon_options);

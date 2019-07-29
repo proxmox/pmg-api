@@ -10,7 +10,7 @@ ExecStart=/usr/bin/pmgpolicy
 KillMode=mixed
 TimeoutStopSec=40
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/var/run/pmgpolicy.pid
+PIDFile=/run/pmgpolicy.pid
 Type=forking
 
 [Install]

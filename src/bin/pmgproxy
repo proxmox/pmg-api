@@ -20,7 +20,7 @@ $SIG{'__WARN__'} = sub {
 };
 
 my $prepare = sub {
-    my $rundir="/var/run/pmgproxy";
+    my $rundir="/run/pmgproxy";
     if (mkdir($rundir, 0700)) { # only works at first start if we are root)
 	my $gid = getgrnam('www-data') || die "getgrnam failed - $!\n";
 	my $uid = getpwnam('www-data') || die "getpwnam failed - $!\n";

@@ -12,7 +12,7 @@ After=remote-fs.target
 ExecStart=/usr/bin/pmgproxy start
 ExecStop=/usr/bin/pmgproxy stop
 ExecReload=/usr/bin/pmgproxy restart
-PIDFile=/var/run/pmgproxy/pmgproxy.pid
+PIDFile=/run/pmgproxy/pmgproxy.pid
 Type=forking
 
 [Install]

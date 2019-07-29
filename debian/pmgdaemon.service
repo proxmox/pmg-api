@@ -10,7 +10,7 @@ After=remote-fs.target
 ExecStart=/usr/bin/pmgdaemon start
 ExecStop=/usr/bin/pmgdaemon stop
 ExecReload=/usr/bin/pmgdaemon restart
-PIDFile=/var/run/pmgdaemon.pid
+PIDFile=/run/pmgdaemon.pid
 Type=forking
 
 [Install]

@@ -121,7 +121,7 @@ sub cluster_sync {
 
 	my $rdb;
 	eval {
-	    $rdb = PMG::DBTools::open_ruledb(undef, '/var/run/pmgtunnel', $ni->{cid});
+	    $rdb = PMG::DBTools::open_ruledb(undef, '/run/pmgtunnel', $ni->{cid});
 	    sync_data_from_node($dbh, $rdb, $cinfo, $ni, $ticket, \$rsynctime);
 	};
 	my $err = $@;

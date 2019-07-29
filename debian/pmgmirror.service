@@ -12,7 +12,7 @@ After=pmgtunnel.target
 ExecStart=/usr/bin/pmgmirror start
 ExecStop=/usr/bin/pmgmirror stop
 ExecReload=/usr/bin/pmgmirror restart
-PIDFile=/var/run/pmgmirror.pid
+PIDFile=/run/pmgmirror.pid
 Type=forking
 
 [Install]
