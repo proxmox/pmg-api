@@ -1401,4 +1401,31 @@ sub postgres_admin_cmd {
 	die "setresuid back failed - $!\n";
 }
 
+sub get_pg_server_version {
+    my $major_ver;
+    my $parser = sub {
+	my $line = shift;
+	# example output:
+	# 9.6.13
+	# 11.4 (Debian 11.4-1)
+	# see https://www.postgresql.org/support/versioning/
+	my ($first_comp) = ($line =~ m/^\s*([0-9]+)/);
+	if ($first_comp < 10) {
+	    ($major_ver) = ($line =~ m/^([0-9]+\.[0-9]+)\.[0-9]+/);
+	} else {
+	    $major_ver = $first_comp;
+	}
+
+    };
+    eval {
+	postgres_admin_cmd('psql', { outfunc => $parser }, '--quiet',
+	'--tuples-only', '--no-align', '--command', 'show server_version;');
+    };
+
+    die "Unable to determine currently running Postgresql server version\n"
+	if ($@ || !defined($major_ver));
+
+    return $major_ver;
+}
+
 1;
