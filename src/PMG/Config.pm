@@ -661,6 +661,7 @@ use PVE::INotify;
 use PVE::JSONSchema;
 
 use PMG::Cluster;
+use PMG::Utils;
 
 PMG::Config::Admin->register();
 PMG::Config::Mail->register();
@@ -1263,6 +1264,7 @@ sub get_template_vars {
 	};
 	warn "parse http_proxy failed - $@" if $@;
     }
+    $vars->{postgres}->{version} = PMG::Utils::get_pg_server_version();
 
     return $vars;
 }
@@ -1399,7 +1401,8 @@ sub rewrite_config_freshclam {
 sub rewrite_config_postgres {
     my ($self) = @_;
 
-    my $pgconfdir = "/etc/postgresql/11/main";
+    my $pg_maj_version = PMG::Utils::get_pg_server_version();
+    my $pgconfdir = "/etc/postgresql/$pg_maj_version/main";
 
     my $changes = 0;
 
