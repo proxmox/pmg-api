@@ -431,6 +431,9 @@ sub analyze_spam {
 		my $score = $status->{conf}->{scores}->{$rule};
 		$loglist .= $loglist ? ",$rule($score)" : "$rule($score)";
 		my $desc = $status->{conf}->get_description_for_rule($rule);
+		if (my $hits = $status->{uridnsbl_hits}->{$rule}) {
+		    $desc .= ' [' . join(',', keys %$hits) . ']';
+		}
 		push @$sa_scores, { score => $score, rule => $rule, desc => $desc };
 	    }
 
