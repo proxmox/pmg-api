@@ -31,11 +31,12 @@ sub new {
 sub who_match {
     my ($self, $addr) = @_;
 
-    $addr =~ m/^.+@(.+)$/;
+    my @parts = split('@', $addr);
 
-    return undef if !defined($1);
+    return undef if scalar(@parts) < 2;
 
-    return (lc ($1) eq lc ($self->address));
+    my $domain = $parts[-1]; # last element
+    return lc $domain eq lc $self->{address};
 }
 
 sub short_desc {
