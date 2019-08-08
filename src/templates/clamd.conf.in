@@ -5,9 +5,9 @@ User clamav
 ScanMail true
 ScanArchive true
 [% IF pmg.clamav.archiveblockencrypted %]
-ArchiveBlockEncrypted true
+AlertEncrypted true
 [% ELSE %]
-ArchiveBlockEncrypted false
+AlertEncrypted false
 [% END %]
 MaxRecursion [% pmg.clamav.archivemaxrec %]
 MaxFiles [% pmg.clamav.archivemaxfiles %]
@@ -34,7 +34,7 @@ ScanPE true
 ScanOLE2 true
 ScanHTML true
 ScanPDF true
-DetectBrokenExecutables true
+AlertBrokenExecutables true
 ExitOnOOM false
 LeaveTemporaryFiles false
 AlgorithmicDetection true
@@ -42,8 +42,8 @@ ScanELF true
 IdleTimeout 30
 PhishingSignatures true
 PhishingScanURLs true
-PhishingAlwaysBlockSSLMismatch false
-PhishingAlwaysBlockCloak false
+AlertPhishingSSLMismatch false
+AlertPhishingCloak false
 DetectPUA false
 ScanPartialMessages false
 HeuristicScanPrecedence false

@@ -331,7 +331,7 @@ sub properties {
 	    default => 'database.clamav.net',
 	},
 	archiveblockencrypted => {
-	    description => "Whether to block encrypted archives. Mark encrypted archives as viruses.",
+	    description => "Whether to block encrypted archives and documents. Mark encrypted archives and documents as viruses.",
 	    type => 'boolean',
 	    default => 0,
 	},
