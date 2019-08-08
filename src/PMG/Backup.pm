@@ -10,6 +10,7 @@ use PVE::Tools;
 
 use PMG::pmgcfg;
 use PMG::AtomicFile;
+use PMG::Utils qw(postgres_admin_cmd);
 
 my $sa_custom_config_fn = "/etc/mail/spamassassin/custom.cf";
 
@@ -286,7 +287,7 @@ sub pmg_restore {
 	    }
 
 	    print STDERR "run analyze to speed up database queries\n";
-	    PMG::DBTools::postgres_admin_cmd('psql', { input => 'analyze;' }, $dbname);
+	    postgres_admin_cmd('psql', { input => 'analyze;' }, $dbname);
 
 	    print "Analyzing/Upgrading existing Databases...";
 	    my $ruledb = PMG::RuleDB->new($dbh);

@@ -37,6 +37,12 @@ use PMG::AtomicFile;
 use PMG::MailQueue;
 use PMG::SMTPPrinter;
 
+use base 'Exporter';
+
+our @EXPORT_OK = qw(
+postgres_admin_cmd
+);
+
 my $valid_pmg_realms = ['pam', 'pmg', 'quarantine'];
 
 PVE::JSONSchema::register_standard_option('realm', {
@@ -1376,6 +1382,23 @@ sub cond_add_default_locale {
     rename("$filename.tmp", $filename) || return; # rename failed
 
     system("dpkg-reconfigure locales -f noninteractive");
+}
+
+sub postgres_admin_cmd {
+    my ($cmd, $options, @params) = @_;
+
+    $cmd = ref($cmd) ? $cmd : [ $cmd ];
+
+    my $save_uid = POSIX::getuid();
+    my $pg_uid = getpwnam('postgres') || die "getpwnam postgres failed\n";
+
+    PVE::Tools::setresuid(-1, $pg_uid, -1) ||
+	die "setresuid postgres ($pg_uid) failed - $!\n";
+
+    PVE::Tools::run_command([@$cmd, '-U', 'postgres', @params], %$options);
+
+    PVE::Tools::setresuid(-1, $save_uid, -1) ||
+	die "setresuid back failed - $!\n";
 }
 
 1;

@@ -15,6 +15,7 @@ use PMG::Utils;
 use PMG::RuleDB;
 use PMG::MailQueue;
 use PMG::Config;
+use PMG::Utils qw(postgres_admin_cmd);
 
 our $default_db_name = "Proxmox_ruledb";
 
@@ -74,23 +75,6 @@ sub open_ruledb {
 
 	return $dbh;
     }
-}
-
-sub postgres_admin_cmd {
-    my ($cmd, $options, @params) = @_;
-
-    $cmd = ref($cmd) ? $cmd : [ $cmd ];
-
-    my $save_uid = POSIX::getuid();
-    my $pg_uid = getpwnam('postgres') || die "getpwnam postgres failed\n";
-
-    PVE::Tools::setresuid(-1, $pg_uid, -1) ||
-	die "setresuid postgres ($pg_uid) failed - $!\n";
-
-    PVE::Tools::run_command([@$cmd, '-U', 'postgres', @params], %$options);
-
-    PVE::Tools::setresuid(-1, $save_uid, -1) ||
-	die "setresuid back failed - $!\n";
 }
 
 sub delete_ruledb {
