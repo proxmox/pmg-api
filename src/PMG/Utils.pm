@@ -27,6 +27,7 @@ use utf8;
 no utf8;
 
 use HTML::Entities;
+use JSON;
 
 use PVE::ProcFSTools;
 use PVE::Network;
@@ -1306,23 +1307,20 @@ sub scan_journal_for_rbl_rejects {
     my $pregreet_count = 0;
 
     my $parser = sub {
-	my $line = shift;
+	my $log = decode_json(shift);
 
-	if ($line =~ m/^--\scursor:\s(\S+)$/) {
-	    $rbl_scan_last_cursor = $1;
-	    return;
-	}
-
-	if ($line =~ m/\s$identifier\[\d+\]:\sNOQUEUE:\sreject:.*550 5.7.1 Service unavailable;/) {
+	$rbl_scan_last_cursor = $log->{__CURSOR};
+	my $message = $log->{MESSAGE};
+	if ($message =~ m/^NOQUEUE:\sreject:.*550 5.7.1 Service unavailable/) {
 	    $rbl_count++;
-	} elsif ($line =~ m/\s$identifier\[\d+\]:\sPREGREET\s\d+\safter\s/) {
+	} elsif ($message =~ m/^PREGREET\s\d+\safter\s/) {
 	    $pregreet_count++;
 	}
     };
 
     # limit to last 5000 lines to avoid long delays
-    my $cmd = ['journalctl', '--show-cursor', '-o', 'short-unix', '--no-pager',
-	       '--identifier', $identifier, '-n', 5000];
+    my $cmd = ['journalctl', '-o', 'json', '--output-fields', '__CURSOR,MESSAGE',
+	'--no-pager', '--identifier', $identifier, '-n', 5000];
 
     if (defined($rbl_scan_last_cursor)) {
 	push @$cmd, "--after-cursor=${rbl_scan_last_cursor}";
