@@ -1309,8 +1309,11 @@ sub scan_journal_for_rbl_rejects {
     my $parser = sub {
 	my $log = decode_json(shift);
 
-	$rbl_scan_last_cursor = $log->{__CURSOR};
+	$rbl_scan_last_cursor = $log->{__CURSOR} if defined($log->{__CURSOR});
+
 	my $message = $log->{MESSAGE};
+	return if !defined($message);
+
 	if ($message =~ m/^NOQUEUE:\sreject:.*550 5.7.1 Service unavailable/) {
 	    $rbl_count++;
 	} elsif ($message =~ m/^PREGREET\s\d+\safter\s/) {
