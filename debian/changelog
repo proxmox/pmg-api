@@ -1,3 +1,21 @@
+pmg-api (6.0-1+2) pmg; urgency=medium
+
+  * update PMG sources.list to buster
+
+  * replace deprecated /var/run with /run
+
+  * improve restart on upgrade behaviour
+
+  * Who: Domain: improve speed
+
+  * What: Spam: add uri hits to rule description
+
+  * adapt postgresql.conf template to include current postgres version
+
+  * adapt clamav.conf.in to new upstream version
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 9 Aug 2019 08:58:05 +0200
+
 pmg-api (6.0-1+1) pmg; urgency=medium
 
   * improve packaging compatibillity with postgres 11 slightly
