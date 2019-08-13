@@ -1,3 +1,10 @@
+pmg-api (6.0-2) pmg; urgency=medium
+
+  * adapt journalctl invocation to changed behavior with new systemd version of
+    Debian Buster and make journal parsing more robust
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 13 Aug 2019 15:48:59 +0200
+
 pmg-api (6.0-1+2) pmg; urgency=medium
 
   * update PMG sources.list to buster
