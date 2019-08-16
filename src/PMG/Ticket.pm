@@ -139,7 +139,7 @@ my $read_csrf_secret = sub {
 
    my $input = <$fh>;
 
-   return Digest::SHA::sha1_base64($input);
+   return Digest::SHA::hmac_sha256_base64($input);
 };
 
 PVE::INotify::register_file('csrf_secret', $pmg_csrf_key_fn,
