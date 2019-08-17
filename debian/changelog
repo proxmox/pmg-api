@@ -1,3 +1,11 @@
+pmg-api (6.0-3) pmg; urgency=medium
+
+  * use hmac_sha_256 alogrithm for improved CSRF token security
+
+  * pmgproxy: add link to extjs for pmg-docs' api-viewer
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 17 Aug 2019 13:04:52 +0200
+
 pmg-api (6.0-2) pmg; urgency=medium
 
   * adapt journalctl invocation to changed behavior with new systemd version of
