@@ -47,6 +47,7 @@ sub add_dirs {
 }
 
 my $gui_base_dir = "/usr/share/javascript/pmg-gui";
+my $extjs_dir = "/usr/share/javascript/extjs/";
 my $fontawesome_dir = "/usr/share/fonts-font-awesome";
 my $xtermjs_dir = '/usr/share/pve-xtermjs';
 my $framework7_dir = '/usr/share/javascript/framework7';
@@ -67,7 +68,7 @@ sub init {
     my $dirs = {};
 
     add_dirs($dirs, '/pve2/locale/', '/usr/share/pmg-i18n/');
-    add_dirs($dirs, '/pve2/ext6/', '/usr/share/javascript/extjs/');
+    add_dirs($dirs, '/pve2/ext6/', $extjs_dir);
     add_dirs($dirs, '/pve2/images/' => "$gui_base_dir/images/");
     add_dirs($dirs, '/pve2/css/' => "$gui_base_dir/css/");
     add_dirs($dirs, '/pve2/js/' => "$gui_base_dir/js/");
@@ -78,6 +79,7 @@ sub init {
     add_dirs($dirs, '/framework7/js/' => "$framework7_dir/js/");
     add_dirs($dirs, '/xtermjs/' => "$xtermjs_dir/");
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
+    add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
 
     $self->{server_config} = {
 	title => 'Proxmox Mail Gateway API',
