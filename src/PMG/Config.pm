@@ -169,7 +169,7 @@ sub properties {
 	    type => 'string',
 	},
 	clamav_heuristic_score => {
-	    description => "Score for ClamAV heuristics (Google Safe Browsing database, PhishingScanURLs, ...).",
+	    description => "Score for ClamAV heuristics (Encrypted Archives/Documents, Google Safe Browsing database, PhishingScanURLs, ...).",
 	    type => 'integer',
 	    minimum => 0,
 	    maximum => 1000,
@@ -331,7 +331,7 @@ sub properties {
 	    default => 'database.clamav.net',
 	},
 	archiveblockencrypted => {
-	    description => "Whether to block encrypted archives and documents. Mark encrypted archives and documents as viruses.",
+	    description => "Whether to mark encrypted archives and documents. Mark encrypted archives and documents as heuristic virus match. Heuristic matches are treated by the Spam Detector as raising the Spam Score.",
 	    type => 'boolean',
 	    default => 0,
 	},
