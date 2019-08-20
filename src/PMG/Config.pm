@@ -331,7 +331,7 @@ sub properties {
 	    default => 'database.clamav.net',
 	},
 	archiveblockencrypted => {
-	    description => "Whether to mark encrypted archives and documents. Mark encrypted archives and documents as heuristic virus match. Heuristic matches are treated by the Spam Detector as raising the Spam Score.",
+	    description => "Whether to mark encrypted archives and documents as heuristic virus match. A match does not necessarily result in an immediate block, it just raises the Spam Score by 'clamav_heuristic_score'.",
 	    type => 'boolean',
 	    default => 0,
 	},
@@ -348,13 +348,13 @@ sub properties {
 	    default => 1000,
 	},
 	archivemaxsize => {
-	    description => "Files larger than this limit won't be scanned.",
+	    description => "Files larger than this limit (in bytes) won't be scanned.",
 	    type => 'integer',
 	    minimum => 1000000,
 	    default => 25000000,
 	},
 	maxscansize => {
-	    description => "Sets the maximum amount of data to be scanned for each input file.",
+	    description => "Sets the maximum amount of data (in bytes) to be scanned for each input file.",
 	    type => 'integer',
 	    minimum => 1000000,
 	    default => 100000000,
