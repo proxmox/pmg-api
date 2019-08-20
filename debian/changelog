@@ -1,3 +1,9 @@
+pmg-api (5.2-7) unstable; urgency=medium
+
+  * improve CSRF compat with newer Mail Gateway releases
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 20 Aug 2019 16:20:36 +0200
+
 pmg-api (5.2-6) unstable; urgency=medium
 
   * fix #2276: restore line format for pmg-log-tracker
