@@ -7,9 +7,8 @@ use PVE::RESTHandler;
 
 use base qw(PVE::RESTHandler);
 
-my $mime = [];
-
 my $load_mime_types = sub {
+
     my $mtypes = {
 	'message/delivery-status' => undef,
 	'message/disposition-notification' => undef,
@@ -52,6 +51,7 @@ my $load_mime_types = sub {
     # sort and add wildcard entries
     my $lasttype='';
 
+    my $mime = [];
     foreach my $mt (sort (keys %$mtypes)) {
 	my ($type, $subtype) = split ('/', $mt);
 
@@ -64,6 +64,8 @@ my $load_mime_types = sub {
 
 	push (@$mime, { mimetype => $mt, text => $text });
     }
+
+    return $mime;
 };
 
 __PACKAGE__->register_method ({
@@ -87,7 +89,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	$mime = $load_mime_types->();
+	my $mime = $load_mime_types->();
 
 	return $mime;
     }});
