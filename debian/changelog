@@ -1,3 +1,9 @@
+pmg-api (6.0-5) pmg; urgency=medium
+
+  * fix mimetypes API
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Aug 2019 14:31:38 +0200
+
 pmg-api (6.0-4) pmg; urgency=medium
 
   * fix #2324 - improve docs on encrypted archives
