@@ -52,17 +52,17 @@ my $load_mime_types = sub {
     my $lasttype='';
 
     my $mime = [];
-    foreach my $mt (sort (keys %$mtypes)) {
+    foreach my $mt (sort keys %$mtypes) {
 	my ($type, $subtype) = split ('/', $mt);
 
 	if ($type ne $lasttype) {
-	    push (@$mime, { mimetype => "$type/.*", text => "$type/.*"});
+	    push @$mime, { mimetype => "$type/.*", text => "$type/.*"};
 	    $lasttype = $type;
 	}
 
-	my $text =  $mtypes->{$mt} ? "$mt ($mtypes->{$mt})" : $mt;
+	my $text = $mtypes->{$mt} ? "$mt ($mtypes->{$mt})" : $mt;
 
-	push (@$mime, { mimetype => $mt, text => $text });
+	push @$mime, { mimetype => $mt, text => $text };
     }
 
     return $mime;
