@@ -377,7 +377,8 @@ sub child_init_hook {
 	$self->{dns_resolver} = Net::DNS::Resolver->new(%dnsargs);
 
 	$self->{spf_server} = Mail::SPF::Server->new(
-	    hostname => $self->{fqdn}, dns_resolver => $self->{dns_resolver});
+	    hostname => $self->{fqdn}, dns_resolver => $self->{dns_resolver},
+	    default_authority_explanation => 'Rejected by SPF: %{C} is not a designated mailserver for %{S} (context %{_scope}, on %{R})');
     };
     if (my $err = $@) {
 	$self->log(0, $err);
