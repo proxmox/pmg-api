@@ -501,6 +501,8 @@ sub sync_ruledb_from_master {
 	die $err;
     }
 
+    PMG::DBTools::reload_ruledb();
+
     syslog('info', "finished rule database sync from host '$ni->{ip}'");
 }
 
