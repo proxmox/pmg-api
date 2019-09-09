@@ -1,3 +1,11 @@
+pmg-api (6.0-6) pmg; urgency=medium
+
+  * fix #2224: override reference to openspf.org
+
+  * fix #2360: cluster: reload pmg-smtp-filter on rulechange
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Sep 2019 08:05:52 +0200
+
 pmg-api (6.0-5) pmg; urgency=medium
 
   * fix mimetypes API
