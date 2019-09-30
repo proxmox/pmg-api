@@ -857,7 +857,7 @@ __PACKAGE__->register_method ({
 	    my $viewimages = $cfg->get('spamquar', 'viewimages');
 	    my $allowhref = $cfg->get('spamquar', 'allowhrefs');
 
-	    $res->{content} = PMG::HTMLMail::email_to_html($path, $raw, $viewimages, $allowhref);
+	    $res->{content} = PMG::HTMLMail::email_to_html($path, $raw, $viewimages, $allowhref) // 'unable to parse mail';
 
 	    # to make result verification happy
 	    $res->{file} = '';
