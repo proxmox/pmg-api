@@ -436,7 +436,7 @@ sub load_object {
     my $otype = $ref->{'objecttype'};
     my $obj = $self->get_object($otype);
 
-    $obj->load_attr($self, $objid, $ogroup, $value);
+    return $obj->load_attr($self, $objid, $ogroup, $value);
 }
 
 sub load_object_full {
