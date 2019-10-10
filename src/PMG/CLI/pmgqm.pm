@@ -434,6 +434,10 @@ __PACKAGE__->register_method ({
 	    if (my $count = PMG::DBTools::purge_quarantine_database($dbh, 'V', $viruslifetime)) {
 		print STDERR "removed $count virus quarantine files\n";
 	    }
+
+	    if (my $count = PMG::DBTools::purge_quarantine_database($dbh, 'A', $spamlifetime)) {
+		print STDERR "removed $count attachment quarantine files\n";
+	    }
 	}
 
 	test_quarantine_files($spamlifetime, $viruslifetime, $purge);
