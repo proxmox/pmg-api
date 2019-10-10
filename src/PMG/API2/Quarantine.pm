@@ -6,6 +6,8 @@ use Time::Local;
 use Time::Zone;
 use Data::Dumper;
 use Encode;
+use File::Path;
+use IO::File;
 
 use Mail::Header;
 use Mail::SpamAssassin;
@@ -24,6 +26,8 @@ use PMG::Config;
 use PMG::DBTools;
 use PMG::HTMLMail;
 use PMG::Quarantine;
+use PMG::MailQueue;
+use PMG::MIMEUtils;
 
 use base qw(PVE::RESTHandler);
 
@@ -188,6 +192,9 @@ __PACKAGE__->register_method ({
 	    { name => 'virus' },
 	    { name => 'virusstatus' },
 	    { name => 'quarusers' },
+	    { name => 'attachment' },
+	    { name => 'listattachments' },
+	    { name => 'download' },
 	];
 
 	return $result;
@@ -699,6 +706,65 @@ __PACKAGE__->register_method ({
     }});
 
 __PACKAGE__->register_method ({
+    name => 'attachment',
+    path => 'attachment',
+    method => 'GET',
+    permissions => { check => [ 'admin', 'qmanager', 'audit' ] },
+    description => "Get a list of quarantined attachment mails in the given timeframe (default the last 24 hours).",
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    starttime => get_standard_option('pmg-starttime'),
+	    endtime => get_standard_option('pmg-endtime'),
+	},
+    },
+    returns => {
+	type => 'array',
+	items => {
+	    type => "object",
+	    properties => {
+		id => {
+		    description => 'Unique ID',
+		    type => 'string',
+		},
+		bytes => {
+		    description => "Size of raw email.",
+		    type => 'integer' ,
+		},
+		envelope_sender => {
+		    description => "SMTP envelope sender.",
+		    type => 'string',
+		},
+		from => {
+		    description => "Header 'From' field.",
+		    type => 'string',
+		},
+		sender => {
+		    description => "Header 'Sender' field.",
+		    type => 'string',
+		    optional => 1,
+		},
+		receiver => {
+		    description => "Receiver email address",
+		    type => 'string',
+		},
+		subject => {
+		    description => "Header 'Subject' field.",
+		    type => 'string',
+		},
+		time => {
+		    description => "Receive time stamp",
+		    type => 'integer',
+		},
+	    },
+	},
+    },
+    code => sub {
+	my ($param) = @_;
+	return $quarantine_api->($param, 'A');
+    }});
+
+__PACKAGE__->register_method ({
     name => 'virusstatus',
     path => 'virusstatus',
     method => 'GET',
@@ -735,6 +801,32 @@ __PACKAGE__->register_method ({
 	
 	return $ref;
     }});
+
+my $get_and_check_mail = sub {
+    my ($id, $rpcenv, $dbh) = @_;
+
+    my ($cid, $rid, $tid) = $id =~ m/^C(\d+)R(\d+)T(\d+)$/;
+    $cid = int($cid);
+    $rid = int($rid);
+    $tid = int($tid);
+
+    if (!$dbh) {
+	$dbh = PMG::DBTools::open_ruledb();
+    }
+
+    my $ref = PMG::DBTools::load_mail_data($dbh, $cid, $rid, $tid);
+
+    my $authuser = $rpcenv->get_user();
+    my $role = $rpcenv->get_role();
+
+    if ($role eq 'quser') {
+	my $quar_username = $ref->{pmail} . '@quarantine';
+	raise_perm_exc("mail does not belong to user '$authuser' ($ref->{pmail})")
+	if $authuser ne $quar_username;
+    }
+
+    return $ref;
+};
 
 __PACKAGE__->register_method ({
     name => 'content',
@@ -817,26 +909,11 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-	my $role = $rpcenv->get_role();
 	my $format = $rpcenv->get_format();
 
 	my $raw = $param->{raw} // 0;
 
-	my ($cid, $rid, $tid) = $param->{id} =~ m/^C(\d+)R(\d+)T(\d+)$/;
-	$cid = int($cid);
-	$rid = int($rid);
-	$tid = int($tid);
-
-	my $dbh = PMG::DBTools::open_ruledb();
-
-	my $ref = PMG::DBTools::load_mail_data($dbh, $cid, $rid, $tid);
-
-	if ($role eq 'quser') {
-	    my $quar_username = $ref->{pmail} . '@quarantine';
-	    raise_perm_exc("mail does not belong to user '$authuser' ($ref->{pmail})")
-		if $authuser ne $quar_username;
-	}
+	my $ref = $get_and_check_mail->($param->{id}, $rpcenv);
 
 	my $res = $parse_header_info->($ref);
 
@@ -872,6 +949,149 @@ __PACKAGE__->register_method ({
 	    $res->{content} = $content;
 	}
 
+	return $res;
+
+    }});
+
+my $get_attachments = sub {
+    my ($mailid, $dumpdir, $with_path) = @_;
+
+    my $rpcenv = PMG::RESTEnvironment->get();
+
+    my $ref = $get_and_check_mail->($mailid, $rpcenv);
+
+    my $filename = $ref->{file};
+    my $spooldir = $PMG::MailQueue::spooldir;
+
+    my $parser = PMG::MIMEUtils::new_mime_parser({
+	nested => 1,
+	decode_bodies => 0,
+	extract_uuencode => 0,
+	dumpdir => $dumpdir,
+    });
+
+    my $entity = $parser->parse_open("$spooldir/$filename");
+    PMG::MIMEUtils::fixup_multipart($entity);
+    PMG::MailQueue::decode_entities($parser, 'attachmentquarantine', $entity);
+
+    my $res = [];
+    my $id = 0;
+
+    PMG::MIMEUtils::traverse_mime_parts($entity, sub {
+	my ($part) = @_;
+	my $name = PMG::Utils::extract_filename($part->head) || "part-$id";
+	my $attachment_path = $part->{PMX_decoded_path};
+	return if !$attachment_path || ! -f $attachment_path;
+	my $size = -s $attachment_path // 0;
+	my $entry = {
+	    id => $id,
+	    name => $name,
+	    size => $size,
+	    'content-type' => $part->head->mime_attr('content-type'),
+	};
+	$entry->{path} = $attachment_path if $with_path;
+	push @$res, $entry;
+	$id++;
+    });
+
+    return $res;
+};
+
+__PACKAGE__->register_method ({
+    name => 'listattachments',
+    path => 'listattachments',
+    method => 'GET',
+    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
+    description => "Get Attachments for E-Mail in Quarantine.",
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    id => {
+		description => 'Unique ID',
+		type => 'string',
+		pattern => 'C\d+R\d+T\d+',
+		maxLength => 60,
+	    },
+	},
+    },
+    returns => {
+	type => "array",
+	items => {
+	    type => "object",
+	    properties => {
+		id => {
+		    description => 'Attachment ID',
+		    type => 'integer',
+		},
+		size => {
+		    description => "Size of raw attachment in bytes.",
+		    type => 'integer' ,
+		},
+		name => {
+		    description => "Raw email header data.",
+		    type => 'string',
+		},
+		'content-type' => {
+		    description => "Raw email header data.",
+		    type => 'string',
+		},
+	    },
+	},
+    },
+    code => sub {
+	my ($param) = @_;
+
+	my $dumpdir = "/run/pmgproxy/pmg-$param->{id}-$$";
+	my $res = $get_attachments->($param->{id}, $dumpdir);
+	rmtree $dumpdir;
+
+	return $res;
+
+    }});
+
+__PACKAGE__->register_method ({
+    name => 'download',
+    path => 'download',
+    method => 'GET',
+    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
+    description => "Download Attachment for E-Mail in Quarantine.",
+    download => 1,
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    mailid => {
+		description => 'Unique ID',
+		type => 'string',
+		pattern => 'C\d+R\d+T\d+',
+		maxLength => 60,
+	    },
+	    attachmentid => {
+		description => "The Attachment ID for the mail.",
+		type => 'integer',
+	    },
+	},
+    },
+    returns => {
+	type => "object",
+    },
+    code => sub {
+	my ($param) = @_;
+
+	my $mailid = $param->{mailid};
+	my $attachmentid = $param->{attachmentid};
+
+	my $dumpdir = "/run/pmgproxy/pmg-$mailid-$$/";
+	my $attachments = $get_attachments->($mailid, $dumpdir, 1);
+
+	my $res = $attachments->[$attachmentid];
+	if (!$res) {
+	    raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail."});
+	}
+
+	$res->{fh} = IO::File->new($res->{path}, '<') ||
+	    die "unable to open file '$res->{path}' - $!\n";
+
+	rmtree $dumpdir;
 
 	return $res;
 
@@ -922,27 +1142,14 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-	my $role = $rpcenv->get_role();
 	my $action = $param->{action};
 	my @idlist = split(';', $param->{id});
 
 	my $dbh = PMG::DBTools::open_ruledb();
 
 	for my $id (@idlist) {
-	    my ($cid, $rid, $tid) = $id =~ m/^C(\d+)R(\d+)T(\d+)$/;
-	    $cid = int($cid);
-	    $rid = int($rid);
-	    $tid = int($tid);
 
-	    my $ref = PMG::DBTools::load_mail_data($dbh, $cid, $rid, $tid);
-
-	    if ($role eq 'quser') {
-		my $quar_username = $ref->{pmail} . '@quarantine';
-		raise_perm_exc("mail does not belong to user '$authuser' ($ref->{pmail})")
-		if $authuser ne $quar_username;
-	    }
-
+	    my $ref = $get_and_check_mail->($id, $rpcenv, $dbh);
 	    my $sender = $get_real_sender->($ref);
 
 	    if ($action eq 'whitelist') {
