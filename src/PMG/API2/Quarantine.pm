@@ -524,6 +524,53 @@ __PACKAGE__->register_method ({
 	return $res;
     }});
 
+my $quarantine_api = sub {
+    my ($param, $quartype, $check_pmail) = @_;
+
+    my $rpcenv = PMG::RESTEnvironment->get();
+    my $authuser = $rpcenv->get_user();
+
+    my $start = $param->{starttime} // (time - 86400);
+    my $end = $param->{endtime} // ($start + 86400);
+
+    my $select;
+    my $pmail;
+    if ($check_pmail) {
+	my $role = $rpcenv->get_role();
+	$pmail = $verify_optional_pmail->($authuser, $role, $param->{pmail});
+	$select = "SELECT * " .
+		  "FROM CMailStore, CMSReceivers WHERE " .
+		  "pmail = ? AND time >= $start AND time < $end AND " .
+		  "QType = '$quartype' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
+		  "AND Status = 'N' ORDER BY pmail, time, receiver";
+    } else {
+	$select = "SELECT * " .
+		  "FROM CMailStore, CMSReceivers WHERE " .
+		  "time >= $start AND time < $end AND " .
+		  "QType = '$quartype' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
+		  "AND Status = 'N' ORDER BY time, receiver";
+    }
+
+    my $res = [];
+
+    my $dbh = PMG::DBTools::open_ruledb();
+
+    my $sth = $dbh->prepare($select);
+
+    if ($check_pmail) {
+	$sth->execute($pmail);
+    } else {
+	$sth->execute();
+    }
+
+    while (my $ref = $sth->fetchrow_hashref()) {
+	my $data = $parse_header_info->($ref);
+	push @$res, $data;
+    }
+
+    return $res;
+};
+
 __PACKAGE__->register_method ({
     name => 'spam',
     path => 'spam',
@@ -585,35 +632,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-	my $role = $rpcenv->get_role();
-
-	my $pmail = $verify_optional_pmail->($authuser, $role, $param->{pmail});
-
-	my $res = [];
-
-	my $dbh = PMG::DBTools::open_ruledb();
-
-	my $start = $param->{starttime} // (time - 86400);
-	my $end = $param->{endtime} // ($start + 86400);
-
-	my $sth = $dbh->prepare(
-	    "SELECT * " .
-	    "FROM CMailStore, CMSReceivers WHERE " .
-	    "pmail = ? AND time >= $start AND time < $end AND " .
-	    "QType = 'S' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
-	    "AND Status = 'N' ORDER BY pmail, time, receiver");
-
-	$sth->execute($pmail);
-
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    my $data = $parse_header_info->($ref);
-	    push @$res, $data;
-	}
-
-	return $res;
+	return $quarantine_api->($param, 'S', 1);
     }});
 
 __PACKAGE__->register_method ({
@@ -676,32 +695,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-
-	my $res = [];
-
-	my $dbh = PMG::DBTools::open_ruledb();
-
-	my $start = $param->{starttime} // (time - 86400);
-	my $end = $param->{endtime} // ($start + 86400);
-
-	my $sth = $dbh->prepare(
-	    "SELECT * " .
-	    "FROM CMailStore, CMSReceivers WHERE " .
-	    "time >= $start AND time < $end AND " .
-	    "QType = 'V' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
-	    "AND Status = 'N' ORDER BY time, receiver");
-
-	$sth->execute();
-
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    my $data = $parse_header_info->($ref);
-	    push @$res, $data;
-	}
-
-	return $res;
+	return $quarantine_api->($param, 'V');
     }});
 
 __PACKAGE__->register_method ({
