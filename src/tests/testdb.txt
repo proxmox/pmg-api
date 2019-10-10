@@ -31,6 +31,17 @@ Found RULE 1: Block Dangerous Files
     OBJECT 21: filename=.*\.\{.+\}
   FOUND ACTION GROUP 14: Remove attachments
     OBJECT 28: remove matching attachments
+Found RULE 12: Quarantine Office Files
+  FOUND WHAT GROUP 6: Office Files
+    OBJECT 9: content-type=application/msword
+    OBJECT 7: content-type=application/vnd\.ms-excel
+    OBJECT 8: content-type=application/vnd\.ms-powerpoint
+    OBJECT 11: content-type=application/vnd\.oasis\.opendocument\..*
+    OBJECT 10: content-type=application/vnd\.openxmlformats-officedocument\..*
+    OBJECT 12: content-type=application/vnd\.stardivision\..*
+    OBJECT 13: content-type=application/vnd\.sun\.xml\..*
+  FOUND ACTION GROUP 22: Attachment Quarantine (remove matching)
+    OBJECT 36: remove matching attachments
 Found RULE 11: Block Multimedia Files
   FOUND WHAT GROUP 5: Multimedia
     OBJECT 5: content-type=audio/.*

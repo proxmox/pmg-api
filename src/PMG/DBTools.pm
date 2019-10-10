@@ -711,6 +711,16 @@ sub init_ruledb {
     my $add_discl = $ruledb->create_group_with_obj(
 	$obj, 'Disclaimer', 'Add Disclaimer');
 
+    # Move to attachment quarantine
+    $obj = PMG::RuleDB::Remove->new(0, undef, undef, 1);
+    my $attach_quar = $ruledb->create_group_with_obj(
+	$obj, 'Attachment Quarantine (remove matching)', 'Remove matching attachments and move the whole mail to the attachment quarantine.');
+
+    # Remove all attachments
+    $obj = PMG::RuleDB::Remove->new(1, undef, undef, 1);
+    my $attach_quar_all = $ruledb->create_group_with_obj(
+	$obj, 'Attachment Quarantine (remove all)', 'Remove all attachments and move the whole mail to the attachment quarantine.');
+
     # Attach original mail
     #$obj = Proxmox::RuleDB::Attach->new ();
     #my $attach_orig = $ruledb->create_group_with_obj ($obj, 'Attach Original Mail',
@@ -821,6 +831,13 @@ sub init_ruledb {
 
     $ruledb->rule_add_what_group ($rule, $mm_content);
     $ruledb->rule_add_action ($rule, $remove);
+
+    # Quarantine Office Files
+    $rule = PMG::RuleDB::Rule->new ('Quarantine Office Files', 89, 0, 0);
+    $ruledb->save_rule ($rule);
+
+    $ruledb->rule_add_what_group ($rule, $office_content);
+    $ruledb->rule_add_action ($rule, $attach_quar);
 
     #$ruledb->rule_add_from_group ($rule, $anybody);
     #$ruledb->rule_add_from_group ($rule, $trusted);
