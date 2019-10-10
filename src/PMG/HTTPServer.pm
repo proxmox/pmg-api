@@ -162,9 +162,13 @@ sub rest_handler {
 	};
 
 	if ($info->{download}) {
-	    die "download methods should have return type 'string' - internal error"
-		if ($info->{returns}->{type} ne 'string');
-	    $resp->{download} = $result;
+	    my $type =  $info->{returns}->{type};
+	    if ($type eq 'string' || $type eq 'object') {
+		$resp->{download} = $result;
+	    } else {
+		die "API calls which trigger downloads need to have return type 'string' or 'object' - internal error"
+	    }
+
 	} else {
 	    $resp->{data} = $result;
 	}
