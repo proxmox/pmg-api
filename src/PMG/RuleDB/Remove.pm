@@ -115,6 +115,7 @@ sub delete_marked_parts {
 
     my $nparts = [];
 
+    my $ctype = $entity->head->mime_type;
     my $pn = $entity->parts;
     for (my $i = 0; $i < $pn; $i++) {
 	my $part = $entity->parts($i);
@@ -126,8 +127,26 @@ sub delete_marked_parts {
 
 	    if ($self->{all}) {
 		my $ctype_part = $part->head->mime_type;
-		if (!($i == 0 && $ctype_part =~ m|text/.*|i)) {
+		if ($self->{message_seen}) {
 		    $found = 1;
+		} else {
+		    if ($ctype =~ m|multipart/alternative|i) {
+			if ($ctype_part !~ m{text/(?:plain|html)}i) {
+			    $found = 1 ;
+			}
+
+			if ($i == ($pn-1)) {
+			    # we have not seen the message and it is the
+			    # end of the first multipart/alternative, mark as message seen
+			    $self->{message_seen} = 1;
+			}
+		    } else {
+			if ($ctype_part =~ m{text/(?:plain|html)}i) {
+			    $self->{message_seen} = 1;
+			} elsif ($ctype_part !~ m|multipart/|i) {
+			    $found = 1 ;
+			}
+		    }
 		}
 	    } else {
 		foreach my $m (@$marks) {
@@ -159,7 +178,7 @@ sub delete_marked_parts {
 		    $queue->{logid}, $on, $rulename);
 
 	} else {
-	    $self->delete_marked_parts($queue, $part, $html, $rtype, $marks);
+	    $self->delete_marked_parts($queue, $part, $html, $rtype, $marks, $rulename);
 	    push (@$nparts, $part);
 	}
     }
@@ -202,7 +221,9 @@ sub execute {
 	    $entity->head->delete('x-proxmox-tmp-aid');
 	}
 
+	$self->{message_seen} = 0;
 	$self->delete_marked_parts($queue, $entity, $html, $rtype, $marks, $rulename);
+	delete $self->{message_seen};
 
 	if ($msginfo->{testmode}) {
 	    $entity->head->mime_attr('Content-type.boundary' => '------=_TEST123456') if $entity->is_multipart;
