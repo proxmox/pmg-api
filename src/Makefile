@@ -50,6 +50,7 @@ LIBSOURCES =				\
 	PMG/pmgcfg.pm			\
 	PMG/RESTEnvironment.pm		\
 	PMG/Utils.pm			\
+	PMG/MIMEUtils.pm		\
 	PMG/HTMLMail.pm			\
 	PMG/ModGroup.pm			\
 	PMG/SMTPPrinter.pm		\
