@@ -25,15 +25,24 @@ sub create_spooldirs {
 
     # if requested, remove any stale date
     File::Path::remove_tree(
-	"$spooldir/cluster", "$spooldir/active",
-	"$spooldir/virus", "$spooldir/spam") if $cleanup;
+	"$spooldir/cluster",
+	"$spooldir/active",
+	"$spooldir/virus",
+	"$spooldir/spam",
+	"$spooldir/attachment",
+    ) if $cleanup;
 
     File::Path::make_path(
-	"$spooldir/active", "$spooldir/spam", "$spooldir/virus");
+	"$spooldir/active",
+	"$spooldir/spam",
+	"$spooldir/virus",
+	"$spooldir/attachment",
+    );
 
     if ($lcid) {
 	mkpath "$spooldir/cluster/$lcid/virus";
 	mkpath "$spooldir/cluster/$lcid/spam";
+	mkpath "$spooldir/cluster/$lcid/attachment";
     }
 }
 
@@ -254,6 +263,12 @@ sub fsync_file_and_dir {
 
 }
 
+my $subpath_map = {
+    'V' => 'virus',
+    'S' => 'spam',
+    'A' => 'attachment',
+};
+
 sub quarantine_mail {
     my ($self, $ruledb, $qtype, $entity, $tg, $msginfo, $vars, $ldap) = @_;
 
@@ -261,7 +276,7 @@ sub quarantine_mail {
 
     my $header = extract_header_text ($entity);
 
-    my $subpath = $qtype eq 'V' ? 'virus' : 'spam';
+    my $subpath = $subpath_map->{$qtype} // 'spam';
 
     my $lcid = $msginfo->{lcid};
 
