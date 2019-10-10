@@ -41,7 +41,7 @@ sub priority {
 }
 
 sub new {
-    my ($type, $all, $text, $ogroup) = @_;
+    my ($type, $all, $text, $ogroup, $quarantine) = @_;
 
     my $class = ref($type) || $type;
 
@@ -51,6 +51,7 @@ sub new {
 
     $self->{all} = $all;
     $self->{text} = $text;
+    $self->{quarantine} = $quarantine;
 
     return $self;
 }
@@ -64,7 +65,9 @@ sub load_attr {
 
     my $obj;
 
-    if ($value =~ m/^([01])(\:(.*))?$/s) {
+    if ($value =~ m/^([01])\,([01])(\:(.*))?$/s) {
+	$obj = $class->new($1, $4, $ogroup, $2);
+    } elsif ($value =~ m/^([01])(\:(.*))?$/s) {
 	$obj = $class->new($1, $3, $ogroup);
     } else {
 	$obj = $class->new(0, undef, $ogroup);
@@ -83,6 +86,7 @@ sub save {
     defined($self->{ogroup}) || die "undefined ogroup: ERROR";
 
     my $value = $self->{all} ? '1' : '0';
+    $value .= ','. ($self->{quarantine} ? '1' : '0');
 
     if ($self->{text}) {
 	$value .= ":$self->{text}";
@@ -188,7 +192,7 @@ sub delete_marked_parts {
 
 sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets,
-	$msginfo, $vars, $marks) = @_;
+	$msginfo, $vars, $marks, $ldap) = @_;
 
     my $rulename = $vars->{RULE} // 'unknown';
 
@@ -201,7 +205,10 @@ sub execute {
 
     my $html = PMG::Utils::subst_values($self->{text}, $vars);
 
-    $html = "This attachment was removed: __FILENAME__\n" if !$html;
+    if (!$html) {
+	$html = "This attachment was removed: __FILENAME__\n";
+	$html .= "It was put into the Attachment Quarantine, please contact your Administrator\n" if $self->{quarantine};
+    }
 
     my $rtype = "text/plain";
 
@@ -211,6 +218,17 @@ sub execute {
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+
+	# copy original entity to attachment quarantine if configured
+	if ($self->{quarantine}) {
+	    my $original_entity = $entity->dup;
+	    PMG::Utils::remove_marks($original_entity);
+	    if (my $qid = $queue->quarantine_mail($ruledb, 'A', $original_entity, $tg, $msginfo, $vars, $ldap)) {
+		foreach (@$tg) {
+		    syslog ('info', "$queue->{logid}: moved mail for <%s> to attachment quarantine - %s (rule: %s)", $_, $qid, $rulename);
+		}
+	    }
+	}
 
 	# handle singlepart mails
 	my $ctype = $entity->head->mime_type;
@@ -250,6 +268,12 @@ sub properties {
 	    type => 'boolean',
 	    optional => 1,
 	},
+	quarantine => {
+	    description => "Copy original mail to attachment Quarantine.",
+	    type => 'boolean',
+	    default => 0,
+	    optional => 1,
+	},
 	text => {
 	    description => "The replacement text.",
 	    type => 'string',
@@ -264,6 +288,7 @@ sub get {
     return {
 	text => $self->{text},
 	all => $self->{all},
+	quarantine => $self->{quarantine},
     };
 }
 
@@ -272,6 +297,7 @@ sub update {
 
     $self->{text} = $param->{text};
     $self->{all} = $param->{all} ? 1 : 0;
+    $self->{quarantine} = $param->{quarantine} ? 1 : 0;
 }
 
 1;
