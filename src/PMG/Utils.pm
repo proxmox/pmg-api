@@ -37,6 +37,7 @@ use PVE::ProcFSTools;
 use PMG::AtomicFile;
 use PMG::MailQueue;
 use PMG::SMTPPrinter;
+use PMG::MIMEUtils;
 
 use base 'Exporter';
 
@@ -169,21 +170,20 @@ sub extract_filename {
 }
 
 sub remove_marks {
-    my ($entity, $add_id, $id) = @_;
+    my ($entity, $add_id) = @_;
 
-    $id //= 1;
+    my $id = 1;
 
-    foreach my $tag (grep {/^x-proxmox-tmp/i} $entity->head->tags) {
-	$entity->head->delete ($tag);
-    }
+    PMG::MIMEUtils::traverse_mime_parts($entity, sub {
+	my ($part) = @_;
+	foreach my $tag (grep {/^x-proxmox-tmp/i} $part->head->tags) {
+	    $part->head->delete($tag);
+	}
 
-    $entity->head->replace('X-Proxmox-tmp-AID', $id) if $add_id;
+	$part->head->replace('X-Proxmox-tmp-AID', $id) if $add_id;
 
-    foreach my $part ($entity->parts)  {
-	$id = remove_marks($part, $add_id, $id + 1);
-    }
-
-    return $id;
+	$id++;
+    });
 }
 
 sub subst_values {

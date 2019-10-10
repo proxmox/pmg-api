@@ -14,6 +14,7 @@ use Time::HiRes qw(gettimeofday);
 use Mail::Header;
 
 use PMG::LDAPSet;
+use PMG::MIMEUtils;
 
 our $spooldir = "/var/spool/pmg";
 
@@ -344,25 +345,14 @@ sub close {
 sub _new_mime_parser {
     my ($self, $maxfiles) = shift;
 
-    # Create a new MIME parser:
-    my $parser = new MIME::Parser;
-    #$parser->decode_headers(1);
-    $parser->extract_nested_messages (1);
-    $parser->ignore_errors (1);
-    $parser->extract_uuencode (0);
-    $parser->decode_bodies (0);
-
-    $parser->max_parts ($maxfiles) if $maxfiles;
-
-    rmtree $self->{dumpdir};
-
-    # Create and set the output directory:
-    (-d $self->{dumpdir} || mkdir ($self->{dumpdir} ,0755)) ||
-	die "can't create $self->{dumpdir}: $! : ERROR";
-    (-w $self->{dumpdir}) ||
-	die "can't write to directory $self->{dumpdir}: $! : ERROR";
-
-    $parser->output_dir($self->{dumpdir});
+    my $parser = PMG::MIMEUtils::new_mime_parser({
+	nested => 1,
+	ignore_errors => 1,
+	extract_uuencode => 0,
+	decode_bodies => 0,
+	maxfiles => $maxfiles,
+	dumpdir => $self->{dumpdir},
+    });
 
     return $parser;
 }
@@ -385,10 +375,7 @@ sub parse_mail {
 
     die "$self->{logid}: unable to parse message - $@" if $@;
 
-    # bug fix for bin/tests/content/mimeparser.txt
-    if ($entity->mime_type =~ m|multipart/|i && !$entity->head->multipart_boundary) {
-	$entity->head->mime_attr('Content-type' => "application/x-unparseable-multipart");
-    }
+    PMG::MIMEUtils::fixup_multipart($entity);
 
     if ((my $idcount = $entity->head->count ('Message-Id')) > 0) {
 	$self->msgid ($entity->head->get ('Message-Id', $idcount - 1));
@@ -412,51 +399,50 @@ sub parse_mail {
 sub decode_entities {
     my ($parser, $logid, $entity) = @_;
 
-    if ($entity->bodyhandle && (my $path = $entity->bodyhandle->path)) {
+    PMG::MIMEUtils::traverse_mime_parts($entity, sub {
+	my ($part) = @_;
+	if ($part->bodyhandle && (my $path = $part->bodyhandle->path)) {
 
-	eval {
-	    my $head = $entity->head;
-	    my $encoding = $head->mime_encoding;
-	    my $decoder = new MIME::Decoder $encoding;
+	    eval {
+		my $head = $part->head;
+		my $encoding = $head->mime_encoding;
+		my $decoder = new MIME::Decoder $encoding;
 
-	    if (!$decoder || ($decoder eq 'none' || $decoder eq 'binary')) {
+		if (!$decoder || ($decoder eq 'none' || $decoder eq 'binary')) {
 
-		$entity->{PMX_decoded_path} = $path; # no need to decode
+		    $part->{PMX_decoded_path} = $path; # no need to decode
 
-	    } else {
+		} else {
 
-		my $body = $parser->new_body_for ($head);
-		$body->binmode(1);
-		$body->is_encoded(0);
+		    my $body = $parser->new_body_for ($head);
+		    $body->binmode(1);
+		    $body->is_encoded(0);
 
-		my $in = $entity->bodyhandle->open ("r") ||
+		    my $in = $part->bodyhandle->open ("r") ||
 		    die "unable to read raw data '$path'";
 
-		my $decfh = $body->open ("w") ||
+		    my $decfh = $body->open ("w") ||
 		    die "unable to open body: $!";
 
-		$decoder->decode ($in, $decfh);
+		    $decoder->decode ($in, $decfh);
 
-		$in->close;
+		    $in->close;
 
-		$decfh->close ||
+		    $decfh->close ||
 		    die "can't close bodyhandle: $!";
 
-		$entity->{PMX_decoded_path} = $body->path;
+		    $part->{PMX_decoded_path} = $body->path;
+		}
+	    };
+
+	    my $err = $@;
+
+	    if ($err) {
+		syslog ('err', "$logid: $err");
 	    }
-	};
 
-	my $err = $@;
-
-	if ($err) {
-	    syslog ('err', "$logid: $err");
 	}
-
-    }
-
-    foreach my $part ($entity->parts)  {
-	decode_entities ($parser, $logid, $part);
-    }
+    });
 }
 
 1;

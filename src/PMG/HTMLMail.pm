@@ -12,6 +12,9 @@ use MIME::Base64;
 use HTML::TreeBuilder;
 use HTML::Scrubber;
 
+use PMG::Utils;
+use PMG::MIMEUtils;
+
 sub dump_html {
     my ($tree, $cid_hash) = @_;
 
@@ -314,25 +317,13 @@ sub email_to_html {
 
 	} else {
 
-	    my $parser = new MIME::Parser;
-	    $parser->extract_nested_messages(0);
-
-	    rmtree $dumpdir;
-
-	    # Create and set the output directory:
-	    (-d $dumpdir || mkdir($dumpdir ,0755)) ||
-		die "can't create $dumpdir: $! : ERROR";
-	    (-w $dumpdir) ||
-		die "can't write to directory $dumpdir: $! : ERROR";
-
-	    $parser->output_dir($dumpdir);
+	    my $parser = PMG::MIMEUtils::new_mime_parser({
+		dumpdir => $dumpdir,
+	    });
 
 	    my $entity = $parser->parse_open($path);
 
-	    # bug fix for bin/tests/content/mimeparser.txt
-	    if ($entity->mime_type =~ m|multipart/|i && !$entity->head->multipart_boundary) {
-		$entity->head->mime_attr('Content-type' => "application/x-unparseable-multipart");
-	    }
+	    PMG::MIMEUtils::fixup_multipart($entity);
 
 	    $html = entity_to_html($entity, {}, $viewimages, $allowhref);
 	}

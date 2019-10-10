@@ -18,6 +18,7 @@ use LibArchive;
 use MIME::Parser;
 
 use PMG::Utils;
+use PMG::MIMEUtils;
 
 my $unpackers = {
 
@@ -498,32 +499,6 @@ sub add_glob_mime_type {
     }
 }
 
-sub walk_mime_entity {
-    my ($self, $entity) = @_;
-
-    my $count = 0;
-    my $size = 0;
-
-    my $ct = $entity->head->mime_attr ('content-type');
-    $self->{mime}->{$ct} = 1 if $ct && length ($ct) < 256;
-
-    if (my $body = $entity->bodyhandle) {
-	my $path = $body->path;
-	$size = -s $path;
-	$count = 1;
-    }
-
-    foreach my $part ($entity->parts)  {
-	if (my ($n, $s) = $self->walk_mime_entity ($part)) {
-	    $count += $n;
-	    $size += $s;
-	}
-    }
-
-    return ($count, $size);
-}
-
-
 sub unpack_mime {
     my ($self, $app, $filename, $tmpdir, $csize, $filesize) = @_;
 
@@ -536,22 +511,33 @@ sub unpack_mime {
 	run_with_timeout ($timeout, sub {
 
 	    # Create a new MIME parser:
-	    my $parser = new MIME::Parser;
-	    $parser->output_under ($tmpdir);
-	    $parser->extract_nested_messages (1);
-	    $parser->ignore_errors (1);
-	    $parser->extract_uuencode (1);
-	    $parser->filer->ignore_filename(1);
-
+	    my $max;
 	    if ($self->{maxfiles}) {
-		my $max = $self->{maxfiles} - $self->{files};
-		$parser->max_parts ($max);
+		$max = $self->{maxfiles} - $self->{files};
 	    }
+
+	    my $parser = PMG::MIMEUtils::new_mime_parser({
+		dumpdir => $tmpdir,
+		nested => 1,
+		ignore_errors => 1,
+		extract_uuencode => 1,
+		ignore_filename => 1,
+		maxfiles => $max,
+	    }, 1);
 
 	    my $entity = $parser->parse_open ($filename);
 
-	    ($files, $size) = $self->walk_mime_entity ($entity);
+	    PMG::MIMEUtils::traverse_mime_parts($entity, sub {
+		my ($part) = @_;
+		my $ct = $part->head->mime_attr('content-type');
+		$self->{mime}->{$ct} = 1 if $ct && length($ct) < 256;
 
+		if (my $body = $part->bodyhandle) {
+		    my $path = $body->path;
+		    $size += -s $path;
+		    $files++;
+		}
+	    });
 	});
     };
 
