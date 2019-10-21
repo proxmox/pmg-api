@@ -51,6 +51,7 @@ my $extjs_dir = "/usr/share/javascript/extjs/";
 my $fontawesome_dir = "/usr/share/fonts-font-awesome";
 my $xtermjs_dir = '/usr/share/pve-xtermjs';
 my $framework7_dir = '/usr/share/javascript/framework7';
+my $widgettoolkit_dir = '/usr/share/javascript/proxmox-widget-toolkit';
 
 sub init {
     my ($self) = @_;
@@ -80,6 +81,7 @@ sub init {
     add_dirs($dirs, '/xtermjs/' => "$xtermjs_dir/");
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
     add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
+    add_dirs($dirs, '/pwt/css/' => "$widgettoolkit_dir/css/");
 
     $self->{server_config} = {
 	title => 'Proxmox Mail Gateway API',
