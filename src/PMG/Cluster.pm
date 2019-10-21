@@ -404,6 +404,20 @@ sub sync_config_from_master {
 	$cond_commit_synced_file->($filename);
     }
 
+    my $dirs = [
+	'templates',
+	'dkim',
+    ];
+
+    foreach my $dir (@$dirs) {
+	my $srcdir = "$syncdir/$dir";
+
+	if ( -d $srcdir ) {
+	    my $cmd = ['rsync', '-aq', '--delete-after', "$srcdir/", "$cfgdir/$dir"];
+	    PVE::Tools::run_command($cmd);
+	}
+
+    }
 
     my $force_restart = {};
 
@@ -413,33 +427,6 @@ sub sync_config_from_master {
 
     $cond_commit_synced_file->('pmg.conf');
 
-    # sync user templates files/symlinks (not recursive)
-    my $srcdir = "$syncdir/templates";
-    if (-d $srcdir) {
-	my $dstdir = "$cfgdir/templates";
-	mkdir $dstdir;
-	my $names_hash = {};
-	foreach my $fn (<$srcdir/*>) {
-	    next if $fn !~ m|^($srcdir/(.*))$|;
-	    $fn = $1; # untaint;
-	    my $name = $2;
-	    $names_hash->{$name} = 1;
-	    my $target = "$dstdir/$name";
-	    if (-f $fn) {
-		$cond_commit_synced_file->("templates/$name", $target);
-	    } elsif (-l $fn) {
-		warn "update $target failed - $!\n" if !rename($fn, $target);
-	    }
-	}
-	# remove vanished files
-	foreach my $fn (<$dstdir/*>) {
-	    next if $fn !~ m|^($dstdir/(.*))$|;
-	    $fn = $1; # untaint;
-	    my $name = $2;
-	    next if $names_hash->{$name};
-	    warn "unlink $fn failed - $!\n" if !unlink($fn);
-	}
-    }
 }
 
 sub sync_ruledb_from_master {
