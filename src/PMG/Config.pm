@@ -1548,6 +1548,65 @@ sub rewrite_config_postfix {
     return $changes;
 }
 
+#parameters affecting services w/o config-file (pmgpolicy, pmg-smtp-filter)
+my $pmg_service_params = {
+    mail => { hide_received => 1 },
+};
+
+my $smtp_filter_cfg = '/run/pmg-smtp-filter.cfg';
+my $smtp_filter_cfg_lock = '/run/pmg-smtp-filter.cfg.lck';
+
+sub dump_smtp_filter_config {
+    my ($self) = @_;
+
+    my $conf = '';
+    my $val;
+    foreach my $sec (sort keys %$pmg_service_params) {
+	my $conf_sec = $self->{ids}->{$sec} // {};
+	foreach my $key (sort keys %{$pmg_service_params->{$sec}}) {
+	    $val = $conf_sec->{$key};
+	    $conf .= "$sec.$key:$val\n" if defined($val);
+	}
+    }
+
+    return $conf;
+}
+
+sub compare_smtp_filter_config {
+    my ($self) = @_;
+
+    my $ret = 0;
+    my $old;
+    eval {
+	$old = PVE::Tools::file_get_contents($smtp_filter_cfg);
+    };
+
+    if (my $err = $@) {
+	syslog ('warning', "reloading pmg-smtp-filter: $err");
+	$ret = 1;
+    } else {
+	my $new = $self->dump_smtp_filter_config();
+	$ret = 1 if $old ne $new;
+    }
+
+    $self->write_smtp_filter_config() if $ret;
+
+    return $ret;
+}
+
+# writes the parameters relevant for pmg-smtp-filter to /run/ for comparison
+# on config change
+sub write_smtp_filter_config {
+    my ($self) = @_;
+
+    PVE::Tools::lock_file($smtp_filter_cfg_lock, undef, sub {
+	PVE::Tools::file_set_contents($smtp_filter_cfg,
+	    $self->dump_smtp_filter_config());
+    });
+
+    die $@ if $@;
+}
+
 sub rewrite_config {
     my ($self, $rulecache, $restart_services, $force_restart) = @_;
 
@@ -1588,6 +1647,12 @@ sub rewrite_config {
 	$force_restart->{freshclam}) {
 	$log_restart->('clamav-freshclam');
 	PMG::Utils::service_cmd('clamav-freshclam', 'restart');
+    }
+
+    if (($self->compare_smtp_filter_config() && $restart_services) ||
+	$force_restart->{spam}) {
+	syslog ('info', "scheduled reload for pmg-smtp-filter");
+	PMG::Utils::reload_smtp_filter();
     }
 }
 

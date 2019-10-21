@@ -440,6 +440,7 @@ sub pre_loop_hook {
     my ($backup_umask) = umask;
 
     my $pmg_cfg = PMG::Config->new();
+    $pmg_cfg->write_smtp_filter_config();
 
     # Note: you need to restart the daemon when you change 'rbl_checks'
     my $rbl_checks = $pmg_cfg->get('spam', 'rbl_checks');
