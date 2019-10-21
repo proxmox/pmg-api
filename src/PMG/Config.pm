@@ -112,6 +112,20 @@ sub properties {
 	    type => 'string', pattern => '^/([^/\0]+\/)+[^/\0]+$',
 	    default => '/usr/local/bin/pmg-custom-check',
 	},
+	dkim_sign => {
+	    description => "DKIM sign outbound mails with the configured Selector.",
+	    type => 'boolean',
+	    default => 0,
+	},
+	dkim_sign_all_mail => {
+	    description => "DKIM sign all outgoing mails irrespective of the Envelope From domain.",
+	    type => 'boolean',
+	    default => 0,
+	},
+	dkim_selector => {
+	    description => "Default DKIM selector",
+	    type => 'string', format => 'dns-name', #see RFC6376 3.1
+	},
     };
 }
 
@@ -127,6 +141,9 @@ sub options {
 	http_proxy => { optional => 1 },
 	custom_check => { optional => 1 },
 	custom_check_path => { optional => 1 },
+	dkim_sign => { optional => 1 },
+	dkim_sign_all_mail => { optional => 1 },
+	dkim_selector => { optional => 1 },
     };
 }
 
@@ -917,6 +934,13 @@ PVE::INotify::register_file('domains', $domainsfilename,
 			    \&write_pmg_domains,
 			    undef, always_call_parser => 1);
 
+my $dkimdomainsfile = '/etc/pmg/dkim/domains';
+
+PVE::INotify::register_file('dkimdomains', $dkimdomainsfile,
+			    \&read_pmg_domains,
+			    \&write_pmg_domains,
+			    undef, always_call_parser => 1);
+
 my $mynetworks_filename = "/etc/pmg/mynetworks";
 
 sub read_pmg_mynetworks {
@@ -1551,6 +1575,11 @@ sub rewrite_config_postfix {
 #parameters affecting services w/o config-file (pmgpolicy, pmg-smtp-filter)
 my $pmg_service_params = {
     mail => { hide_received => 1 },
+    admin => {
+	dkim_selector => 1,
+	dkim_sign => 1,
+	dkim_sign_all_mail => 1,
+    },
 };
 
 my $smtp_filter_cfg = '/run/pmg-smtp-filter.cfg';
