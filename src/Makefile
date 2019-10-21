@@ -119,6 +119,7 @@ LIBSOURCES =				\
 	PMG/API2/LDAP.pm		\
 	PMG/API2/DestinationTLSPolicy.pm\
 	PMG/API2/Domains.pm		\
+	PMG/API2/DKIMSignDomains.pm	\
 	PMG/API2/Fetchmail.pm		\
 	PMG/API2/Users.pm		\
 	PMG/API2/Transport.pm		\
