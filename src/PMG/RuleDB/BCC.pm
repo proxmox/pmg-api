@@ -8,6 +8,7 @@ use PVE::SafeSyslog;
 
 use PMG::Utils;
 use PMG::ModGroup;
+use PMG::DKIMSign;
 use PMG::RuleDB::Object;
 
 use base qw(PMG::RuleDB::Object);
@@ -136,6 +137,16 @@ sub execute {
 
 	$entity = $entity->dup();
 	PMG::Utils::remove_marks($entity);
+
+	my $dkim = $msginfo->{dkim} // {};
+	if ($dkim->{sign}) {
+	    eval {
+		$entity = PMG::DKIMSign::sign_entity($entity,
+		    $dkim->{selector}, $msginfo->{sender}, $dkim->{sign_all});
+	    };
+	    syslog('warning',
+		"Could not create DKIM-Signature - disabling Signing: $@") if $@;
+	}
 
 	if ($msginfo->{testmode}) {
 	    my $fh = $msginfo->{test_fh};

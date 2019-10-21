@@ -10,6 +10,7 @@ use Digest::SHA;
 
 use PMG::Utils;
 use PMG::ModGroup;
+use PMG::DKIMSign;
 use PMG::RuleDB::Object;
 
 use base qw(PMG::RuleDB::Object);
@@ -89,7 +90,8 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
 
-    my $subgroups = $mod_group->subgroups($targets, 1);
+    my $dkim = $msginfo->{dkim} // {};
+    my $subgroups = $mod_group->subgroups($targets, !$dkim->{sign});
 
     my $rulename = $vars->{RULE} // 'unknown';
 
@@ -97,6 +99,16 @@ sub execute {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
 	PMG::Utils::remove_marks($entity);
+
+	if ($dkim->{sign}) {
+	    eval {
+		$entity = PMG::DKIMSign::sign_entity($entity,
+		    $dkim->{selector}, $msginfo->{sender}, $dkim->{sign_all});
+	    };
+	    syslog('warning',
+		"Could not create DKIM-Signature - disabling Signing: $@") if $@;
+	}
+
 
 	if ($msginfo->{testmode}) {
 	    my $fh = $msginfo->{test_fh};
