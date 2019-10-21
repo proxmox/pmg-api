@@ -18,6 +18,7 @@ use PMG::LDAPConfig;
 use PMG::LDAPSet;
 use PMG::Config;
 use PMG::Ticket;
+use PMG::API2::DKIMSign;
 
 use base qw(PVE::CLIHandler);
 
@@ -190,6 +191,12 @@ our $cmddef = {
     apicert => [ __PACKAGE__, 'apicert', []],
     tlscert => [ __PACKAGE__, 'tlscert', []],
     init => [ __PACKAGE__, 'init', []],
+    dkim_set => [ 'PMG::API2::DKIMSign', 'set_selector', []],
+    dkim_record => [ 'PMG::API2::DKIMSign', 'get_selector_info', [], undef,
+	sub {
+	    my ($res) = @_;
+	    print "$res->{record}\n";
+	}],
 };
 
 
