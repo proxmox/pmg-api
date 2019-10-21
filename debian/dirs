@@ -1,3 +1,4 @@
 /etc/pmg
+/etc/pmg/dkim
 /var/lib/pmg
 /var/lib/pmg/backup

@@ -74,6 +74,7 @@ LIBSOURCES =				\
 	PMG/LDAPSet.pm			\
 	PMG/LDAPCache.pm		\
 	PMG/DBTools.pm			\
+	PMG/DKIMSign.pm			\
 	PMG/Quarantine.pm		\
 	PMG/Report.pm			\
 	PMG/RuleDB/Group.pm		\
