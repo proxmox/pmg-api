@@ -23,6 +23,7 @@ use PMG::API2::SMTPWhitelist;
 use PMG::API2::MimeTypes;
 use PMG::API2::Fetchmail;
 use PMG::API2::DestinationTLSPolicy;
+use PMG::API2::DKIMSign;
 
 use base qw(PVE::RESTHandler);
 
@@ -81,6 +82,11 @@ __PACKAGE__->register_method ({
     path => 'tlspolicy',
 });
 
+__PACKAGE__->register_method({
+    subclass => "PMG::API2::DKIMSign",
+    path => 'dkim',
+});
+
 __PACKAGE__->register_method ({
     name => 'index', 
     path => '',
@@ -118,6 +124,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'whitelist' };
 	push @$res, { section => 'regextest' };
 	push @$res, { section => 'tlspolicy' };
+	push @$res, { section => 'dkim' };
 
 	return $res;
     }});
