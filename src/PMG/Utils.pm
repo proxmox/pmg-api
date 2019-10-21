@@ -1429,4 +1429,17 @@ sub get_pg_server_version {
     return $major_ver;
 }
 
+sub reload_smtp_filter {
+
+    my $pid_file = '/run/pmg-smtp-filter.pid';
+    my $pid = PVE::Tools::file_read_firstline($pid_file);
+
+    return 0 if !$pid;
+
+    return 0 if $pid !~ m/^(\d+)$/;
+    $pid = $1; # untaint
+
+    return kill (10, $pid); # send SIGUSR1
+}
+
 1;

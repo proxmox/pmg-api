@@ -11,7 +11,6 @@ use Time::Local;
 use PVE::SafeSyslog;
 use PVE::Tools;
 
-use PMG::Utils;
 use PMG::RuleDB;
 use PMG::MailQueue;
 use PMG::Config;
@@ -1276,15 +1275,7 @@ sub reload_ruledb {
 	}
     }
 
-    my $pid_file = '/run/pmg-smtp-filter.pid';
-    my $pid = PVE::Tools::file_read_firstline($pid_file);
-
-    return 0 if !$pid;
-
-    return 0 if $pid !~ m/^(\d+)$/;
-    $pid = $1; # untaint
-
-    return kill (10, $pid); # send SIGUSR1
+    PMG::Utils::reload_smtp_filter();
 }
 
 1;
