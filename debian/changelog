@@ -1,3 +1,11 @@
+pmg-api (6.0-8) pmg; urgency=medium
+
+  * add attachment quarantine with API integration
+
+  * fix API result verification for invalid mails
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 22 Oct 2019 07:37:00 +0200
+
 pmg-api (6.0-6) pmg; urgency=medium
 
   * fix #2224: override reference to openspf.org
