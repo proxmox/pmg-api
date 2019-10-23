@@ -1053,8 +1053,8 @@ __PACKAGE__->register_method ({
     name => 'download',
     path => 'download',
     method => 'GET',
-    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
-    description => "Download Attachment for E-Mail in Quarantine.",
+    permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
+    description => "Download E-Mail or Attachment from Quarantine.",
     download => 1,
     parameters => {
 	additionalProperties => 0,
@@ -1068,6 +1068,7 @@ __PACKAGE__->register_method ({
 	    attachmentid => {
 		description => "The Attachment ID for the mail.",
 		type => 'integer',
+		optional => 1,
 	    },
 	},
     },
@@ -1081,17 +1082,29 @@ __PACKAGE__->register_method ({
 	my $attachmentid = $param->{attachmentid};
 
 	my $dumpdir = "/run/pmgproxy/pmg-$mailid-$$/";
-	my $attachments = $get_attachments->($mailid, $dumpdir, 1);
+	my $res;
 
-	my $res = $attachments->[$attachmentid];
-	if (!$res) {
-	    raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail."});
+	if ($attachmentid) {
+	    my $attachments = $get_attachments->($mailid, $dumpdir, 1);
+	    $res = $attachments->[$attachmentid];
+	    if (!$res) {
+		raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail."});
+	    }
+	} else {
+	    my $rpcenv = PMG::RESTEnvironment->get();
+	    my $ref = $get_and_check_mail->($mailid, $rpcenv);
+	    my $spooldir = $PMG::MailQueue::spooldir;
+
+	    $res = {
+		'content-type' => 'message/rfc822',
+		path => "$spooldir/$ref->{file}",
+	    };
 	}
 
 	$res->{fh} = IO::File->new($res->{path}, '<') ||
 	    die "unable to open file '$res->{path}' - $!\n";
 
-	rmtree $dumpdir;
+	rmtree $dumpdir if -e $dumpdir;
 
 	return $res;
 
