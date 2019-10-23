@@ -195,6 +195,7 @@ our $cmddef = {
     dkim_record => [ 'PMG::API2::DKIMSign', 'get_selector_info', [], undef,
 	sub {
 	    my ($res) = @_;
+	    die "no dkim_selector configured\n" if !defined($res->{record});
 	    print "$res->{record}\n";
 	}],
 };
