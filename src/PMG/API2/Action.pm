@@ -31,6 +31,7 @@ my $format_action_object = sub {
     $data->{id} = "$data->{ogroup}_$data->{id}";
     $data->{name} = $og->{name};
     $data->{info} = $og->{info};
+    $data->{editable} = $action->oisedit();
 
     return $data;
 };
