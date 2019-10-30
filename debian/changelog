@@ -1,3 +1,17 @@
+pmg-api (6.0-9) pmg; urgency=medium
+
+  * DKIM-sign outbound mail if configured
+
+  * add DKIM related API endpoints
+
+  * fix #2371: reload pmg-smtp-filter on config change
+
+  * add /etc/pmg/dkim to cluster-sync
+
+  * Quarantine API: extend download call to download whole mails
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 30 Oct 2019 18:31:14 +0100
+
 pmg-api (6.0-8) pmg; urgency=medium
 
   * add attachment quarantine with API integration
