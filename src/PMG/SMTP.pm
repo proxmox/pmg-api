@@ -4,10 +4,12 @@ use strict;
 use warnings;
 use IO::Socket;
 use Encode;
+use MIME::Entity;
 
 use PVE::SafeSyslog;
 
 use PMG::MailQueue;
+use PMG::Utils;
 
 sub new {
     my($this, $sock) = @_;
@@ -231,6 +233,65 @@ sub save_data {
     }
 
     return 1;
+}
+
+sub generate_ndr {
+    my ($sender, $receivers, $hostname, $queueid) = @_;
+
+    my $ndr_text = <<EOF
+This is the mail system at host $hostname.
+
+I'm sorry to have to inform you that your message could not
+be delivered to one or more recipients.
+
+For further assistance, please send mail to postmaster.
+
+If you do so, please include this problem report.
+                   The mail system
+
+554 5.7.1 Recipient address(es) rejected for policy reasons
+EOF
+;
+    my $ndr = MIME::Entity->build(
+	Type => 'multipart/report; report-type=delivery-status;',
+	To => $sender,
+	From => 'postmaster',
+	Subject => 'Undelivered Mail');
+
+    $ndr->attach(
+	Data => $ndr_text,
+	Type => 'text/plain; charset=utf-8',
+	Encoding => '8bit');
+
+    my $delivery_status = <<EOF
+Reporting-MTA: dns; $hostname
+X-Proxmox-Queue-ID: $queueid
+X-Proxmox-Sender: rfc822; $sender
+EOF
+;
+    foreach my $rec (@$receivers) {
+	$delivery_status .= <<EOF
+Final-Recipient: rfc822; $rec
+Original-Recipient: rfc822;$rec
+Action: failed
+Status: 5.7.1
+Diagnostic-Code: smtp; 554 5.7.1 Recipient address rejected for policy reasons
+
+EOF
+;
+    }
+    $ndr->attach(
+	Data => $delivery_status,
+	Type => 'message/delivery-status',
+	Encoding => '7bit',
+	Description => 'Delivery report');
+
+    my $qid = PMG::Utils::reinject_mail($ndr, '', [$sender], undef, $hostname);
+    if ($qid) {
+	syslog('info', "sent NDR for rejecting recipients - $qid");
+    } else {
+	syslog('err', "sending NDR for rejecting recipients failed");
+    }
 }
 
 1;
