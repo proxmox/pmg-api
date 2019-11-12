@@ -1175,13 +1175,31 @@ PVE::INotify::register_file('transport', $transport_map_filename,
 
 # config file generation using templates
 
+sub get_host_dns_info {
+    my ($self) = @_;
+
+    my $dnsinfo = {};
+    my $nodename = PVE::INotify::nodename();
+
+    $dnsinfo->{hostname} = $nodename;
+    my $resolv = PVE::INotify::read_file('resolvconf');
+
+    my $domain = $resolv->{search} // 'localdomain';
+    $dnsinfo->{domain} = $domain;
+
+    $dnsinfo->{fqdn} = "$nodename.$domain";
+
+    return $dnsinfo;
+}
+
 sub get_template_vars {
     my ($self) = @_;
 
     my $vars = { pmg => $self->get_config() };
 
-    my $nodename = PVE::INotify::nodename();
-    my $int_ip = PMG::Cluster::remote_node_ip($nodename);
+    my $dnsinfo = get_host_dns_info();
+    $vars->{dns} = $dnsinfo;
+    my $int_ip = PMG::Cluster::remote_node_ip($dnsinfo->{hostname});
     $vars->{ipconfig}->{int_ip} = $int_ip;
 
     my $transportnets = [];
@@ -1259,13 +1277,7 @@ sub get_template_vars {
         $vars->{postfix}->{int_ip} = $int_ip;
     }
 
-    my $resolv = PVE::INotify::read_file('resolvconf');
-    $vars->{dns}->{hostname} = $nodename;
-
-    my $domain = $resolv->{search} // 'localdomain';
-    $vars->{dns}->{domain} = $domain;
-
-    my $wlbr = "$nodename.$domain";
+    my $wlbr = $dnsinfo->{fqdn};
     foreach my $r (PVE::Tools::split_list($vars->{pmg}->{spam}->{wl_bounce_relays})) {
 	$wlbr .= " $r"
     }
