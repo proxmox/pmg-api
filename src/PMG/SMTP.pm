@@ -154,16 +154,21 @@ sub loop {
 			}
 		    }
 		} else {
-		    my $all_done = 1;
+		    my $queueid = $self->{queue}->{logid};
+		    my $qstat = $self->{queue}->{status};
+		    my @rec = keys %$qstat;
+		    my @success_rec = grep { $qstat->{$_} eq 'delivered' } @rec;
+		    my @reject_rec = grep { $qstat->{$_} eq 'blocked' } @rec;
 
-		    foreach $a (@{$self->{to}}) {
-			if (!($self->{queue}->{status}->{$a} eq 'delivered' ||
-			      $self->{queue}->{status}->{$a} eq 'blocked')) {
-			    $all_done = 0;
+		    if (scalar(@reject_rec) == scalar(@rec)) {
+			$self->reply ("554 5.7.1 Rejected for policy reasons");
+		        syslog('info', "reject mail $queueid");
+		    } elsif ((scalar(@reject_rec) + scalar(@success_rec)) == scalar(@rec)) {
+			$self->reply ("250 2.5.0 OK ($queueid)");
+			if ($cfg->get('mail', 'ndr_on_block')) {
+			    my $dnsinfo = $cfg->get_host_dns_info();
+			    generate_ndr($self->{from}, [ @reject_rec ], $dnsinfo->{fqdn}, $queueid) if scalar(@reject_rec);
 			}
-		    }
-		    if ($all_done) {
-			$self->reply ("250 2.5.0 OK ($self->{queue}->{logid})");
 		    } else {
 			$self->reply ("451 4.4.0 detected undelivered mail");
 		    }

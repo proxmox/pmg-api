@@ -72,13 +72,21 @@
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
 
+[% IF ! pmg.mail.before_queue_filtering -%]
 scan      unix  -       -       n       -       [% pmg.mail.max_filters %]      lmtp
   -o lmtp_send_xforward_command=yes
   -o lmtp_connection_cache_on_demand=no
   -o disable_dns_lookups=yes
+[% END -%]
 
 [% pmg.mail.int_port %]       inet  n -       -       -       [% pmg.mail.max_smtpd_out %]      smtpd
+[% IF pmg.mail.before_queue_filtering -%]
+  -o smtpd_proxy_filter=127.0.0.1:10023
+  -o smtpd_proxy_options=speed_adjust
+  -o smtpd_client_connection_count_limit=[% pmg.mail.conn_count_limit div 5 %]
+[%- ELSE -%]
   -o content_filter=scan:127.0.0.1:10023
+[%- END %]
   -o smtpd_recipient_restrictions=permit_mynetworks,reject_unauth_destination
   -o smtpd_helo_restrictions=
   -o smtpd_client_restrictions=
@@ -87,7 +95,13 @@ scan      unix  -       -       n       -       [% pmg.mail.max_filters %]      
 [% pmg.mail.ext_port %]       inet  n -       -       -       1 postscreen
 
 smtpd       pass  - -       -       -       [% pmg.mail.max_smtpd_in %]      smtpd
+[% IF pmg.mail.before_queue_filtering -%]
+  -o smtpd_proxy_filter=127.0.0.1:10024
+  -o smtpd_proxy_options=speed_adjust
+  -o smtpd_client_connection_count_limit=[% pmg.mail.conn_count_limit div 5 %]
+[%- ELSE -%]
   -o content_filter=scan:127.0.0.1:10024
+[%- END %]
   -o receive_override_options=no_address_mappings
   -o smtpd_discard_ehlo_keywords=silent-discard,dsn
   -o mynetworks=127.0.0.0/8,[% postfix.int_ip %]

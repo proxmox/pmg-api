@@ -627,6 +627,11 @@ sub properties {
 	    minimum => 0,
 	    default => 1
 	},
+	before_queue_filtering => {
+	    description => "Enable before queue filtering by pmg-smtp-filter",
+	    type => 'boolean',
+	    default => 0
+	},
 	ndr_on_block => {
 	    description => "Send out NDR when mail gets blocked",
 	    type => 'boolean',
@@ -666,6 +671,7 @@ sub options {
 	verifyreceivers => { optional => 1 },
 	dnsbl_sites => { optional => 1 },
 	dnsbl_threshold => { optional => 1 },
+	before_queue_filtering => { optional => 1 },
 	ndr_on_block => { optional => 1 },
     };
 }
