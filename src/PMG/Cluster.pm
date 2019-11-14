@@ -422,11 +422,12 @@ sub sync_config_from_master {
     my $force_restart = {};
 
     if ($cond_commit_synced_file->($sa_custom_cf, "${sa_conf_dir}/${sa_custom_cf}")) {
-	$force_restart->{spam} = 1;
+	$force_restart->{'pmg-smtp-filter'} = 1;
     }
 
     $cond_commit_synced_file->('pmg.conf');
 
+    return $force_restart;
 }
 
 sub sync_ruledb_from_master {

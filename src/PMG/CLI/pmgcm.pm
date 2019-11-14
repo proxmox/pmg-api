@@ -249,11 +249,18 @@ __PACKAGE__->register_method({
 
 	print STDERR "syncing master configuration from '${master_ip}'\n";
 
-	PMG::Cluster::sync_config_from_master($master_name, $master_ip);
+	my $restart = PMG::Cluster::sync_config_from_master($master_name, $master_ip);
 
 	my $cfg = PMG::Config->new();
 
 	$cfg->rewrite_config(undef, 1);
+
+	if (scalar(keys %$restart)) {
+	    print "please restart the following daemons:\n";
+	    for my $service (sort keys %$restart) {
+		print "$service\n"
+	    }
+	}
 
 	return undef;
     }});

@@ -18,6 +18,7 @@ use PMG::RuleDB;
 use PMG::Cluster;
 use PMG::ClusterConfig;
 use PMG::Statistic;
+use PMG::Utils;
 
 use base qw(PVE::Daemon);
 
@@ -96,8 +97,9 @@ sub cluster_sync {
     my $master_ip = $cinfo->{master}->{ip};
     my $master_name = $cinfo->{master}->{name};
 
+    my $force_restart = {};
     if ($role ne 'master') {
-	PMG::Cluster::sync_config_from_master($master_name, $master_ip);
+	$force_restart = PMG::Cluster::sync_config_from_master($master_name, $master_ip);
     }
 
     my $csynctime = tv_interval($start_time);
@@ -164,6 +166,9 @@ sub cluster_sync {
 			   "(files %.2f, database %.2f, config %.2f))",
 			   $errcount, $cptime, $rsynctime, $dbtime, $csynctime));
 
+    foreach my $service (keys %$force_restart) {
+	PMG::Utils::service_cmd($service, 'restart');
+    }
 }
 
 sub run {
