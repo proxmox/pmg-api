@@ -132,12 +132,18 @@ sub loop {
 		    syslog ('err', $err);
 		}
 
+		my $cfg = $data->{pmg_cfg};
+
 		if ($self->{lmtp}) {
 		    foreach $a (@{$self->{to}}) {
 			if ($self->{queue}->{status}->{$a} eq 'delivered') {
 			    $self->reply ("250 2.5.0 OK ($self->{queue}->{logid})");
 			} elsif ($self->{queue}->{status}->{$a} eq 'blocked') {
-			    $self->reply ("250 2.7.0 BLOCKED ($self->{queue}->{logid})");
+			    if ($cfg->get('mail', 'ndr_on_block')) {
+				$self->reply ("554 5.7.1 Rejected for policy reasons ($self->{queue}->{logid})");
+			    } else {
+				$self->reply ("250 2.7.0 BLOCKED ($self->{queue}->{logid})");
+			    }
 			} elsif ($self->{queue}->{status}->{$a} eq 'error') {
 			    my $code = $self->{queue}->{status_code}->{$a};
 			    my $resp = substr($code, 0, 1);
