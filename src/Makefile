@@ -77,6 +77,7 @@ LIBSOURCES =				\
 	PMG/DKIMSign.pm			\
 	PMG/Quarantine.pm		\
 	PMG/Report.pm			\
+	PMG/SACustom.pm			\
 	PMG/RuleDB/Group.pm		\
 	PMG/RuleDB/Rule.pm		\
 	PMG/RuleDB/Object.pm		\
@@ -130,6 +131,7 @@ LIBSOURCES =				\
 	PMG/API2/Cluster.pm		\
 	PMG/API2/ClamAV.pm		\
 	PMG/API2/SpamAssassin.pm	\
+	PMG/API2/SACustom.pm		\
 	PMG/API2/Statistics.pm		\
 	PMG/API2/MailTracker.pm		\
 	PMG/API2/Backup.pm		\

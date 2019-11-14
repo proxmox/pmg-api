@@ -24,6 +24,7 @@ use PMG::API2::MimeTypes;
 use PMG::API2::Fetchmail;
 use PMG::API2::DestinationTLSPolicy;
 use PMG::API2::DKIMSign;
+use PMG::API2::SACustom;
 
 use base qw(PVE::RESTHandler);
 
@@ -85,6 +86,11 @@ __PACKAGE__->register_method ({
 __PACKAGE__->register_method({
     subclass => "PMG::API2::DKIMSign",
     path => 'dkim',
+});
+
+__PACKAGE__->register_method({
+    subclass => "PMG::API2::SACustom",
+    path => 'customscores',
 });
 
 __PACKAGE__->register_method ({
