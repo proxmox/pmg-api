@@ -349,10 +349,11 @@ sub sync_config_from_master {
 
     my $sa_conf_dir = "/etc/mail/spamassassin";
     my $sa_custom_cf = "custom.cf";
+    my $sa_rules_cf = "pmg-scores.cf";
 
     my $cmd = $rsync_command->(
 	$master_name, '-aq',
-	"[${master_ip}]:$cfgdir/* ${sa_conf_dir}/${sa_custom_cf}",
+	"[${master_ip}]:$cfgdir/* ${sa_conf_dir}/${sa_custom_cf} ${sa_conf_dir}/${sa_rules_cf}",
 	"$syncdir/",
 	'--exclude', 'master/',
 	'--exclude', '*~',
@@ -421,8 +422,10 @@ sub sync_config_from_master {
 
     my $force_restart = {};
 
-    if ($cond_commit_synced_file->($sa_custom_cf, "${sa_conf_dir}/${sa_custom_cf}")) {
-	$force_restart->{'pmg-smtp-filter'} = 1;
+    for my $file (($sa_custom_cf, $sa_rules_cf)) {
+	if ($cond_commit_synced_file->($file, "${sa_conf_dir}/${file}")) {
+	    $force_restart->{'pmg-smtp-filter'} = 1;
+	}
     }
 
     $cond_commit_synced_file->('pmg.conf');
