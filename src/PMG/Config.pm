@@ -1598,7 +1598,10 @@ sub rewrite_config_postfix {
 
 #parameters affecting services w/o config-file (pmgpolicy, pmg-smtp-filter)
 my $pmg_service_params = {
-    mail => { hide_received => 1 },
+    mail => {
+	hide_received => 1,
+	ndr_on_block => 1,
+    },
     admin => {
 	dkim_selector => 1,
 	dkim_sign => 1,
