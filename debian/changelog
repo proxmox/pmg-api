@@ -1,3 +1,17 @@
+pmg-api (6.0-10) pmg; urgency=medium
+
+  * add support for sending NDRs on Block
+
+  * add support for before queue filtering
+
+  * implement force_restart for cluster sync
+
+  * add SACustom Package and API Calls for custom SpamAssassin scores
+
+  * sync custom spamassassin scores to the cluster slaves
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 15 Nov 2019 13:09:57 +0100
+
 pmg-api (6.0-9) pmg; urgency=medium
 
   * DKIM-sign outbound mail if configured
