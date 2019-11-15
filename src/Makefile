@@ -154,9 +154,6 @@ SOURCES = ${LIBSOURCES} ${CLI_BINARIES} ${TEMPLATES_FILES} ${CONF_MANS} ${CLI_MA
 all: ${SOURCES}
 
 PMG/pmgcfg.pm: PMG/pmgcfg.pm.in
-	@echo -e "\n\n\n===\n\n"
-	env
-	@echo -e "\n\n\n===\n\n"
 	sed -e s/@VERSION@/${PMGVERSION}/ -e s/@PMGRELEASE@/${PMGRELEASE}/ -e s/@PACKAGE@/${PACKAGE}/ -e s/@REPOID@/${REPOID}/ $< >$@.tmp
 	mv $@.tmp $@
 
