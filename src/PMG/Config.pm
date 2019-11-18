@@ -1396,8 +1396,9 @@ sub rewrite_config_spam {
 	$changes = 1 if unlink '/root/.spamassassin/bayes_toks';
     }
 
-    # make sure we have a custom.cf file (else cluster sync fails)
+    # make sure we have the custom SA files (else cluster sync fails)
     IO::File->new('/etc/mail/spamassassin/custom.cf', 'a', 0644);
+    IO::File->new('/etc/mail/spamassassin/pmg-scores.cf', 'a', 0644);
 
     $changes = 1 if $self->rewrite_config_file(
 	'local.cf.in', '/etc/mail/spamassassin/local.cf');
