@@ -1,3 +1,11 @@
+pmg-api (6.1-1) pmg; urgency=medium
+
+  * create pmg-scores.cf unconditionally
+
+  * bump version for Proxmox Mailgateway 6.1
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 19 Nov 2019 11:46:11 +0100
+
 pmg-api (6.0-10) pmg; urgency=medium
 
   * add support for sending NDRs on Block
