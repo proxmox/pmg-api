@@ -201,7 +201,7 @@ check:
 clean:
 	make cleanup-docgen
 	make -C tests clean
-	rm PMG/pmgcfg.pm
+	rm -f PMG/pmgcfg.pm
 	rm -rf ${CONF_MANS} *.bash-completion *.service-bash-completion
 	if test -d .git; then  rm -f PMG/pmgcfg.pm; fi
 	find . -name '*~' -exec rm {} ';'
