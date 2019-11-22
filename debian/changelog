@@ -1,3 +1,10 @@
+pmg-api (6.1-2) pmg; urgency=medium
+
+  * don not add DKIM signature if the DKIMSign module fails to determine the
+    domain for signing
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 22 Nov 2019 12:38:48 +0100
+
 pmg-api (6.1-1) pmg; urgency=medium
 
   * create pmg-scores.cf unconditionally
