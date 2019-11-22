@@ -61,7 +61,7 @@ sub signing_domain {
 
     if ($self->{sign_all}) {
 	    $self->domain($input_domain) if $self->{sign_all};
-	    return;
+	    return 1;
     }
 
     # check that input_domain is in/a subdomain of in the
@@ -72,13 +72,13 @@ sub signing_domain {
     foreach my $domain (sort keys %$dkimdomains) {
 	if ( $input_domain =~ /\Q$domain\E$/i ) {
 	    $self->domain($domain);
-	    return;
+	    return 1;
 	}
     }
 
     syslog('info', "not DKIM signing mail from $sender_email");
 
-    return;
+    return 0;
 }
 
 
@@ -107,11 +107,12 @@ sub sign_entity {
     my $signer = __PACKAGE__->new($selector, $sign_all);
 
     $signer->extended_headers($extended_headers);
-    $signer->signing_domain($sender);
 
-    $entity->print($signer);
-    my $signature = $signer->create_signature();
-    $entity->head->add('DKIM-Signature', $signature, 0);
+    if ($signer->signing_domain($sender)) {
+	$entity->print($signer);
+	my $signature = $signer->create_signature();
+	$entity->head->add('DKIM-Signature', $signature, 0);
+    }
 
     return $entity;
 
