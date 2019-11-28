@@ -215,6 +215,19 @@ sub get_index {
 	$langfile = 1;
     }
 
+    my $wtversionraw = PVE::Tools::file_read_firstline("$widgettoolkit_dir/proxmoxlib.js");
+    my $wtversion = '';
+    if ($wtversionraw =~ m|^// (.*)$|) {
+	$wtversion = $1;
+    };
+
+    my $versionraw = PVE::Tools::file_read_firstline("$gui_base_dir/js/pmgmanagerlib.js");
+    my $version = '';
+    if ($versionraw =~ m|^// (.*)$|) {
+	$version = $1;
+    };
+
+
     $username = '' if !$username;
 
     my $page = '';
@@ -227,6 +240,8 @@ sub get_index {
 	console => $args->{console},
 	nodename => $nodename,
 	debug => $args->{debug} || $server->{debug},
+	version => $version,
+	wtversion => $wtversion,
     };
 
     my $template_name;
