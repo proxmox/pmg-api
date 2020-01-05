@@ -480,15 +480,21 @@ sub properties {
 	    description => "The default mail delivery transport (incoming mails).",
 	    type => 'string', format => 'address',
 	},
+	relayprotocol => {
+	    description => "Transport protocol for relay host.",
+	    type => 'string',
+	    enum => [qw(smtp lmtp)],
+	    default => 'smtp',
+	},
 	relayport => {
-	    description => "SMTP port number for relay host.",
+	    description => "Transport port number for relay host.",
 	    type => 'integer',
 	    minimum => 1,
 	    maximum => 65535,
 	    default => 25,
 	},
 	relaynomx => {
-	    description => "Disable MX lookups for default relay.",
+	    description => "Disable MX lookups for default relay (SMTP).",
 	    type => 'boolean',
 	    default => 0,
 	},
@@ -647,6 +653,7 @@ sub options {
 	smarthost => { optional => 1 },
 	smarthostport => { optional => 1 },
 	relay => { optional => 1 },
+	relayprotocol => { optional => 1 },
 	relayport => { optional => 1 },
 	relaynomx => { optional => 1 },
 	dwarning => { optional => 1 },
@@ -1118,8 +1125,8 @@ sub read_transport_map {
 	    $comment = '';
 	};
 
-	if ($line =~ m/^(\S+)\s+smtp:(\S+):(\d+)\s*$/) {
-	    my ($domain, $host, $port) = ($1, $2, $3);
+	if ($line =~ m/^(\S+)\s+(?:(lmtp):inet|(smtp)):(\S+):(\d+)\s*$/) {
+	    my ($domain, $protocol, $host, $port) = ($1, ($2 or $3), $4, $5);
 
 	    eval { pmg_verify_transport_domain_or_email($domain); };
 	    if (my $err = $@) {
@@ -1131,6 +1138,7 @@ sub read_transport_map {
 		$host = $1;
 		$use_mx = 0;
 	    }
+		$use_mx = 0 if ($protocol eq "lmtp");
 
 	    eval { PVE::JSONSchema::pve_verify_address($host); };
 	    if (my $err = $@) {
@@ -1140,6 +1148,7 @@ sub read_transport_map {
 
 	    my $data = {
 		domain => $domain,
+		protocol => $protocol,
 		host => $host,
 		port => $port,
 		use_mx => $use_mx,
@@ -1170,12 +1179,19 @@ sub write_transport_map {
 	my $use_mx = $data->{use_mx};
 	$use_mx = 0 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/;
 
-	if ($use_mx) {
+	my $is_lmtp = 0;
+	$is_lmtp = 1 if $data->{protocol} eq "lmtp";
+
+	if ($is_lmtp) {
+		$data->{protocol} = "lmtp:inet";
+	}
+
+	if ($use_mx or $is_lmtp) {
 	    PVE::Tools::safe_print(
-		$filename, $fh, "$data->{domain} smtp:$data->{host}:$data->{port}\n");
+		$filename, $fh, "$data->{domain} $data->{protocol}:$data->{host}:$data->{port}\n");
 	} else {
 	    PVE::Tools::safe_print(
-		$filename, $fh, "$data->{domain} smtp:[$data->{host}]:$data->{port}\n");
+		$filename, $fh, "$data->{domain} $data->{protocol}:[$data->{host}]:$data->{port}\n");
 	}
     }
 }

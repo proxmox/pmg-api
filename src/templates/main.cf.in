@@ -34,10 +34,14 @@ relay_domains = hash:/etc/pmg/domains
 transport_maps = hash:/etc/pmg/transport
 
 [% IF pmg.mail.relay %]
-[% IF pmg.mail.relaynomx %]
-relay_transport = smtp:[[% pmg.mail.relay %]]:[% pmg.mail.relayport %]
+[% IF pmg.mail.relayprotocol == 'lmtp' %]
+relay_transport = [% pmg.mail.relayprotocol %]:inet:[% pmg.mail.relay %]:[% pmg.mail.relayport %]
 [% ELSE %]
-relay_transport = smtp:[% pmg.mail.relay %]:[% pmg.mail.relayport %]
+[% IF pmg.mail.relaynomx %]
+relay_transport = [% pmg.mail.relayprotocol %]:[[% pmg.mail.relay %]]:[% pmg.mail.relayport %]
+[% ELSE %]
+relay_transport = [% pmg.mail.relayprotocol %]:[% pmg.mail.relay %]:[% pmg.mail.relayport %]
+[% END %]
 [% END %]
 [% END %]
 

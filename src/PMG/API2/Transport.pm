@@ -33,6 +33,7 @@ __PACKAGE__->register_method ({
 	    properties => {
 		domain => { type => 'string' },
 		host => { type => 'string' },
+		protocol => { type => 'string' },
 		port => { type => 'integer' },
 		use_mx => { type => 'boolean' },
 		comment => { type => 'string'},
@@ -73,8 +74,15 @@ __PACKAGE__->register_method ({
 		description => "Target host (name or IP address).",
 		type => 'string', format => 'address',
 	    },
+	    protocol => {
+		description => "Transport protocol.",
+		type => 'string',
+	    enum => [qw(smtp lmtp)],
+		default => 'smtp',
+		optional => 1,
+	    },
 	    port => {
-		description => "SMTP port.",
+		description => "Transport port.",
 		type => 'integer',
 		minimum => 1,
 		maximum => 65535,
@@ -82,7 +90,7 @@ __PACKAGE__->register_method ({
 		default => 25,
 	    },
 	    use_mx => {
-		description => "Enable MX lookups.",
+		description => "Enable MX lookups (SMTP).",
 		type => 'boolean',
 		optional => 1,
 		default => 1,
@@ -108,6 +116,7 @@ __PACKAGE__->register_method ({
 	    $tmap->{$param->{domain}} = {
 		domain => $param->{domain},
 		host => $param->{host},
+		protocol => $param->{protocol} // 'smtp',
 		port => $param->{port} // 25,
 		use_mx => $param->{use_mx} // 1,
 		comment => $param->{comment} // '',
@@ -144,6 +153,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    domain => { type => 'string'},
 	    host => { type => 'string'},
+	    protocol => { type => 'string'},
 	    port => { type => 'integer'},
 	    use_mx => { type => 'boolean'},
 	    comment => { type => 'string'},
@@ -181,15 +191,22 @@ __PACKAGE__->register_method ({
 		type => 'string', format => 'address',
 		optional => 1,
 	    },
+	    protocol => {
+		description => "Transport protocol.",
+		type => 'string',
+	    enum => [qw(smtp lmtp)],
+		default => 'smtp',
+		optional => 1,
+	    },
 	    port => {
-		description => "SMTP port.",
+		description => "Transport port.",
 		type => 'integer',
 		minimum => 1,
 		maximum => 65535,
 		optional => 1,
 	    },
 	    use_mx => {
-		description => "Enable MX lookups.",
+		description => "Enable MX lookups (SMTP).",
 		type => 'boolean',
 		optional => 1,
 	    },
@@ -216,7 +233,7 @@ __PACKAGE__->register_method ({
 
 	    die "no options specified\n" if !scalar(keys %$param);
 
-	    for my $prop (qw(host port use_mx comment)) {
+	    for my $prop (qw(host protocol port use_mx comment)) {
 		$data->{$prop} = $param->{$prop} if defined($param->{$prop});
 	    }
 
