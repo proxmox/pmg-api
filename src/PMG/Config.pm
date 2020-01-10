@@ -487,14 +487,14 @@ sub properties {
 	    default => 'smtp',
 	},
 	relayport => {
-	    description => "Transport port number for relay host.",
+	    description => "SMTP/LMTP port number for relay host.",
 	    type => 'integer',
 	    minimum => 1,
 	    maximum => 65535,
 	    default => 25,
 	},
 	relaynomx => {
-	    description => "Disable MX lookups for default relay (SMTP).",
+	    description => "Disable MX lookups for default relay (SMTP only, ignored for LMTP).",
 	    type => 'boolean',
 	    default => 0,
 	},

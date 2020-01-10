@@ -77,7 +77,7 @@ __PACKAGE__->register_method ({
 	    protocol => {
 		description => "Transport protocol.",
 		type => 'string',
-	    enum => [qw(smtp lmtp)],
+		enum => [qw(smtp lmtp)],
 		default => 'smtp',
 		optional => 1,
 	    },
