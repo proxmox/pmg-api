@@ -1179,14 +1179,12 @@ sub write_transport_map {
 	my $use_mx = $data->{use_mx};
 	$use_mx = 0 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/;
 
-	my $is_lmtp = 0;
-	$is_lmtp = 1 if $data->{protocol} eq "lmtp";
-
-	if ($is_lmtp) {
-		$data->{protocol} = "lmtp:inet";
+	if ($data->{protocol} eq 'lmtp') {
+	    $use_mx = 1;
+	    $data->{protocol} .= ":inet";
 	}
 
-	if ($use_mx or $is_lmtp) {
+	if ($use_mx) {
 	    PVE::Tools::safe_print(
 		$filename, $fh, "$data->{domain} $data->{protocol}:$data->{host}:$data->{port}\n");
 	} else {
