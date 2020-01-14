@@ -157,22 +157,35 @@ sub get_selector_info {
 }
 
 sub set_selector {
-    my ($selector, $keysize) = @_;
+    my ($selector, $keysize, $force) = @_;
 
     die "no selector provided\n" if !defined($selector);
     die "no keysize provided\n" if !defined($keysize);
     die "invalid keysize\n" if ($keysize < 1024);
     my $privkey_file = "/etc/pmg/dkim/$selector.private";
 
-    my $code = sub{
-	my $cmd = ['openssl', 'genrsa', '-out', $privkey_file, $keysize];
-	PMG::Utils::run_silent_cmd($cmd);
+    my $code = sub {
+	my $genkey = $force || (! -e $privkey_file);
+	if (!$genkey) {
+	    my ($privkey, $cursize);
+	    eval {
+		my $privkeytext = PVE::Tools::file_get_contents($privkey_file);
+		$privkey =  Crypt::OpenSSL::RSA->new_private_key($privkeytext);
+		$cursize = $privkey->size() * 8;
+	    };
+	    die "error checking $privkey_file: $@\n" if $@;
+	    die "$privkey_file already exists, but has different size ($cursize bits)\n"
+		if $cursize != $keysize;
+	} else {
+	    my $cmd = ['openssl', 'genrsa', '-out', $privkey_file, $keysize];
+	    PMG::Utils::run_silent_cmd($cmd);
+	}
 	my $cfg = PMG::Config->new();
 	$cfg->set('admin', 'dkim_selector', $selector);
 	$cfg->write();
 	PMG::Utils::reload_smtp_filter();
     };
 
-    PMG::Config::lock_config($code, "unable to generate DKIM key ($selector - $keysize bits)");
+    PMG::Config::lock_config($code, "unable to set DKIM key ($selector - $keysize bits)");
 }
 1;

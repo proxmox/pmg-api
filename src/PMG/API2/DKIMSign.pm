@@ -65,6 +65,10 @@ __PACKAGE__->register_method({
 		description => "Number of bits for the RSA-Key",
 		type => 'integer', minimum => 1024
 	    },
+	    force => {
+		description => "Overwrite existing key",
+		type => 'boolean', optional => 1
+	    },
 	},
     },
     returns => { type => 'null' },
@@ -72,8 +76,9 @@ __PACKAGE__->register_method({
 	my ($param) = @_;
 	my $selector = extract_param($param, 'selector');
 	my $keysize = extract_param($param, 'keysize');
+	my $force = extract_param($param, 'force');
 
-	PMG::DKIMSign::set_selector($selector, $keysize);
+	PMG::DKIMSign::set_selector($selector, $keysize, $force);
 
 	return undef;
     }});
