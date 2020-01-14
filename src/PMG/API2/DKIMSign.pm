@@ -3,7 +3,7 @@ package PMG::API2::DKIMSign;
 use strict;
 use warnings;
 
-use PVE::Tools qw(extract_param);
+use PVE::Tools qw(extract_param dir_glob_foreach);
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::Exception qw(raise_param_exc);
 use PVE::RESTHandler;
@@ -42,7 +42,8 @@ __PACKAGE__->register_method({
 
 	return [
 	    { section => 'domains'},
-	    { section => 'selector'}
+	    { section => 'selector'},
+	    { section => 'selectors'}
 	];
     }});
 
@@ -129,4 +130,37 @@ __PACKAGE__->register_method({
 
 	return { selector => $selector, keysize => $size, record => $record };
     }});
+
+__PACKAGE__->register_method({
+    name => 'get_selector_list',
+    path => 'selectors',
+    method => 'GET',
+    description => "Get a list of all existing selectors",
+    protected => 1,
+    permissions => { check => [ 'admin' ] },
+    proxyto => 'master',
+    parameters => {
+	additionalProperties => 0,
+	properties => { },
+    },
+    returns => {
+	type => 'array',
+	items => {
+	    type => "object",
+	    properties => { selector => { type => 'string', format => 'dns-name' } },
+	},
+	links => [ { rel => 'child', href => "{selector}" } ],
+    },
+    code => sub {
+	my $res = [];
+
+	my @selectors = dir_glob_foreach('/etc/pmg/dkim/', '.*\.private', sub {
+	    my ($sel) = @_;
+	    $sel =~ s/\.private$//;
+	    push @$res, { selector => $sel };
+	});
+
+	return $res;
+    }});
+
 1;
