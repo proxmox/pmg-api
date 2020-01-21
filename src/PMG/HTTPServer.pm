@@ -42,7 +42,7 @@ sub generate_csrf_prevention_token {
 }
 
 sub auth_handler {
-    my ($self, $method, $rel_uri, $ticket, $token, $peer_host) = @_;
+    my ($self, $method, $rel_uri, $ticket, $token, $api_token, $peer_host) = @_;
 
     my $rpcenv = $self->{rpcenv};
 
@@ -65,6 +65,8 @@ sub auth_handler {
     my ($username, $age);
 
     if ($require_auth) {
+
+	die "API tokens not implemented\n" if $api_token;
 
 	die "No ticket\n" if !$ticket;
 

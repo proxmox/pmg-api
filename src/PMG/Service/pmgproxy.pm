@@ -192,7 +192,7 @@ sub get_index {
 		$lang = $newlang;
 	    }
 	}
-	my $ticket = PVE::APIServer::Formatter::extract_auth_cookie($cookie, $server->{cookie_name});
+	my $ticket = PVE::APIServer::Formatter::extract_auth_value($cookie, $server->{cookie_name});
 
 	if ($ticket =~ m/^PMGQUAR:/) {
 	    $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
