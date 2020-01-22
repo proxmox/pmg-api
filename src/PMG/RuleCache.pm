@@ -239,6 +239,11 @@ sub from_match {
 
     return 1 if !defined ($from);
 
+    # postfix prefixes ipv6 addresses with IPv6:
+    if ($ip =~ /^IPv6:(.*)/) {
+	$ip = $1;
+    }
+
     foreach my $obj (@$from) {
 	return 1 if $obj->who_match($addr, $ip, $ldap);
     }
