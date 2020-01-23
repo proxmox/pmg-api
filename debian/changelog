@@ -1,3 +1,19 @@
+pmg-api (6.1-4) pmg; urgency=medium
+
+  * fix #2438: add support for lmtp delivery to downstream servers
+
+  * api2: network: add bond-primary and MTU option
+
+  * fix #2504: do not overwrite existing DKIM selector key
+
+  * dkim: add selector list api endpoint
+
+  * fix disclaimer encoding for html entities
+
+  * fix #1653: parse ipv6 xforward correctly
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 23 Jan 2020 13:20:15 +0100
+
 pmg-api (6.1-3) pmg; urgency=medium
 
   * improve browser-cache behavior for updates
