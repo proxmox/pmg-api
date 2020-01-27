@@ -49,7 +49,9 @@ relay_transport = [% pmg.mail.relayprotocol %]:[% pmg.mail.relay %]:[% pmg.mail.
 default_transport = smtp:[% pmg.mail.smarthost %]:[% pmg.mail.smarthostport %]
 [% END %]
 
+[% IF ! pmg.mail.before_queue_filtering -%]
 content_filter=scan:127.0.0.1:10024
+[%- END %]
 
 mail_name = Proxmox
 
