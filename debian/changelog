@@ -1,3 +1,13 @@
+pmg-api (6.1-5) pmg; urgency=medium
+
+  * fix postfix template for before-queue filtering
+
+  * api2: Network: add vlan-raw-device and vlan-id options
+
+  * ensure compatibility with libpve-http-server-perl
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 29 Jan 2020 21:33:55 +0100
+
 pmg-api (6.1-4) pmg; urgency=medium
 
   * fix #2438: add support for lmtp delivery to downstream servers
