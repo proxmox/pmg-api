@@ -512,8 +512,8 @@ __PACKAGE__->register_method({
 
 	my @pkgs = qw(
 	    libarchive-perl
-	    libjs-framework7
 	    libjs-extjs
+	    libjs-framework7
 	    libpve-common-perl
 	    libpve-http-server-perl
 	    libxdgmime-perl
