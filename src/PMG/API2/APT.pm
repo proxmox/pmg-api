@@ -511,6 +511,7 @@ __PACKAGE__->register_method({
 	);
 
 	my @pkgs = qw(
+	    clamav-daemon
 	    libarchive-perl
 	    libjs-extjs
 	    libjs-framework7
@@ -519,6 +520,7 @@ __PACKAGE__->register_method({
 	    libxdgmime-perl
 	    lvm2
 	    pmg-docs
+	    postgresql-11
 	    proxmox-mini-journalreader
 	    proxmox-spamassassin
 	    proxmox-widget-toolkit
