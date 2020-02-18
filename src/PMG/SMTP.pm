@@ -161,7 +161,7 @@ sub loop {
 		    my @reject_rec = grep { $qstat->{$_} eq 'blocked' } @rec;
 
 		    if (scalar(@reject_rec) == scalar(@rec)) {
-			$self->reply ("554 5.7.1 Rejected for policy reasons");
+			$self->reply ("554 5.7.1 Rejected for policy reasons ($queueid)");
 		        syslog('info', "reject mail $queueid");
 		    } elsif ((scalar(@reject_rec) + scalar(@success_rec)) == scalar(@rec)) {
 			$self->reply ("250 2.5.0 OK ($queueid)");
@@ -170,7 +170,7 @@ sub loop {
 			    generate_ndr($self->{from}, [ @reject_rec ], $dnsinfo->{fqdn}, $queueid) if scalar(@reject_rec);
 			}
 		    } else {
-			$self->reply ("451 4.4.0 detected undelivered mail");
+			$self->reply ("451 4.4.0 detected undelivered mail ($queueid)");
 		    }
 		}
 	    }
