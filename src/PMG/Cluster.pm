@@ -11,6 +11,7 @@ use PVE::SafeSyslog;
 use PVE::Tools;
 use PVE::INotify;
 use PVE::APIClient::LWP;
+use PVE::Network;
 
 use PMG::Utils;
 use PMG::Config;
@@ -35,7 +36,7 @@ sub remote_node_ip {
     }
 
     # fallback: try to get IP by other means
-    return PMG::Utils::lookup_node_ip($nodename, $noerr);
+    return PVE::Network::get_ip_from_hostname($nodename, $noerr);
 }
 
 sub get_master_node {
@@ -99,7 +100,7 @@ sub read_local_cluster_info {
 
     $res->{name} = $nodename;
 
-    $res->{ip} = PMG::Utils::lookup_node_ip($nodename);
+    $res->{ip} = PVE::Network::get_ip_from_hostname($nodename);
 
     $res->{hostrsapubkey} = $hostrsapubkey;
 

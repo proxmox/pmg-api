@@ -6,6 +6,7 @@ use Data::Dumper;
 
 use PVE::Tools;
 use PVE::JSONSchema qw(get_standard_option);
+use PVE::Network;
 use PVE::SectionConfig;
 
 use base qw(PVE::SectionConfig);
@@ -172,7 +173,7 @@ sub read_cluster_conf {
     my $cinfo = PMG::ClusterConfig::Base->parse_config($filename, $raw);
 
     my $localname = PVE::INotify::nodename();
-    my $localip = PMG::Utils::lookup_node_ip($localname);
+    my $localip = PVE::Network::get_ip_from_hostname($localname);
 
     $cinfo->{remnodes} = [];
 
