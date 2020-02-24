@@ -224,10 +224,12 @@ sub execute {
     $to =~ s/\s+/,/g;
 
     my $top = MIME::Entity->build(
+	Encoding    => 'quoted-printable',
+	Charset => 'UTF-8',
 	From    => $from,
 	To      => $to,
-	Subject => $subject,
-	Data => $body);
+	Subject => encode('UTF-8', $subject),
+	Data => encode('UTF-8', $body));
 
     if ($self->{attach} eq 'O') {
 	# attach original mail
