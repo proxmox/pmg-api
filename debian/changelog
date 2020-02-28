@@ -1,3 +1,13 @@
+pmg-api (6.1-6) pmg; urgency=medium
+
+  * track clamav and postgres package version in versions api call
+
+  * add queue id to pmg-smtp-filter replies for tracking in pmg-log-tracker
+
+  * code cleanup
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 28 Feb 2020 11:30:17 +0100
+
 pmg-api (6.1-5) pmg; urgency=medium
 
   * fix postfix template for before-queue filtering
