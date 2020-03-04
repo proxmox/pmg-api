@@ -32,7 +32,7 @@ sub dump_html {
 		$node->{target} = '_blank' if $tag eq 'a';
 
 		if ($tag eq 'img') {
-		    if ($node->{src} =~ m/^cid:(\S+)$/) {
+		    if ($node->{src} && $node->{src} =~ m/^cid:(\S+)$/) {
 			if (my $datauri = $cid_hash->{$1}) {
 			    $node->{src} = $datauri;
 			}
