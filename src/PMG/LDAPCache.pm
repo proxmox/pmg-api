@@ -5,13 +5,11 @@ use warnings;
 use File::Path;
 use LockFile::Simple;
 use Data::Dumper;
-use Net::LDAP;
-use Net::LDAP::Control::Paged;
-use Net::LDAP::Constant qw (LDAP_CONTROL_PAGED);
 use DB_File;
 
 use PVE::SafeSyslog;
 use PVE::Tools qw(split_list);
+use PVE::LDAP;
 
 use PMG::Utils;
 use PMG::LDAPConfig;
@@ -140,124 +138,78 @@ sub update {
 sub queryusers {
     my ($self, $ldap) = @_;
 
-    my $filter = '(|';
-    foreach my $attr (@{$self->{mailattr}}) {
-	$filter .= "($attr=*)";
-    }
-    $filter .= ')';
 
-    if ($self->{filter}) {
-	my $tmp = $self->{filter};
-	$tmp = "($tmp)" if $tmp !~ m/^\(.*\)$/;
-
-	$filter = "(&${filter}${tmp})";
-    }
-
-    my $page = Net::LDAP::Control::Paged->new(size => 900);
-
-    my @args = (
-	base     => $self->{basedn},
-	scope    => "subtree",
-	filter   => $filter,
-	control  => [ $page ],
-	attrs  => [ @{$self->{mailattr}}, @{$self->{accountattr}}, 'memberOf' ]
-	);
-
-    my $cookie;
-
-    while(1) {
-
-	my $mesg = $ldap->search(@args);
-
-	# stop on error
-	if ($mesg->code)  {
-	    my $err = "ldap user search error: " . $mesg->error;
-	    $self->{errors} .= "$err\n";
-	    syslog('err', $err);
-	    last;
-	}
-
-	#foreach my $entry ($mesg->entries) { $entry->dump; }
-	foreach my $entry ($mesg->entries) {
-	    my $dn = $entry->dn;
-
-	    my $umails = {};
-	    my $pmail;
-
-	    foreach my $attr (@{$self->{mailattr}}) {
-		foreach my $mail ($entry->get_value($attr)) {
-		    $mail = lc($mail);
-		    # Test if the Line starts with one of the following lines:
-		    # proxyAddresses: [smtp|SMTP]:
-		    # and also discard this starting string, so that $mail is only the
-		    # address without any other characters...
-
-		    $mail =~ s/^(smtp|SMTP)[\:\$]//gs;
-
-		    if ($mail !~ m/[\{\}\\\/]/ && $mail =~ m/^\S+\@\S+$/) {
-			$umails->{$mail} = 1;
-			$pmail = $mail if !$pmail;
-		    }
-		}
-	    }
-	    my $addresses = [ keys %$umails ];
-
-	    next if !$pmail; # account has no email addresses
-
-	    my $cuid;
-	    $self->{dbstat}->{dnames}->{dbh}->get($dn, $cuid);
-	    if (!$cuid) {
-		$cuid = ++$self->{dbstat}->{dnames}->{idcount};
-		$self->{dbstat}->{dnames}->{dbh}->put($dn, $cuid);
-	    }
-
-	    foreach my $attr (@{$self->{accountattr}}) {
-		my $account = $entry->get_value($attr);
-		if ($account && ($account =~ m/^\S+$/s)) {
-		    $account = lc($account);
-		    $self->{dbstat}->{accounts}->{dbh}->put($account, $cuid);
-		    my $data = pack('n/a* n/a* n/a*', $pmail, $account, $dn);
-		    $self->{dbstat}->{users}->{dbh}->put($cuid, $data);
-		}
-	    }
-
-	    foreach my $mail (@$addresses) {
-		$self->{dbstat}->{mails}->{dbh}->put($mail, $cuid);
-	    }
-
-	    if (!$self->{groupbasedn}) {
-		my @groups = $entry->get_value('memberOf');
-		foreach my $group (@groups) {
-		    my $cgid;
-		    $self->{dbstat}->{groups}->{dbh}->get($group, $cgid);
-		    if (!$cgid) {
-			$cgid = ++$self->{dbstat}->{groups}->{idcount};
-			$self->{dbstat}->{groups}->{dbh}->put($group, $cgid);
-		    }
-		    $self->{dbstat}->{memberof}->{dbh}->put($cuid, $cgid);
-		}
-	    }
-	}
-
-	# Get cookie from paged control
-	my ($resp) = $mesg->control(LDAP_CONTROL_PAGED) or last;
-	$cookie = $resp->cookie;
-
-	last if (!defined($cookie) || !length($cookie));
-
-	# Set cookie in paged control
-	$page->cookie($cookie);
-    }
+    my $attrs = [ @{$self->{mailattr}}, @{$self->{accountattr}}, 'memberOf' ];
 
 
-    if (defined($cookie) && length($cookie)) {
-	# We had an abnormal exit, so let the server know we do not want any more
-	$page->cookie($cookie);
-	$page->size(0);
-	$ldap->search(@args);
-	my $err = "LDAP user query unsuccessful";
+    my $users = eval { PVE::LDAP::query_users($ldap, $self->{filter}, $attrs, $self->{basedn}) };
+    if (my $err = $@) {
 	$self->{errors} .= "$err\n";
 	syslog('err', $err);
+	return;
+    }
+
+    foreach my $user (@$users) {
+	my $dn = $user->{dn};
+
+	my $umails = {};
+	my $pmail;
+
+	foreach my $attr (@{$self->{mailattr}}) {
+	    next if !$user->{attributes}->{$attr};
+	    foreach my $mail (@{$user->{attributes}->{$attr}}) {
+		$mail = lc($mail);
+		# Test if the Line starts with one of the following lines:
+		# proxyAddresses: [smtp|SMTP]:
+		# and also discard this starting string, so that $mail is only the
+		# address without any other characters...
+
+		$mail =~ s/^(smtp|SMTP)[\:\$]//gs;
+
+		if ($mail !~ m/[\{\}\\\/]/ && $mail =~ m/^\S+\@\S+$/) {
+		    $umails->{$mail} = 1;
+		    $pmail = $mail if !$pmail;
+		}
+	    }
+	}
+	my $addresses = [ keys %$umails ];
+
+	next if !$pmail; # account has no email addresses
+
+	my $cuid;
+	$self->{dbstat}->{dnames}->{dbh}->get($dn, $cuid);
+	if (!$cuid) {
+	    $cuid = ++$self->{dbstat}->{dnames}->{idcount};
+	    $self->{dbstat}->{dnames}->{dbh}->put($dn, $cuid);
+	}
+
+	foreach my $attr (@{$self->{accountattr}}) {
+	    next if !$user->{attributes}->{$attr};
+	    foreach my $account (@{$user->{attributes}->{$attr}}) {
+		next if !defined($account) || !length($account);
+
+		$account = lc($account);
+		$self->{dbstat}->{accounts}->{dbh}->put($account, $cuid);
+		my $data = pack('n/a* n/a* n/a*', $pmail, $account, $dn);
+		$self->{dbstat}->{users}->{dbh}->put($cuid, $data);
+	    }
+	}
+
+	foreach my $mail (@$addresses) {
+	    $self->{dbstat}->{mails}->{dbh}->put($mail, $cuid);
+	}
+
+	if (!$self->{groupbasedn}) {
+	    foreach my $group (@{$user->{groups}}) {
+		my $cgid;
+		$self->{dbstat}->{groups}->{dbh}->get($group, $cgid);
+		if (!$cgid) {
+		    $cgid = ++$self->{dbstat}->{groups}->{idcount};
+		    $self->{dbstat}->{groups}->{dbh}->put($group, $cgid);
+		}
+		$self->{dbstat}->{memberof}->{dbh}->put($cuid, $cgid);
+	    }
+	}
     }
 }
 
@@ -266,135 +218,70 @@ sub querygroups {
 
     return undef if !$self->{groupbasedn};
 
-    my $filter = "(|";
-
-    for my $class (@{$self->{groupclass}}) {
-	$filter .= "(objectclass=$class)";
-    }
-
-    $filter .= ")";
-
-    my $page = Net::LDAP::Control::Paged->new(size => 100);
-
-    my @args = ( base     => $self->{groupbasedn},
-		 scope    => "subtree",
-		 filter   => $filter,
-		 control  => [ $page ],
-		 attrs  => [ 'member', 'uniqueMember' ],
-		 );
-
-    my $cookie;
-    while(1) {
-
-	my $mesg = $ldap->search(@args);
-
-	# stop on error
-	if ($mesg->code)  {
-	    my $err = "ldap group search error: " . $mesg->error;
-	    $self->{errors} .= "$err\n";
-	    syslog('err', $err);
-	    last;
-	}
-
-	foreach my $entry ( $mesg->entries ) {
-	    my $group = $entry->dn;
-	    my @members = $entry->get_value('member');
-	    if (!scalar(@members)) {
-		@members = $entry->get_value('uniqueMember');
-	    }
-	    my $cgid;
-	    $self->{dbstat}->{groups}->{dbh}->get($group, $cgid);
-	    if (!$cgid) {
-		$cgid = ++$self->{dbstat}->{groups}->{idcount};
-		$self->{dbstat}->{groups}->{dbh}->put($group, $cgid);
-	    }
-
-	    foreach my $m (@members) {
-
-		my $cuid;
-		$self->{dbstat}->{dnames}->{dbh}->get($m, $cuid);
-		if (!$cuid) {
-		    $cuid = ++$self->{dbstat}->{dnames}->{idcount};
-		    $self->{dbstat}->{dnames}->{dbh}->put($m, $cuid);
-		}
-
-		$self->{dbstat}->{memberof}->{dbh}->put($cuid, $cgid);
-	    }
-	}
-
-	# Get cookie from paged control
-	my ($resp) = $mesg->control(LDAP_CONTROL_PAGED) or last;
-	$cookie = $resp->cookie or last;
-
-	# Set cookie in paged control
-	$page->cookie($cookie);
-    }
-
-    if ($cookie) {
-	# We had an abnormal exit, so let the server know we do not want any more
-	$page->cookie($cookie);
-	$page->size(0);
-	$ldap->search(@args);
-	my $err = "LDAP group query unsuccessful";
+    my $groups = eval { PVE::LDAP::query_groups($ldap, $self->{groupbasedn}, $self->{groupclass}) };
+    if (my $err = $@) {
 	$self->{errors} .= "$err\n";
 	syslog('err', $err);
+	return;
     }
-}
 
-sub ldap_connect {
-    my ($self) = @_;
+    foreach my $group (@$groups) {
+	my $dn = $group->{dn};
 
-    my $hosts = [ $self->{server1} ];
-
-    push @$hosts, $self->{server2} if $self->{server2};
-
-    my $opts = { timeout => 10, onerror => 'die' };
-
-    $opts->{port} = $self->{port} if $self->{port};
-    if ($self->{mode} eq 'ldaps') {
-	$opts->{scheme} = 'ldaps';
-	$opts->{verify} = 'require' if $self->{verify};
-	if ($self->{cafile}) {
-	    $opts->{cafile} = $self->{cafile};
-	} else {
-	    $opts->{capath} = '/etc/ssl/certs/';
+	my $cgid;
+	$self->{dbstat}->{groups}->{dbh}->get($dn, $cgid);
+	if (!$cgid) {
+	    $cgid = ++$self->{dbstat}->{groups}->{idcount};
+	    $self->{dbstat}->{groups}->{dbh}->put($dn, $cgid);
 	}
-    } else {
-	$opts->{scheme} = 'ldap';
-    }
 
-    return Net::LDAP->new($hosts, %$opts);
+	foreach my $m (@{$group->{members}}) {
+	    my $cuid;
+	    $self->{dbstat}->{dnames}->{dbh}->get($m, $cuid);
+	    if (!$cuid) {
+		$cuid = ++$self->{dbstat}->{dnames}->{idcount};
+		$self->{dbstat}->{dnames}->{dbh}->put($m, $cuid);
+	    }
+
+	    $self->{dbstat}->{memberof}->{dbh}->put($cuid, $cgid);
+	}
+    }
 }
 
 sub ldap_connect_and_bind {
      my ($self) = @_;
 
-     my $ldap = $self->ldap_connect() ||
-	 die "Can't bind to ldap server '$self->{id}': " . ($@ // "unknown error") . "\n";
+     my $hosts = [ $self->{server1} ];
+     push @$hosts, $self->{server2} if $self->{server2};
 
-     my $mesg;
+     my $opts = {};
+     my $scheme = $self->{mode};
 
-     if ($self->{mode} eq 'ldap+starttls') {
-	 my $opts = {
-	     verify => $self->{verify} ? 'require' : 'none',
-	 };
+     if ($scheme eq 'ldaps') {
+	 $opts->{verify} = 'require' if $self->{verify};
+	 if ($self->{cafile}) {
+	     $opts->{cafile} = $self->{cafile};
+	 } else {
+	     $opts->{capath} = '/etc/ssl/certs/';
+	 }
+     } elsif ($self->{mode} eq 'ldap+starttls') {
+	 $opts->{verify} = $self->{verify} ? 'require' : 'none';
 
 	 if ($self->{cafile}) {
 	     $opts->{cafile} = $self->{cafile};
 	 } else {
 	     $opts->{capath} = '/etc/ssl/certs/';
 	 }
-
-	 $ldap->start_tls(%$opts);
      }
 
-     if ($self->{binddn}) {
-	 $mesg = $ldap->bind($self->{binddn}, password => $self->{bindpw});
-     } else {
-	 $mesg = $ldap->bind(); # anonymous bind
-     }
+     my $ldap =  eval { PVE::LDAP::ldap_connect($hosts, $scheme, $self->{port}, $opts) };
+     die "Can't bind to ldap server '$self->{id}': " . ($@) . "\n" if $@;
 
-     die "ldap bind failed: " . $mesg->error . "\n" if $mesg->code;
+     my $dn;
+     my $pw;
+     $dn = $self->{binddn} if $self->{binddn};
+     $pw = $self->{bindpw} if $self->{bindpw};
+     PVE::LDAP::ldap_bind($ldap, $dn, $pw);
 
      if (!$self->{basedn}) {
 	 my $root = $ldap->root_dse(attrs => [ 'defaultNamingContext' ]);
