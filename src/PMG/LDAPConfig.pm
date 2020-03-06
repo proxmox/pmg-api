@@ -12,19 +12,6 @@ use PVE::SectionConfig;
 
 use base qw(PVE::SectionConfig);
 
-PVE::JSONSchema::register_format('ldap-simple-attr', \&verify_ldap_simple_attr);
-sub verify_ldap_simple_attr {
-    my ($attr, $noerr) = @_;
-
-    if ($attr =~ m/^[a-zA-Z0-9]+$/) {
-	return $attr;
-    }
-
-    die "value '$attr' does not look like a simple ldap attribute name\n" if !$noerr;
-
-    return undef;
-}
-
 my $inotify_file_id = 'pmg-ldap.conf';
 my $config_filename = '/etc/pmg/ldap.conf';
 
