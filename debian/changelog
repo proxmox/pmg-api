@@ -1,3 +1,19 @@
+pmg-api (6.1-7) pmg; urgency=medium
+
+  * fix #2622: include all spam levels from the ">= 10 score" bucket in total
+    spam statistic
+
+  * fix #2525: encode notifications in UTF-8
+
+  * check if img tag has actually a 'src' attribute to avoid warnings
+
+  * pmgsh: fix 'help' command
+
+  * api/quarantine: add new white/blacklist deletion API endpoints to allow one
+    to avoid passing addresses in the API path.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Mar 2020 18:21:55 +0100
+
 pmg-api (6.1-6) pmg; urgency=medium
 
   * track clamav and postgres package version in versions api call
