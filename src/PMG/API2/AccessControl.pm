@@ -24,11 +24,11 @@ __PACKAGE__->register_method ({
 });
 
 __PACKAGE__->register_method ({
-    name => 'index', 
-    path => '', 
+    name => 'index',
+    path => '',
     method => 'GET',
     description => "Directory index.",
-    permissions => { 
+    permissions => {
 	user => 'all',
     },
     parameters => {
@@ -47,7 +47,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-    
+
 	my $res = [
 	    { subdir => 'ticket' },
 	    { subdir => 'password' },
@@ -106,8 +106,8 @@ my $create_or_verify_ticket = sub {
 
 
 __PACKAGE__->register_method ({
-    name => 'get_ticket', 
-    path => 'ticket', 
+    name => 'get_ticket',
+    path => 'ticket',
     method => 'GET',
     permissions => { user => 'world' },
     description => "Dummy. Useful for formaters which want to priovde a login page.",
@@ -116,14 +116,14 @@ __PACKAGE__->register_method ({
     },
     returns => { type => "null" },
     code => sub { return undef; }});
-  
+
 __PACKAGE__->register_method ({
-    name => 'create_ticket', 
-    path => 'ticket', 
+    name => 'create_ticket',
+    path => 'ticket',
     method => 'POST',
-    permissions => { 
+    permissions => {
 	description => "You need to pass valid credientials.",
-	user => 'world' 
+	user => 'world'
     },
     protected => 1, # else we can't access shadow files
     description => "Create or verify authentication ticket.",
@@ -139,7 +139,7 @@ __PACKAGE__->register_method ({
 		description => "You can optionally pass the realm using this parameter. Normally the realm is simply added to the username <username>\@<relam>.",
 		optional => 1,
 	    }),
-	    password => { 
+	    password => {
 		description => "The secret password. This can also be a valid ticket.",
 		type => 'string',
 	    },
@@ -197,8 +197,8 @@ __PACKAGE__->register_method ({
     }});
 
 __PACKAGE__->register_method ({
-    name => 'change_passsword', 
-    path => 'password', 
+    name => 'change_passsword',
+    path => 'password',
     method => 'PUT',
     protected => 1, # else we can't access shadow files
     permissions => {
@@ -210,10 +210,10 @@ __PACKAGE__->register_method ({
 	additionalProperties => 0,
 	properties => {
 	    userid => get_standard_option('userid'),
-	    password => { 
+	    password => {
 		description => "The new password.",
 		type => 'string',
-		minLength => 5, 
+		minLength => 5,
 		maxLength => 64,
 	    },
 	}
