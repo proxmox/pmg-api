@@ -288,7 +288,7 @@ __PACKAGE__->register_method ({
 	    pmail => $pmail_param_type,
 	    address => get_standard_option('pmg-whiteblacklist-entry-list', {
 		pattern => '',
-		description => "The address you want to remove.",
+		description => "The address, or comma-separated list of addresses, you want to remove.",
 	    }),
 	},
     },
@@ -396,7 +396,7 @@ __PACKAGE__->register_method ({
 	    pmail => $pmail_param_type,
 	    address => get_standard_option('pmg-whiteblacklist-entry-list', {
 		pattern => '',
-		description => "The address you want to remove.",
+		description => "The address, or comma-separated list of addresses, you want to remove.",
 	    }),
 	},
     },
