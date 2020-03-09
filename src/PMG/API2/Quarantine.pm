@@ -302,6 +302,8 @@ __PACKAGE__->register_method ({
 	return undef;
     }});
 
+# FIXME: remove for PMG 7.0 - addresses can contain stuff like '/' which breaks
+# API path resolution, thus we replaced it by above "un-templated" call
 __PACKAGE__->register_method ({
     name => 'whitelist_delete',
     path => 'whitelist/{address}',
@@ -410,6 +412,8 @@ __PACKAGE__->register_method ({
 	return undef;
     }});
 
+# FIXME: remove for PMG 7.0 - addresses can contain stuff like '/' which breaks
+# API path resolution, thus we replaced it by above "un-templated" call
 __PACKAGE__->register_method ({
     name => 'blacklist_delete',
     path => 'blacklist/{address}',
