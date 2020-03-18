@@ -1102,6 +1102,22 @@ sub postmap_pmg_transport {
     PMG::Utils::run_postmap($transport_map_filename);
 }
 
+PVE::JSONSchema::register_format(
+    'transport-address', \&pmg_verify_transport_address);
+
+sub pmg_verify_transport_address {
+    my ($name, $noerr) = @_;
+
+    if ($name =~ m/^ipv6:($IPV6RE)$/i) {
+	return $name;
+    } elsif (PVE::JSONSchema::pve_verify_address($name, 1)) {
+	return $name;
+    } else {
+	return undef if $noerr;
+	die "value does not look like a valid address\n";
+    }
+}
+
 sub read_transport_map {
     my ($filename, $fh) = @_;
 
@@ -1140,7 +1156,7 @@ sub read_transport_map {
 	    }
 	    $use_mx = 0 if ($protocol eq "lmtp");
 
-	    eval { PVE::JSONSchema::pve_verify_address($host); };
+	    eval { pmg_verify_transport_address($host); };
 	    if (my $err = $@) {
 		$parse_error->($err);
 		next;
@@ -1182,7 +1198,7 @@ sub write_transport_map {
 	    $bracket_host = 0;
 	    $data->{protocol} .= ":inet";
 	}
-	$bracket_host = 1 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/i;
+	$bracket_host = 1 if $data->{host} =~ m/^(?:$IPV4RE|(?:ipv6:)?$IPV6RE)$/i;
 	my $host = $bracket_host ? "[$data->{host}]" : $data->{host};
 
 	PVE::Tools::safe_print($filename, $fh, "$data->{domain} $data->{protocol}:$host:$data->{port}\n");
@@ -1231,8 +1247,8 @@ sub get_template_vars {
 	    my $host = $data->{host};
 	    if ($host =~ m/^$IPV4RE$/) {
 		push @$transportnets, "$host/32";
-	    } elsif ($host =~ m/^$IPV6RE$/) {
-		push @$transportnets, "[$host]/128";
+	    } elsif ($host =~ m/^(?:ipv6:)?($IPV6RE)$/i) {
+		push @$transportnets, "[$1]/128";
 	    }
 	}
     }

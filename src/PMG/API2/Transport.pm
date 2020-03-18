@@ -72,7 +72,7 @@ __PACKAGE__->register_method ({
 	    },
 	    host => {
 		description => "Target host (name or IP address).",
-		type => 'string', format => 'address',
+		type => 'string', format => 'transport-address',
 	    },
 	    protocol => {
 		description => "Transport protocol.",
@@ -188,7 +188,7 @@ __PACKAGE__->register_method ({
 	    },
 	    host => {
 		description => "Target host (name or IP address).",
-		type => 'string', format => 'address',
+		type => 'string', format => 'transport-address',
 		optional => 1,
 	    },
 	    protocol => {
