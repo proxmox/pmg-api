@@ -1033,6 +1033,26 @@ sub pmg_verify_tls_policy_strict {
     return $policy;
 }
 
+PVE::JSONSchema::register_format(
+    'transport-domain-or-nexthop', \&pmg_verify_transport_domain_or_nexthop);
+
+sub pmg_verify_transport_domain_or_nexthop {
+    my ($name, $noerr) = @_;
+
+    if (pmg_verify_transport_domain($name, 1)) {
+	return $name;
+    } elsif ($name =~ m/^(\S+)(?::\d+)?$/) {
+	my $nexthop = $1;
+	if ($nexthop =~ m/^\[(.*)\]$/) {
+	    $nexthop = $1;
+	}
+	return $name if pmg_verify_transport_address($nexthop, 1);
+    } else {
+	   return undef if $noerr;
+	   die "value does not look like a valid domain or next-hop\n";
+    }
+}
+
 sub read_tls_policy {
     my ($filename, $fh) = @_;
 
@@ -1054,7 +1074,7 @@ sub read_tls_policy {
 	    my ($domain, $policy) = ($1, $2);
 
 	    eval {
-		pmg_verify_transport_domain($domain);
+		pmg_verify_transport_domain_or_nexthop($domain);
 		pmg_verify_tls_policy($policy);
 	    };
 	    if (my $err = $@) {

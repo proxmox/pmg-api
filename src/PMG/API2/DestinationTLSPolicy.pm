@@ -27,7 +27,7 @@ __PACKAGE__->register_method ({
 	items => {
 	    type => 'object',
 	    properties => {
-		domain => { type => 'string', format => 'transport-domain'},
+		domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 		policy => { type => 'string', format => 'tls-policy'},
 	    },
 	},
@@ -59,7 +59,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    domain => {
 		description => "Domain name.",
-		type => 'string', format => 'transport-domain',
+		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	    policy => {
 		description => "TLS policy",
@@ -104,14 +104,14 @@ __PACKAGE__->register_method ({
 	properties => {
 	    domain => {
 		description => "Domain name.",
-		type => 'string', format => 'transport-domain',
+		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	},
     },
     returns => {
 	type => "object",
 	properties => {
-	    domain => { type => 'string', format => 'transport-domain'},
+	    domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 	    policy => { type => 'string', format => 'tls-policy'},
 	},
     },
@@ -141,7 +141,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    domain => {
 		description => "Domain name.",
-		type => 'string', format => 'transport-domain',
+		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	    policy => {
 		description => "TLS policy",
@@ -186,7 +186,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    domain => {
 		description => "Domain name.",
-		type => 'string', format => 'transport-domain',
+		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	}
     },
