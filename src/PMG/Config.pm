@@ -1071,10 +1071,10 @@ sub read_tls_policy {
 	};
 
 	if ($line =~ m/^(\S+)\s+(.+)\s*$/) {
-	    my ($domain, $policy) = ($1, $2);
+	    my ($destination, $policy) = ($1, $2);
 
 	    eval {
-		pmg_verify_transport_domain_or_nexthop($domain);
+		pmg_verify_transport_domain_or_nexthop($destination);
 		pmg_verify_tls_policy($policy);
 	    };
 	    if (my $err = $@) {
@@ -1082,8 +1082,8 @@ sub read_tls_policy {
 		next;
 	    }
 
-	    $tls_policy->{$domain} = {
-		    domain => $domain,
+	    $tls_policy->{$destination} = {
+		    destination => $destination,
 		    policy => $policy,
 	    };
 	} else {
@@ -1099,10 +1099,10 @@ sub write_tls_policy {
 
     return if !$tls_policy;
 
-    foreach my $domain (sort keys %$tls_policy) {
-	my $entry = $tls_policy->{$domain};
+    foreach my $destination (sort keys %$tls_policy) {
+	my $entry = $tls_policy->{$destination};
 	PVE::Tools::safe_print(
-	    $filename, $fh, "$entry->{domain} $entry->{policy}\n");
+	    $filename, $fh, "$entry->{destination} $entry->{policy}\n");
     }
 }
 

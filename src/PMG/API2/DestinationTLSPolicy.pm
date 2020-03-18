@@ -11,6 +11,8 @@ use PMG::Config;
 
 use base qw(PVE::RESTHandler);
 
+#TODO: drop the domain property with PMG 7.0
+
 __PACKAGE__->register_method ({
     name => 'index',
     path => '',
@@ -27,11 +29,12 @@ __PACKAGE__->register_method ({
 	items => {
 	    type => 'object',
 	    properties => {
+		destination => { type => 'string', format => 'transport-domain-or-nexthop'},
 		domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 		policy => { type => 'string', format => 'tls-policy'},
 	    },
 	},
-	links => [ { rel => 'child', href => "{domain}" } ],
+	links => [ { rel => 'child', href => "{destination}" } ],
     },
     code => sub {
 	my ($param) = @_;
@@ -40,6 +43,7 @@ __PACKAGE__->register_method ({
 
 	my $policies = PVE::INotify::read_file('tls_policy');
 	foreach my $policy (sort keys %$policies) {
+	    $policies->{$policy}->{domain} = $policies->{$policy}->{destination};
 	    push @$res, $policies->{$policy};
 	}
 
@@ -58,8 +62,14 @@ __PACKAGE__->register_method ({
 	additionalProperties => 0,
 	properties => {
 	    domain => {
-		description => "Domain name.",
+		description => "Deprecated - use 'destination'.",
 		type => 'string', format => 'transport-domain-or-nexthop',
+		optional => 1,
+	    },
+	    destination => {
+		description => "Destination (Domain or next-hop).",
+		type => 'string', format => 'transport-domain-or-nexthop',
+		optional => 1,
 	    },
 	    policy => {
 		description => "TLS policy",
@@ -71,15 +81,21 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 	my $domain = $param->{domain};
+	warn "Parameter 'domain' is deprecated for DestinationTLSPolicy - use 'destination'\n"
+	    if defined($domain);
+	my $destination = $param->{destination} // $domain;
 	my $policy = $param->{policy};
+
+	raise_param_exc({ destination => "No destination provided" })
+	    if !defined($destination);
 
 	my $code = sub {
 	    my $tls_policy = PVE::INotify::read_file('tls_policy');
-	    raise_param_exc({ domain => "DestinationTLSPolicy entry for '$domain' already exists" })
-		if $tls_policy->{$domain};
+	    raise_param_exc({ destination => "DestinationTLSPolicy entry for '$destination' already exists" })
+		if $tls_policy->{$destination};
 
-	    $tls_policy->{$domain} = {
-		domain => $domain,
+	    $tls_policy->{$destination} = {
+		destination => $destination,
 		policy => $param->{policy},
 	    };
 
@@ -94,7 +110,7 @@ __PACKAGE__->register_method ({
 
 __PACKAGE__->register_method ({
     name => 'read',
-    path => '{domain}',
+    path => '{destination}',
     method => 'GET',
     description => "Read tls_policy entry.",
     proxyto => 'master',
@@ -102,8 +118,8 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    domain => {
-		description => "Domain name.",
+	    destination => {
+		description => "Destination (Domain or next-hop).",
 		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	},
@@ -111,26 +127,28 @@ __PACKAGE__->register_method ({
     returns => {
 	type => "object",
 	properties => {
+	    destination => { type => 'string', format => 'transport-domain-or-nexthop'},
 	    domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 	    policy => { type => 'string', format => 'tls-policy'},
 	},
     },
     code => sub {
 	my ($param) = @_;
-	my $domain = $param->{domain};
+	my $destination = $param->{destination};
 
 	my $tls_policy = PVE::INotify::read_file('tls_policy');
 
-	if (my $entry = $tls_policy->{$domain}) {
+	if (my $entry = $tls_policy->{$destination}) {
+	    $entry->{domain} = $entry->{destination};
 	    return $entry;
 	}
 
-	raise_param_exc({ domain => "DestinationTLSPolicy entry for '$domain' does not exist" });
+	raise_param_exc({ destination => "DestinationTLSPolicy entry for '$destination' does not exist" });
     }});
 
 __PACKAGE__->register_method ({
     name => 'write',
-    path => '{domain}',
+    path => '{destination}',
     method => 'PUT',
     description => "Update tls_policy entry.",
     protected => 1,
@@ -139,8 +157,8 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    domain => {
-		description => "Domain name.",
+	    destination => {
+		description => "Destination (Domain or next-hop).",
 		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	    policy => {
@@ -152,17 +170,17 @@ __PACKAGE__->register_method ({
     returns => { type => 'null' },
     code => sub {
 	my ($param) = @_;
-	my $domain = $param->{domain};
+	my $destination = $param->{destination};
 	my $policy = $param->{policy};
 
 	my $code = sub {
 
 	    my $tls_policy = PVE::INotify::read_file('tls_policy');
 
-	    raise_param_exc({ domain => "DestinationTLSPolicy entry for '$domain' does not exist" })
-		if !$tls_policy->{$domain};
+	    raise_param_exc({ destination => "DestinationTLSPolicy entry for '$destination' does not exist" })
+		if !$tls_policy->{$destination};
 
-	    $tls_policy->{$domain}->{policy} = $policy;
+	    $tls_policy->{$destination}->{policy} = $policy;
 
 	    PVE::INotify::write_file('tls_policy', $tls_policy);
 	    PMG::Config::postmap_tls_policy();
@@ -175,7 +193,7 @@ __PACKAGE__->register_method ({
 
 __PACKAGE__->register_method ({
     name => 'delete',
-    path => '{domain}',
+    path => '{destination}',
     method => 'DELETE',
     description => "Delete a tls_policy entry",
     protected => 1,
@@ -184,8 +202,8 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    domain => {
-		description => "Domain name.",
+	    destination => {
+		description => "Destination (Domain or next-hop).",
 		type => 'string', format => 'transport-domain-or-nexthop',
 	    },
 	}
@@ -193,15 +211,15 @@ __PACKAGE__->register_method ({
     returns => { type => 'null' },
     code => sub {
 	my ($param) = @_;
-	my $domain = $param->{domain};
+	my $destination = $param->{destination};
 
 	my $code = sub {
 	    my $tls_policy = PVE::INotify::read_file('tls_policy');
 
-	    raise_param_exc({ domain => "DestinationTLSPolicy entry for '$domain' does not exist" })
-		if !$tls_policy->{$domain};
+	    raise_param_exc({ destination => "DestinationTLSPolicy entry for '$destination' does not exist" })
+		if !$tls_policy->{$destination};
 
-	    delete $tls_policy->{$domain};
+	    delete $tls_policy->{$destination};
 
 	    PVE::INotify::write_file('tls_policy', $tls_policy);
 	    PMG::Config::postmap_tls_policy();
