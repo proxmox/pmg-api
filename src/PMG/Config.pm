@@ -1138,7 +1138,7 @@ sub read_transport_map {
 		$host = $1;
 		$use_mx = 0;
 	    }
-		$use_mx = 0 if ($protocol eq "lmtp");
+	    $use_mx = 0 if ($protocol eq "lmtp");
 
 	    eval { PVE::JSONSchema::pve_verify_address($host); };
 	    if (my $err = $@) {
@@ -1177,19 +1177,21 @@ sub write_transport_map {
 	    if defined($comment) && $comment !~ m/^\s*$/;
 
 	my $use_mx = $data->{use_mx};
-	$use_mx = 0 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/;
+	my $bracket_host = ! $use_mx;
 
 	if ($data->{protocol} eq 'lmtp') {
-	    $use_mx = 1;
+	    $bracket_host = 0;
 	    $data->{protocol} .= ":inet";
 	}
 
-	if ($use_mx) {
-	    PVE::Tools::safe_print(
-		$filename, $fh, "$data->{domain} $data->{protocol}:$data->{host}:$data->{port}\n");
-	} else {
+	$bracket_host = 1 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/i;
+
+	if ($bracket_host) {
 	    PVE::Tools::safe_print(
 		$filename, $fh, "$data->{domain} $data->{protocol}:[$data->{host}]:$data->{port}\n");
+	} else {
+	    PVE::Tools::safe_print(
+		$filename, $fh, "$data->{domain} $data->{protocol}:$data->{host}:$data->{port}\n");
 	}
     }
 }
