@@ -126,7 +126,8 @@ __PACKAGE__->register_method ({
 	my $role = $cinfo->{local}->{type} // '-';
 
 	if (!(($role eq '-') || ($role eq 'master'))) {
-	   die "local node is not master\n";
+	   warn "local node is not master\n";
+	   return;
 	}
 
 	my $cfg = PMG::Config->new();
@@ -217,7 +218,8 @@ __PACKAGE__->register_method ({
 	my $role = $cinfo->{local}->{type} // '-';
 
 	if (!(($role eq '-') || ($role eq 'master'))) {
-	   die "local node is not master - not sending spam report\n";
+	   warn "local node is not master - not sending spam report\n";
+	   return;
 	}
 
 	my $cfg = PMG::Config->new();
