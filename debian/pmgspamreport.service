@@ -4,6 +4,6 @@ ConditionPathExists=/usr/bin/pmgqm
 
 [Service]
 Type=oneshot
+ExecStartPre=-/usr/bin/pmgqm purge
 ExecStart=/usr/bin/pmgqm send --timespan yesterday
-ExecStartPost=/usr/bin/pmgqm purge
 
