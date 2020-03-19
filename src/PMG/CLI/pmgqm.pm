@@ -126,7 +126,7 @@ __PACKAGE__->register_method ({
 	my $role = $cinfo->{local}->{type} // '-';
 
 	if (!(($role eq '-') || ($role eq 'master'))) {
-	   die "local node is not mastern";
+	   die "local node is not master\n";
 	}
 
 	my $cfg = PMG::Config->new();
