@@ -1176,23 +1176,16 @@ sub write_transport_map {
 	PVE::Tools::safe_print($filename, $fh, "#$comment\n")
 	    if defined($comment) && $comment !~ m/^\s*$/;
 
-	my $use_mx = $data->{use_mx};
-	my $bracket_host = ! $use_mx;
+	my $bracket_host = !$data->{use_mx};
 
 	if ($data->{protocol} eq 'lmtp') {
 	    $bracket_host = 0;
 	    $data->{protocol} .= ":inet";
 	}
-
 	$bracket_host = 1 if $data->{host} =~ m/^(?:$IPV4RE|$IPV6RE)$/i;
+	my $host = $bracket_host ? "[$data->{host}]" : $data->{host};
 
-	if ($bracket_host) {
-	    PVE::Tools::safe_print(
-		$filename, $fh, "$data->{domain} $data->{protocol}:[$data->{host}]:$data->{port}\n");
-	} else {
-	    PVE::Tools::safe_print(
-		$filename, $fh, "$data->{domain} $data->{protocol}:$data->{host}:$data->{port}\n");
-	}
+	PVE::Tools::safe_print($filename, $fh, "$data->{domain} $data->{protocol}:$host:$data->{port}\n");
     }
 }
 
