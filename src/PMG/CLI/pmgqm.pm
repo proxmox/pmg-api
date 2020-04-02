@@ -297,7 +297,6 @@ __PACKAGE__->register_method ({
 	    $sth->execute();
 	}
 
-	my $lastref;
 	my $mailcount = 0;
 	my $creceiver = '';
 	my $data;
@@ -333,7 +332,6 @@ __PACKAGE__->register_method ({
 	    push @{$data->{items}}, get_item_data($data, $ref);
 
 	    $mailcount++;
-	    $lastref = $ref;
 	}
 
 	$sth->finish();
