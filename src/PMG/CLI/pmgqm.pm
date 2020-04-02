@@ -94,7 +94,7 @@ sub get_item_data {
     $item->{spaminfo} = $ref->{info};
     $item->{file} = $ref->{file};
 
-    my $basehref = "$data->{protocol}://$data->{fqdn}:$data->{port}/quarantine";
+    my $basehref = "$data->{protocol_fqdn_port}/quarantine";
     my $ticket = uri_escape($data->{ticket});
     $item->{href} = "$basehref?ticket=$ticket&cselect=$item->{id}&date=$item->{date}";
 
@@ -248,6 +248,12 @@ __PACKAGE__->register_method ({
 
 	my $protocol = $cfg->get('spamquar', 'protocol') // 'https';
 
+	my $protocol_fqdn_port = "$protocol://$fqdn";
+	if (($protocol eq 'https' && $port != 443) ||
+	    ($protocol eq 'http' && $port != 80)) {
+	    $protocol_fqdn_port .= ":$port";
+	}
+
 	my $global_data = {
 	    protocol => $protocol,
 	    port => $port,
@@ -256,6 +262,7 @@ __PACKAGE__->register_method ({
 	    date => strftime("%F", localtime($end - 1)),
 	    timespan => $timespan,
 	    items => [],
+	    protocol_fqdn_port => $protocol_fqdn_port,
 	};
 
 	my $mailfrom = $cfg->get ('spamquar', 'mailfrom') //
@@ -326,7 +333,7 @@ __PACKAGE__->register_method ({
 		$data->{pmail} = $creceiver;
 		$data->{ticket} = PMG::Ticket::assemble_quarantine_ticket($data->{pmail});
 		my $esc_ticket = uri_escape($data->{ticket});
-		$data->{managehref} = "$protocol://$fqdn:$port/quarantine?ticket=${esc_ticket}";
+		$data->{managehref} = "$protocol_fqdn_port/quarantine?ticket=${esc_ticket}";
 	    }
 
 	    push @{$data->{items}}, get_item_data($data, $ref);
