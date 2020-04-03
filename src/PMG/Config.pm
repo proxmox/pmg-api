@@ -387,6 +387,11 @@ sub properties {
 	    type => 'boolean',
 	    default => 1
 	},
+	scriptedupdates => {
+	    description => "Enables ScriptedUpdates (incremental download of signatures)",
+	    type => 'boolean',
+	    default => 0
+	},
     };
 }
 
@@ -400,6 +405,7 @@ sub options {
 	dbmirror => { optional => 1 },
 	maxcccount => { optional => 1 },
 	safebrowsing => { optional => 1 },
+	scriptedupdates => { optional => 1},
     };
 }
 

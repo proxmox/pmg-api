@@ -12,7 +12,7 @@ PidFile /var/run/clamav/freshclam.pid
 DatabaseMirror [% pmg.clamav.dbmirror %]
 ConnectTimeout 30
 ReceiveTimeout 30
-ScriptedUpdates no
+ScriptedUpdates [% IF pmg.clamav.scriptedupdates %]true[% ELSE %]false[% END %]
 CompressLocalDatabase no
 NotifyClamd /etc/clamav/clamd.conf
 Bytecode true
