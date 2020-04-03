@@ -248,33 +248,39 @@ sub querygroups {
     }
 }
 
+sub ldap_connect {
+    my ($self) = @_;
+
+    my $hosts = [ $self->{server1} ];
+    push @$hosts, $self->{server2} if $self->{server2};
+
+    my $opts = {};
+    my $scheme = $self->{mode};
+
+    if ($scheme eq 'ldaps') {
+	$opts->{verify} = 'require' if $self->{verify};
+	if ($self->{cafile}) {
+	    $opts->{cafile} = $self->{cafile};
+	} else {
+	    $opts->{capath} = '/etc/ssl/certs/';
+	}
+    } elsif ($self->{mode} eq 'ldap+starttls') {
+	$opts->{verify} = $self->{verify} ? 'require' : 'none';
+
+	if ($self->{cafile}) {
+	    $opts->{cafile} = $self->{cafile};
+	} else {
+	    $opts->{capath} = '/etc/ssl/certs/';
+	}
+    }
+
+    return PVE::LDAP::ldap_connect($hosts, $scheme, $self->{port}, $opts);
+}
+
 sub ldap_connect_and_bind {
      my ($self) = @_;
 
-     my $hosts = [ $self->{server1} ];
-     push @$hosts, $self->{server2} if $self->{server2};
-
-     my $opts = {};
-     my $scheme = $self->{mode};
-
-     if ($scheme eq 'ldaps') {
-	 $opts->{verify} = 'require' if $self->{verify};
-	 if ($self->{cafile}) {
-	     $opts->{cafile} = $self->{cafile};
-	 } else {
-	     $opts->{capath} = '/etc/ssl/certs/';
-	 }
-     } elsif ($self->{mode} eq 'ldap+starttls') {
-	 $opts->{verify} = $self->{verify} ? 'require' : 'none';
-
-	 if ($self->{cafile}) {
-	     $opts->{cafile} = $self->{cafile};
-	 } else {
-	     $opts->{capath} = '/etc/ssl/certs/';
-	 }
-     }
-
-     my $ldap =  eval { PVE::LDAP::ldap_connect($hosts, $scheme, $self->{port}, $opts) };
+     my $ldap =  eval { $self->ldap_connect() };
      die "Can't bind to ldap server '$self->{id}': " . ($@) . "\n" if $@;
 
      my $dn;
