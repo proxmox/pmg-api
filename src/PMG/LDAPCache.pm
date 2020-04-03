@@ -257,15 +257,12 @@ sub ldap_connect {
     my $opts = {};
     my $scheme = $self->{mode};
 
-    if ($scheme eq 'ldaps') {
-	$opts->{verify} = 'require' if $self->{verify};
-	if ($self->{cafile}) {
-	    $opts->{cafile} = $self->{cafile};
-	} else {
-	    $opts->{capath} = '/etc/ssl/certs/';
+    if ($scheme eq 'ldaps' || $scheme eq 'ldap+starttls') {
+	if ($self->{verify}) {
+	    $opts->{verify} = 'require';
+	} elsif ($scheme eq 'ldap+starttls') {
+	    $opts->{verify} = 'none';
 	}
-    } elsif ($self->{mode} eq 'ldap+starttls') {
-	$opts->{verify} = $self->{verify} ? 'require' : 'none';
 
 	if ($self->{cafile}) {
 	    $opts->{cafile} = $self->{cafile};
