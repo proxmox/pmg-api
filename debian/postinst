@@ -3,6 +3,21 @@
 set -e
 
 
+ucf_register_templates() {
+    for template in /etc/pmg/templates/*; do
+	template_base=$(basename "${template}")
+	if echo "${template_base}" | grep -q '\.ucf-'; then
+		continue
+	fi
+	if [ -e "/var/lib/pmg/templates/${template_base}" ]; then
+	    ucf "/var/lib/pmg/templates/${template_base}" "${template}"
+	    ucfr pmg-api "${template}"
+	else
+	    echo "template '${template}' not shipped by pmg-api."
+	fi
+    done
+}
+
 case "$1" in
     triggered)
 
@@ -24,6 +39,8 @@ case "$1" in
 
 	    pmgconfig init
 	    pmgdb init
+
+	    ucf_register_templates
 	    pmgconfig sync --restart
 
 	    if [ -z "$2" ]; then
@@ -36,13 +53,18 @@ case "$1" in
 	    pmgdb update  >/dev/null 2>&1 &
 
 	    update-mime-database /usr/share/mime
+
 	else
 	    # rewrite banner
 	    pmgbanner || true
 	fi
     ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
+    abort-upgrade)
+	ucf_register_templates
+    ;;
+
+    abort-remove|abort-deconfigure)
     ;;
 
     *)
