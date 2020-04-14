@@ -1,3 +1,27 @@
+pmg-api (6.1-8) pmg; urgency=medium
+
+  * pmgqm: warn and exit if running on slave node
+
+  * pmgspamreport: purge before sending reports
+
+  * fix rendering of ipv(4|6) literal lmtp transports
+
+  * fix #1948: allow setting TLS policy for transports
+
+  * add TLS options for lmtp to main.cf template
+
+  * fix #2661: reintroduce LDAPCache->ldap_connect
+
+  * skip writing default ports in spamreports
+
+  * use ucf to handle template overrides
+
+  * freshclam.conf.in: make ScriptedUpdates a variable
+
+  * freshclam.conf.in: remove ReceiveTimeout option
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 14 Apr 2020 10:10:59 +0200
+
 pmg-api (6.1-7) pmg; urgency=medium
 
   * fix #2622: include all spam levels from the ">= 10 score" bucket in total
