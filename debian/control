@@ -85,6 +85,7 @@ Depends: apt,
          spf-tools-perl,
          sudo,
          tnef,
+         ucf,
          ${misc:Depends},
          ${perl:Depends},
 Description: Proxmox Mailgateway API Server Implementation
