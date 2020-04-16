@@ -55,6 +55,7 @@ __PACKAGE__->register_method ({
 	    { subdir => 'archivefilter' },
 	    { subdir => 'filenamefilter' },
 	    { subdir => 'virusfilter' },
+	    { subdir => 'archivefilenamefilter' },
 	];
 
     }});
@@ -69,5 +70,6 @@ PMG::RuleDB::Spam->register_api(__PACKAGE__, 'spamfilter');
 PMG::RuleDB::ArchiveFilter->register_api(__PACKAGE__, 'archivefilter');
 PMG::RuleDB::MatchFilename->register_api(__PACKAGE__, 'filenamefilter');
 PMG::RuleDB::Virus->register_api(__PACKAGE__, 'virusfilter');
+PMG::RuleDB::MatchArchiveFilename->register_api(__PACKAGE__, 'archivefilenamefilter');
 
 1;

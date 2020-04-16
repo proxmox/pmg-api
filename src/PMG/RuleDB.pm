@@ -34,6 +34,7 @@ use PMG::RuleDB::Remove;
 use PMG::RuleDB::ModField;
 use PMG::RuleDB::MatchField;
 use PMG::RuleDB::MatchFilename;
+use PMG::RuleDB::MatchArchiveFilename;
 use PMG::RuleDB::Attach;
 use PMG::RuleDB::Disclaimer;
 use PMG::RuleDB::BCC;
@@ -337,6 +338,9 @@ sub get_object {
     }
     elsif ($otype == PMG::RuleDB::MatchFilename::otype) {
         $obj = PMG::RuleDB::MatchFilename->new();
+    }
+    elsif ($otype == PMG::RuleDB::MatchArchiveFilename::otype) {
+        $obj = PMG::RuleDB::MatchArchiveFilename->new();
     }
     elsif ($otype == PMG::RuleDB::ContentTypeFilter::otype) {
         $obj = PMG::RuleDB::ContentTypeFilter->new();

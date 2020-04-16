@@ -87,6 +87,7 @@ LIBSOURCES =				\
 	PMG/RuleDB/IPNet.pm		\
 	PMG/RuleDB/ModField.pm		\
 	PMG/RuleDB/MatchFilename.pm	\
+	PMG/RuleDB/MatchArchiveFilename.pm	\
 	PMG/RuleDB/ReceiverRegex.pm	\
 	PMG/RuleDB/EMail.pm		\
 	PMG/RuleDB/Receiver.pm		\

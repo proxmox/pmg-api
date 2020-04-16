@@ -98,7 +98,9 @@ sub new {
 			push @$when,  $obj;
 		    } elsif ($gtype == 3) { # what
 			push @$what,  $obj;
-			if ($obj->otype == PMG::RuleDB::ArchiveFilter->otype) {
+			if ($obj->otype == PMG::RuleDB::ArchiveFilter->otype ||
+			    $obj->otype == PMG::RuleDB::MatchArchiveFilename->otype)
+			{
 			    if ($rule->{direction} == 0) {
 				$self->{archivefilter_in} = 1;
 			    } elsif ($rule->{direction} == 1) {
