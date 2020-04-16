@@ -259,6 +259,7 @@ sub new {
     $self->{debug} = $param{debug} || 0;
 
     $self->{mime} = {};
+    $self->{filenames} = {};
 
     $self->{ufid} = 0; # counter to creat unique file names
     $self->{udid} = 0; # counter to creat unique dir names
@@ -494,7 +495,10 @@ sub check_quota {
 sub add_glob_mime_type {
     my ($self, $filename) = @_;
 
-    if (my $ct = xdg_mime_get_mime_type_from_file_name (basename ($filename))) {
+    my $basename = basename($filename);
+    $self->{filenames}->{$basename} = 1;
+
+    if (my $ct = xdg_mime_get_mime_type_from_file_name($basename)) {
 	$self->{mime}->{$ct} = 1 if $ct ne 'application/octet-stream';
     }
 }

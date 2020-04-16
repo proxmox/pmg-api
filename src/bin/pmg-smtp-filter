@@ -584,6 +584,7 @@ sub unpack_entity {
 	    $self->log (3, "$queue->{logid}: unpack failed - $@") if $@;
 
 	    $entity->{PMX_content_types} = $unpack->{mime};
+	    $entity->{PMX_filenames} = $unpack->{filenames};
 
 	    if ($opt_testmode) {
 		my $types = join (", ", sort keys (%{$entity->{PMX_content_types}}));
