@@ -605,9 +605,14 @@ sub properties {
 	    default => 1,
 	},
 	greylist => {
-	    description => "Use Greylisting.",
+	    description => "Use Greylisting for IPv4.",
 	    type => 'boolean',
 	    default => 1,
+	},
+	greylist6 => {
+	    description => "Use Greylisting for IPv6.",
+	    type => 'boolean',
+	    default => 0,
 	},
 	helotests => {
 	    description => "Use SMTP HELO tests.",
@@ -666,6 +671,7 @@ sub options {
 	max_smtpd_in => { optional => 1 },
 	max_smtpd_out => { optional => 1 },
 	greylist => { optional => 1 },
+	greylist6 => { optional => 1 },
 	helotests => { optional => 1 },
 	tls => { optional => 1 },
 	tlslog => { optional => 1 },

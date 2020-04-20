@@ -15,7 +15,7 @@ use Time::HiRes qw(gettimeofday);
 use Time::Zone;
 
 use PVE::INotify;
-use PVE::Tools;
+use PVE::Tools qw($IPV4RE $IPV6RE);
 use PVE::SafeSyslog;
 
 use PMG::Utils;
@@ -318,10 +318,12 @@ sub load_config {
     my $pmg_cfg = PMG::Config->new ();
     $self->{use_spf} = $pmg_cfg->get('mail', 'spf');
     $self->{use_greylist} = $pmg_cfg->get('mail', 'greylist');
+    $self->{use_greylist6} = $pmg_cfg->get('mail', 'greylist6');
 
     if ($opt_testmode) {
 	$self->{use_spf} = 1;
 	$self->{use_greylist} = 1;
+	$self->{use_greylist6} = 1;
     }
 
     my $nodename = PVE::INotify::nodename();
@@ -551,9 +553,17 @@ sub greylist_value {
 	return 'dunno';
     }
 
-    my ($net, $host) = $ip =~ m/(\d+\.\d+\.\d+)\.(\d+)/; # IPv4 for now
-    return 'dunno' if !defined($net);
-    my $masklen = 24;
+    my $masklen;
+    my $do_greylist = 0;
+    if ($ip =~ m/$IPV4RE/) {
+	$masklen = 24;
+	$do_greylist = $self->{use_greylist};
+    } elsif ($ip =~ m/$IPV6RE/) {
+	$masklen = 64;
+	$do_greylist = $self->{use_greylist6};
+    } else {
+	return 'dunno';
+    }
 
     my $spf_header;
 
@@ -647,7 +657,7 @@ sub greylist_value {
 	$self->{cache}->{$instance}->{spf_header_added} = 1;
     }
 
-    return $res if !$self->{use_greylist};
+    return $res if !$do_greylist;
 
     my $defer_res = "defer_if_permit Service is unavailable (try later)";
 
