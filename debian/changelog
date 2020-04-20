@@ -1,3 +1,15 @@
+pmg-api (6.1-9) pmg; urgency=medium
+
+  * add new 'Match Archive Filename' What Object
+
+  * use postgres inet functions for greylist matching
+
+  * pmgpolicy: add IPv6 support for greylisting
+
+  * greylist: make netmasks configurable
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 20 Apr 2020 17:37:09 +0200
+
 pmg-api (6.1-8) pmg; urgency=medium
 
   * pmgqm: warn and exit if running on slave node
