@@ -54,8 +54,11 @@ sub gltest {
     $sock->flush;
     my $res = <$sock>;
     chomp $res;
-    my $timediff = $ttime - $starttime;
-    die "unexpected result at time $timediff: $res != $eres\n$data" if !($res =~ m/^action=$eres(\s.*)?/);
+    if ($res !~ m/^action=$eres(\s.*)?/) {
+	my $timediff = $ttime - $starttime;
+	system("kill `cat $testpidfn`") if -f $testpidfn;
+	die "unexpected result at time $timediff: $res != $eres\n$data"
+    }
 }
 
 # a normal record
