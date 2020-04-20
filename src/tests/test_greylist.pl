@@ -127,6 +127,38 @@ gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay-1, 'defer');
 gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+1, 'dunno');
 gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+2, 'defer');
 
+# greylist ipv6
+my $data6 = <<_EOD;
+request=smtpd_access_policy
+protocol_state=RCPT
+protocol_name=SMTP
+client_address=2001:db8::1
+client_name=test.domain.tld
+helo_name=test.domain.tld
+sender=test1\@test.domain.tld
+recipient=test1\@proxmox.com
+_EOD
+
+# time 0
+reset_gldb ();
+gltest ($data6, $testtime, 'defer');
+gltest ($data6, $testtime+$greylist_delay-3, 'defer');
+gltest ($data6, $testtime+$greylist_delay-1, 'defer');
+gltest ($data6, $testtime+$greylist_lifetime-1, 'dunno');
+gltest ($data6, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1, 'dunno');
+gltest ($data6, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
+
+# time 0
+reset_gldb ();
+gltest ($data6, $testtime, 'defer');
+gltest ($data6, $testtime+$greylist_delay-3, 'defer');
+gltest ($data6, $testtime+$greylist_delay-1, 'defer');
+gltest ($data6, $testtime+$greylist_lifetime+1, 'defer');
+gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay-1, 'defer');
+gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1, 'dunno');
+gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1, 'dunno');
+gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
+
 
 my $testdomain = "interspar.at";
 my $testipok = "68.232.133.35";
