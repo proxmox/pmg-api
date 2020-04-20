@@ -763,12 +763,15 @@ sub sync_greylist_db {
 	    "mtime >= $lastmt AND CID != 0";
     };
 
-    my $merge_sth = $dbh->prepare($PMG::DBTools::cgreylist_merge_sql);
+    # FIXME: drop Host column with PMG 7.0
+    my $merge_sth = $dbh->prepare(PMG::DBTools::cgreylist_merge_sql());
     my $mergefunc = sub {
 	my ($ref) = @_;
 
+	my $ipnet = $ref->{ipnet};
+	$ipnet .= '.0/24' if $ipnet !~ /\/\d+$/;
 	$merge_sth->execute(
-	    $ref->{ipnet}, $ref->{host}, $ref->{sender}, $ref->{receiver},
+	    $ipnet, 0, $ref->{sender}, $ref->{receiver},
 	    $ref->{instance}, $ref->{rctime}, $ref->{extime}, $ref->{delay},
 	    $ref->{blocked}, $ref->{passed}, 0, $ref->{cid});
     };

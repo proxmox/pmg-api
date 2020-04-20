@@ -18,10 +18,16 @@ use PMG::Utils qw(postgres_admin_cmd);
 
 our $default_db_name = "Proxmox_ruledb";
 
-our $cgreylist_merge_sql =
+# FIXME: drop Host column with PMG 7.0
+sub cgreylist_merge_sql {
+    my ($with_mask) = @_;
+
+    my $network = $with_mask ? 'network(set_masklen(?, ?))' : '?';
+
+    my $sql =
     'INSERT INTO CGREYLIST (IPNet,Host,Sender,Receiver,Instance,RCTime,' .
     'ExTime,Delay,Blocked,Passed,MTime,CID) ' .
-    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' .
+    "VALUES ($network, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " .
     'ON CONFLICT (IPNet,Sender,Receiver) DO UPDATE SET ' .
     'Host = CASE WHEN CGREYLIST.MTime >= excluded.MTime THEN CGREYLIST.Host ELSE excluded.Host END,' .
     'CID = GREATEST(CGREYLIST.CID, excluded.CID), RCTime = LEAST(CGREYLIST.RCTime, excluded.RCTime),' .
@@ -29,6 +35,9 @@ our $cgreylist_merge_sql =
     'Delay = GREATEST(CGREYLIST.Delay, excluded.Delay),' .
     'Blocked = GREATEST(CGREYLIST.Blocked, excluded.Blocked),' .
     'Passed = GREATEST(CGREYLIST.Passed, excluded.Passed)';
+
+    return $sql;
+}
 
 sub open_ruledb {
     my ($database, $host, $port) = @_;
@@ -102,7 +111,7 @@ sub database_list {
 
 my $cgreylist_ctablecmd =  <<__EOD;
     CREATE TABLE CGreylist
-    (IPNet VARCHAR(16) NOT NULL,
+    (IPNet VARCHAR(49) NOT NULL,
      Host INTEGER NOT NULL,
      Sender VARCHAR(255) NOT NULL,
      Receiver VARCHAR(255) NOT NULL,
@@ -521,6 +530,34 @@ sub upgradedb {
 		 "WHERE objecttype = 3003 " .
 		 "AND value = 'content-type:application/x-java-vm';");
     };
+
+    # FIXME: drop Host column with PMG 7.0
+    # increase column size of cgreylist.ipnet for ipv6 support and transfer data
+    eval {
+	my $sth = $dbh->prepare("SELECT character_maximum_length ".
+	    "FROM information_schema.columns ".
+	    "WHERE table_name = 'cgreylist' AND column_name = 'ipnet'");
+	$sth->execute();
+	my $res = $sth->fetchrow_hashref();
+	if ($res->{character_maximum_length} == 16) {
+	    $dbh->begin_work;
+	    $dbh->do("ALTER TABLE CGreylist ALTER COLUMN " .
+		     "IPNet TYPE varchar(49)");
+	    eval {
+		$dbh->do("UPDATE CGreylist cg1 SET IPNet = IPNet || '.0/24' ".
+			"WHERE position('/' in IPNet) = 0 AND ".
+			"NOT EXISTS (SELECT 1 FROM CGreylist cg2 WHERE ".
+			"cg2.IPNet = cg1.IPNet || '.0/24' AND ".
+			"cg1.Receiver = cg2.Receiver AND cg1.Sender = cg2.Sender)");
+	    };
+	    #ignore errors here - legacy rows will eventually expire
+	    $dbh->commit;
+	}
+    };
+    if (my $err = $@) {
+	$dbh->rollback;
+	die $err;
+    }
 
     foreach my $table (keys %$tables) {
 	eval { $dbh->do("ANALYZE $table"); };
