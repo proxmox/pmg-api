@@ -319,6 +319,8 @@ sub load_config {
     $self->{use_spf} = $pmg_cfg->get('mail', 'spf');
     $self->{use_greylist} = $pmg_cfg->get('mail', 'greylist');
     $self->{use_greylist6} = $pmg_cfg->get('mail', 'greylist6');
+    $self->{greylistmask4} = $pmg_cfg->get('mail', 'greylistmask4');
+    $self->{greylistmask6} = $pmg_cfg->get('mail', 'greylistmask6');
 
     if ($opt_testmode) {
 	$self->{use_spf} = 1;
@@ -556,10 +558,10 @@ sub greylist_value {
     my $masklen;
     my $do_greylist = 0;
     if ($ip =~ m/$IPV4RE/) {
-	$masklen = 24;
+	$masklen = $self->{greylistmask4};
 	$do_greylist = $self->{use_greylist};
     } elsif ($ip =~ m/$IPV6RE/) {
-	$masklen = 64;
+	$masklen = $self->{greylistmask6};
 	$do_greylist = $self->{use_greylist6};
     } else {
 	return 'dunno';
