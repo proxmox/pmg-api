@@ -685,9 +685,11 @@ sub greylist_value {
 
 	if (!defined($ref->{rctime})) {
 
-	    $dbh->do(PMG::DBTools::cgreylist_merge_sql(1), undef,
-		    $ip, $masklen, 0, $sender, $rcpt, $instance,
-		    $ctime, $ctime + $greylist_lifetime, 0, 1, 0, $ctime, $self->{lcid});
+	    $dbh->do(
+		PMG::DBTools::cgreylist_merge_sql(1), undef, $ip, $masklen,
+		0, $sender, $rcpt, $instance, $ctime, $ctime + $greylist_lifetime,
+		0, 1, 0, $ctime, $self->{lcid}
+	    );
 
 	    $res = $defer_res;
 	    $self->log(3, "defer greylisted mail");
@@ -698,31 +700,37 @@ sub greylist_value {
 		# defer (resent within greylist_delay window)
 		$res = $defer_res;
 		$self->log(3, "defer greylisted mail");
-		$dbh->do("UPDATE CGreylist " .
-			"SET Blocked = Blocked + 1, MTime = ? " .
-			"WHERE IPNet::cidr = network(set_masklen(?, ?)) AND ".
-			"Sender = ? AND Receiver = ?", undef,
-			$ctime, $ip, $masklen, $sender, $rcpt);
+		$dbh->do(
+		    "UPDATE CGreylist " .
+		    "SET Blocked = Blocked + 1, MTime = ? " .
+		    "WHERE IPNet::cidr = network(set_masklen(?, ?)) ".
+		    " AND Sender = ? AND Receiver = ?", undef,
+		    $ctime, $ip, $masklen, $sender, $rcpt
+		);
 	    } else {
 		if ($ctime < $ref->{extime}) {
 		    # accept (not expired)
 		    my $lifetime = $sender eq "" ? 0 : $greylist_awlifetime;
 		    my $delay = $ref->{passed} ? "" : "Delay = $age, ";
-		    $dbh->do("UPDATE CGreylist " .
-			    "SET Passed = Passed + 1, $delay ExTime = ?, MTime = ? " .
-			    "WHERE IPNet::cidr = network(set_masklen(?, ?)) AND ".
-			    "Sender = ? AND Receiver = ?", undef,
-			    $ctime + $lifetime, $ctime, $ip, $masklen, $sender, $rcpt);
+		    $dbh->do(
+			"UPDATE CGreylist " .
+			"SET Passed = Passed + 1, $delay ExTime = ?, MTime = ? " .
+			"WHERE IPNet::cidr = network(set_masklen(?, ?)) ".
+			" AND Sender = ? AND Receiver = ?", undef,
+			$ctime + $lifetime, $ctime, $ip, $masklen, $sender, $rcpt
+		    );
 		} else {
 		    # defer (record is expired)
 		    $res = $defer_res;
-		    $dbh->do("UPDATE CGreylist " .
-			    "SET RCTime = ?, ExTime = ?, MTime = ?, Instance = ?, " .
-			    "Blocked = 1, Passed = 0 " .
-			    "WHERE IPNet::cidr = network(set_masklen(?, ?)) AND ".
-			    "Sender = ? AND Receiver = ?", undef,
-			    $ctime, $ctime + $greylist_lifetime, $ctime, $instance,
-			    $ip, $masklen, $sender, $rcpt);
+		    $dbh->do(
+			"UPDATE CGreylist " .
+			"SET RCTime = ?, ExTime = ?, MTime = ?, Instance = ?, " .
+			"Blocked = 1, Passed = 0 " .
+			"WHERE IPNet::cidr = network(set_masklen(?, ?)) ".
+			" AND Sender = ? AND Receiver = ?", undef,
+			$ctime, $ctime + $greylist_lifetime, $ctime, $instance,
+			$ip, $masklen, $sender, $rcpt
+		    );
 		}
 	    }
 	}
