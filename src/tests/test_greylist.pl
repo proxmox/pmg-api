@@ -25,6 +25,17 @@ my $testpidfn = "greylist-test-$$.pid";
 
 system ("perl -I.. ../bin/pmgpolicy -d $testdb -t --port $testport --pidfile '$testpidfn'");
 
+sub exit_test_pmgpolicy {
+    my $pid = PVE::Tools::file_read_firstline($testpidfn);
+    die "could not read pidfile: $!\n" if !$pid;
+
+    die "could not find pid in pidfile\n" if $pid !~ m/^(\d+)$/;
+    $pid = $1;
+
+    kill ('TERM', $pid);
+    unlink($testpidfn);
+}
+
 sub reset_gldb {
     my $dbh = PMG::DBTools::open_ruledb($testdb);
     $dbh->do ("DELETE FROM CGreylist");
@@ -56,7 +67,7 @@ sub gltest {
     chomp $res;
     if ($res !~ m/^action=$eres(\s.*)?/) {
 	my $timediff = $ttime - $starttime;
-	system("kill `cat $testpidfn`") if -f $testpidfn;
+	exit_test_pmgpolicy();
 	die "unexpected result at time $timediff: $res != $eres\n$data"
     }
 }
@@ -215,8 +226,7 @@ _EOD
 
 gltest ($data_fail, $testtime, 'reject');
 
-system("kill `cat $testpidfn`") if -f $testpidfn;
-unlink($testpidfn);
+exit_test_pmgpolicy();
 
 print "ALL TESTS OK\n";
 
