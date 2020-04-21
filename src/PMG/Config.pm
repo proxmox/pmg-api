@@ -1353,7 +1353,7 @@ sub get_template_vars {
 
     my $usepolicy = 0;
     $usepolicy = 1 if $self->get('mail', 'greylist') ||
-	$self->get('mail', 'spf');
+	$self->get('mail', 'greylist6') || $self->get('mail', 'spf');
     $vars->{postfix}->{usepolicy} = $usepolicy;
 
     if ($int_ip =~ m/^$IPV6RE$/) {
