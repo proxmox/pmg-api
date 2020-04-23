@@ -8,6 +8,7 @@ After=remote-fs.target
 Wants=postgresql.service
 After=postgresql.service
 Before=postfix.service
+Before=postfix@.service
 Before=clamav-daemon.service
 Before=clamav-freshclam.service
 Before=pmgdaemon.service
