@@ -1,0 +1,13 @@
+/var/log/pmgproxy/pmgproxy.log {
+	rotate 12
+	monthly
+	missingok
+	compress
+	delaycompress
+	notifempty
+	create 640 www-data www-data
+	sharedscripts
+	postrotate
+		/bin/systemctl try-reload-or-restart pmgproxy.service
+	endscript
+}
