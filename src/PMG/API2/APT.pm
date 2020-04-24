@@ -520,6 +520,7 @@ __PACKAGE__->register_method({
 	    libxdgmime-perl
 	    lvm2
 	    pmg-docs
+	    pmg-log-tracker
 	    postgresql-11
 	    proxmox-mini-journalreader
 	    proxmox-spamassassin
