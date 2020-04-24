@@ -1,10 +1,15 @@
-pmg-api (6.2-2) pmg; urgency=medium
+pmg-api (6.2-3) pmg; urgency=medium
 
   * enable policy checking also if only IPv6 greylisting is enabled
 
   * improve ordering of system services
 
- -- Proxmox Support Team <support@proxmox.com>  Thu, 23 Apr 2020 21:30:08 +0200
+  * add logrotate config to monthly-rotate pmgproxy.log
+
+  * api tracker: always check that specified 'endtime' is newer than
+    'starttime'
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 24 Apr 2020 18:57:12 +0200
 
 pmg-api (6.1-9) pmg; urgency=medium
 
