@@ -11,11 +11,20 @@ use Encode;
 use PVE::Tools;
 use PVE::SafeSyslog;
 use PVE::RESTHandler;
+use PVE::Exception qw(raise_param_exc);
 use PVE::JSONSchema qw(get_standard_option);
 
 use PMG::RESTEnvironment;
 
 use base qw(PVE::RESTHandler);
+
+my $get_start_end_time = sub {
+    my ($param) = @_;
+    my $start = $param->{starttime} // (time - 86400);
+    my $end = $param->{endtime} // ($start + 86400);
+    raise_param_exc({'endtime' => "must be newer than 'starttime'"}) if $start > $end;
+    return ($start, $end);
+};
 
 my $statmap = {
     2 => 'delivered',
@@ -321,8 +330,7 @@ __PACKAGE__->register_method({
 
 	my $args = [];
 
-	my $start = $param->{starttime} // (time - 86400);
-	my $end = $param->{endtime} // ($start + 86400);
+	my ($start, $end) = $get_start_end_time->($param);
 
 	push @$args, '-s', $start;
 	push @$args, '-e', $end;
@@ -392,8 +400,7 @@ __PACKAGE__->register_method({
 
 	my $args = ['-v'];
 
-	my $start = $param->{starttime} // (time - 86400);
-	my $end = $param->{endtime} // ($start + 86400);
+	my ($start, $end) = $get_start_end_time->($param);
 
 	push @$args, '-s', $start;
 	push @$args, '-e', $end;
