@@ -131,14 +131,24 @@ my $run_pmg_log_tracker = sub {
 		$new->{client} = $entry->{client} if defined($entry->{client});
 		$new->{msgid} = $entry->{msgid} if defined($entry->{msgid});
 		$new->{time} = hex($1) - $timezone;
-		$new->{qid} = $2;
-		$new->{dstatus} = $3;
+		$new->{dstatus} = my $dstatus = $3;
+		$new->{qid} = my $qid = $2;
 		$new->{from} = $4;
-		$new->{to} = $5;
+		$new->{to} = my $to = $5;
 		$new->{relay} = $6;
 
+		if ($dstatus =~ /P|D|R/) {
+		    my $before_queue_status = {
+			P => '2',
+			D => '4',
+			R => '5',
+		    };
+		    $new->{dstatus} = 'A';
+		    $new->{rstatus} = $before_queue_status->{$dstatus};
+		}
+
 		push @$list, $new;
-		$lookup_hash->{$2}->{$5} = $new;
+		$lookup_hash->{$qid}->{$to} = $new;
 	    } elsif ($line =~ m/^(SMTP|FILTER|QMGR):/) {
 		if ($logids->{$entry->{qid}}) {
 		    $state = 'logs';
