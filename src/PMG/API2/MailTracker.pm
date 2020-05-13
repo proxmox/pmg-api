@@ -126,17 +126,19 @@ my $run_pmg_log_tracker = sub {
 	    } elsif ($line =~ m/^CTIME:\s+([0-9A-F]+)$/) {
 		# ignore ?
 	    } elsif ($line =~ m/^TO:([0-9A-F]+):([0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]+)>\s+\((\S+)\)$/) {
-		my $new = {};
-		$new->{size} = $entry->{size} // 0,
+		my $new = {
+		    size => $entry->{size} // 0,
+		    time => hex($1) - $timezone,
+		    qid => $2,
+		    dstatus => $3,
+		    from => $4,
+		    to => $5,
+		    relay => $6,
+		};
 		$new->{client} = $entry->{client} if defined($entry->{client});
 		$new->{msgid} = $entry->{msgid} if defined($entry->{msgid});
-		$new->{time} = hex($1) - $timezone;
-		$new->{dstatus} = my $dstatus = $3;
-		$new->{qid} = my $qid = $2;
-		$new->{from} = $4;
-		$new->{to} = my $to = $5;
-		$new->{relay} = $6;
 
+		my $dstatus = $new->{dstatus};
 		if ($dstatus =~ /P|D|R/) {
 		    my $before_queue_status = {
 			P => '2',
@@ -148,6 +150,8 @@ my $run_pmg_log_tracker = sub {
 		}
 
 		push @$list, $new;
+
+		my ($qid, $to) = $new->@{'qid', 'to'};
 		$lookup_hash->{$qid}->{$to} = $new;
 	    } elsif ($line =~ m/^(SMTP|FILTER|QMGR):/) {
 		if ($logids->{$entry->{qid}}) {
