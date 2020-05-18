@@ -184,7 +184,7 @@ sub postcat {
     return $res;
 }
 
-# flush all queuespostconf -d|grep enable_long_queue_ids
+# flush all queues
 sub flush_queues {
     PVE::Tools::run_command(['/usr/sbin/postqueue', '-f']);
 }
