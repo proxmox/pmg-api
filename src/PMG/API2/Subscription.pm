@@ -188,4 +188,25 @@ __PACKAGE__->register_method ({
 	return undef;
     }});
 
+__PACKAGE__->register_method ({
+    name => 'delete',
+    path => '',
+    method => 'DELETE',
+    description => "Delete subscription key.",
+    proxyto => 'node',
+    protected => 1,
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	},
+    },
+    returns => { type => 'null'},
+    code => sub {
+	my $subscription_file = '/etc/pmg/subscription';
+	return if ! -e $subscription_file;
+	unlink($subscription_file) or die "cannot delete subscription key: $1";
+	return undef;
+    }});
+
 1;

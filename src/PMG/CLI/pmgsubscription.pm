@@ -29,6 +29,7 @@ our $cmddef = {
 		 }
 	     }],
     set => [ 'PMG::API2::Subscription', 'set', ['key'], { node => $nodename } ],
+    delete => [ 'PMG::API2::Subscription', 'delete', undef, { node => $nodename } ],
 };
 
 1;
