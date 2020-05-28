@@ -161,6 +161,19 @@ __PACKAGE__->register_method ({
 		maxLength => 64,
 		optional => 1,
 	    },
+	    sortfield => {
+		description => "Sort field.",
+		type => 'string',
+		optional => 1,
+		enum => ['arrival_time', 'message_size', 'sender', 'receiver', 'reason'],
+	    },
+	    sortdir => {
+		description => "Sort direction.",
+		type => 'string',
+		optional => 1,
+		enum => ['ASC', 'DESC'],
+		requires => 'sortfield',
+	    },
 	},
     },
     returns => {
@@ -180,6 +193,21 @@ __PACKAGE__->register_method ({
 	    $param->{queue}, $param->{filter}, $param->{start}, $param->{limit});
 
 	$restenv->set_result_attrib('total', $count);
+
+	my $sortfield = $param->{sortfield};
+	if (defined($sortfield)) {
+	    my $sort_func = sub {
+		my ($c, $d) = ($param->{sortdir} eq 'DESC') ? ($b, $a) : ($a, $b);
+		if ($sortfield eq 'message_size' || $sortfield eq 'arrival_time') {
+		    return $c->{$sortfield} <=> $d->{$sortfield};
+		} else {
+		    return $c->{$sortfield} cmp $d->{$sortfield};
+		}
+	    };
+
+	    $res = [ sort $sort_func @$res ] ;
+	}
+
 
 	return $res;
     }});
