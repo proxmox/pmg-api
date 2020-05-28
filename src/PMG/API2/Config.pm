@@ -227,7 +227,7 @@ __PACKAGE__->register_method({
     method => 'POST',
     protected => 0,
     permissions => { check => [ 'admin', 'qmanager', 'audit' ] },
-    description => "Test Regex",
+    description => "Test Regex ignoring case",
     parameters => {
 	additionalProperties => 0,
 	properties => {
@@ -255,7 +255,7 @@ __PACKAGE__->register_method({
 	my $regex_check = sub {
 	    my $start_time = [Time::HiRes::gettimeofday];
 	    my $match = 0;
-	    if ($text =~ /$regex/) {
+	    if ($text =~ /$regex/i) {
 		$match = 1;
 	    }
 	    my $elapsed = Time::HiRes::tv_interval($start_time) * 1000;
