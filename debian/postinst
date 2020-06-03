@@ -5,6 +5,7 @@ set -e
 
 ucf_register_templates() {
     for template in /etc/pmg/templates/*; do
+	[ -e "$template" ] || continue;
 	template_base=$(basename "${template}")
 	if echo "${template_base}" | grep -q '\.ucf-'; then
 		continue
