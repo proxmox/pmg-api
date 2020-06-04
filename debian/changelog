@@ -1,3 +1,13 @@
+pmg-api (6.2-5) pmg; urgency=medium
+
+  * fix #1976: optionally sort postfix queue result
+
+  * allow to remove subscription
+
+  * make regex test-match case-insensitive, like the real tests
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 04 Jun 2020 16:48:26 +0200
+
 pmg-api (6.2-4) pmg; urgency=medium
 
   * Mail Tracker: handle before queue status
