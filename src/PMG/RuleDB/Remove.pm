@@ -224,6 +224,14 @@ sub execute {
 	    my $original_entity = $entity->dup;
 	    PMG::Utils::remove_marks($original_entity);
 	    if (my $qid = $queue->quarantine_mail($ruledb, 'A', $original_entity, $tg, $msginfo, $vars, $ldap)) {
+		# adapt the Message-ID header of the mail without attachment to
+		# prevent 2 different mails with the same Message-ID
+		my $message_id = $entity->head->get('Message-ID');
+		if (defined($message_id)) {
+		    $message_id =~ s/^(<?)(.+)(>?)$/$1pmg-aquar-$$-$2$3/;
+		    $entity->head->replace('Message-ID', $message_id);
+		}
+
 		foreach (@$tg) {
 		    syslog ('info', "$queue->{logid}: moved mail for <%s> to attachment quarantine - %s (rule: %s)", $_, $qid, $rulename);
 		}
