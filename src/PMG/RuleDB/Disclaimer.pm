@@ -10,6 +10,8 @@ use MIME::Body;
 use IO::File;
 use Encode qw(decode encode);
 
+use PVE::SafeSyslog;
+
 use PMG::Utils;
 use PMG::ModGroup;
 use PMG::RuleDB::Object;;
@@ -143,17 +145,17 @@ sub add_data {
 }
 
 sub sign {
-    my ($self, $entity, $html, $text) = @_;
+    my ($self, $entity, $html, $text, $logid, $rulename) = @_;
 
     my $found = 0;
 
     if ($entity->head->mime_type =~ m{multipart/alternative}) {
 	foreach my $p ($entity->parts) {
-	    $found = 1 if $self->sign ($p, $html, $text);
+	    $found = 1 if $self->sign ($p, $html, $text, $logid, $rulename);
 	}
     } elsif ($entity->head->mime_type =~ m{multipart/}) {
 	foreach my $p ($entity->parts) {
-	    if ($self->sign ($p, $html, $text)) {
+	    if ($self->sign ($p, $html, $text, $logid, $rulename)) {
 		$found = 1;
 		last;
 	    }
@@ -168,6 +170,11 @@ sub sign {
 	    };
 	    # simply ignore if we can't represent the disclainer
 	    # with that encoding
+	    if ($@) {
+		syslog('info', "%s: adding disclaimer failed (rule: %s)", $logid, $rulename);
+	    } else {
+		syslog('info', "%s: added disclaimer (rule: %s)", $logid, $rulename);
+	    }
 	    $found = 1;
 	} else {
 	    # do nothing - unknown format
@@ -180,6 +187,8 @@ sub sign {
 sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
+
+    my $rulename = $vars->{RULE} // 'unknown';
 
     my $subgroups = $mod_group->subgroups($targets);
 
@@ -199,7 +208,7 @@ sub execute {
 	$parser->parse($tmp);
 	$parser->eof;
 	    
-	$self->sign($entity, "$html\n", "$text\n");
+	$self->sign($entity, "$html\n", "$text\n", $queue->{logid}, $rulename);
 
 	return;
     }
