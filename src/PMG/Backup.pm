@@ -6,6 +6,7 @@ use Data::Dumper;
 use File::Basename;
 use File::Path;
 
+use PVE::JSONSchema qw(get_standard_option);
 use PVE::Tools;
 
 use PMG::pmgcfg;
@@ -13,6 +14,29 @@ use PMG::AtomicFile;
 use PMG::Utils qw(postgres_admin_cmd);
 
 my $sa_custom_config_fn = "/etc/mail/spamassassin/custom.cf";
+
+sub get_restore_options {
+    return (
+	node => get_standard_option('pve-node'),
+	config => {
+	    description => "Restore system configuration.",
+	    type => 'boolean',
+	    optional => 1,
+	    default => 0,
+	},
+	database => {
+	    description => "Restore the rule database. This is the default.",
+	    type => 'boolean',
+	    optional => 1,
+	    default => 1,
+	},
+	statistic => {
+	    description => "Restore statistic databases. Only considered when you restore the 'database'.",
+	    type => 'boolean',
+	    optional => 1,
+	    default => 0,
+	});
+}
 
 sub dump_table {
     my ($dbh, $table, $ofh, $seq, $seqcol) = @_;

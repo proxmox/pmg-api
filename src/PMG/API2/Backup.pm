@@ -202,26 +202,9 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
+	    PMG::Backup::get_restore_options(),
 	    node => get_standard_option('pve-node'),
 	    filename => $backup_filename_property,
-	    config => {
-		description => "Restore system configuration.",
-		type => 'boolean',
-		optional => 1,
-		default => 0,
-	    },
-	    database => {
-		description => "Restore the rule database. This is the default.",
-		type => 'boolean',
-		optional => 1,
-		default => 1,
-	    },
-	    statistic => {
-		description => "Restore statistic databases. Only considered when you restore the 'database'.",
-		type => 'boolean',
-		optional => 1,
-		default => 0,
-	    },
 	},
     },
     returns => { type => "string" },
