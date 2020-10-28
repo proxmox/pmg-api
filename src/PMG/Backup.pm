@@ -186,8 +186,6 @@ sub pmg_backup {
 
 	push @$extra_cfgs, $sa_custom_config_fn;
 
-	#push @$extra_cfgs, '/etc/postfix/tls_policy';
-
 	my $extradb = $include_statistics ? $statfn : '';
 
 	my $extra = join(' ', @$extra_cfgs);
