@@ -131,7 +131,7 @@ __PACKAGE__->register_method ({
 
 	    print "starting backup to: $filename\n";
 
-	    PMG::Backup::pmg_backup($filename, $param->{statistic});
+	    PMG::Backup::pmg_backup_pack($filename, $param->{statistic});
 
 	    print "backup finished\n";
 

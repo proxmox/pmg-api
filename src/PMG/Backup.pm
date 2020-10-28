@@ -133,10 +133,11 @@ sub dumpstatdb {
 }
 
 sub pmg_backup {
-    my ($filename, $include_statistics) = @_;
+    my ($dirname, $include_statistics) = @_;
+
+    die "No backupdir provided!\n" if !defined($dirname);
 
     my $time = time;
-    my $dirname = "/tmp/proxbackup_$$.$time";
     my $dbfn = "Proxmox_ruledb.sql";
     my $statfn = "Proxmox_statdb.sql";
     my $tarfn = "config_backup.tar";
@@ -145,12 +146,7 @@ sub pmg_backup {
 
     eval {
 
-	my $targetdir = dirname($filename);
-	mkdir $targetdir; # try to create target dir
-	-d $targetdir ||
-	    die "unable to access target directory '$targetdir'\n";
-
-	# create a temporary directory
+	# create backup directory
 	mkdir $dirname;
 
 	# dump the database first
@@ -197,7 +193,34 @@ sub pmg_backup {
 	system("cd $dirname; md5sum $tarfn $dbfn $extradb $verfn> $sigfn") == 0 ||
 	    die "unable to create backup signature: ERROR";
 
-	system("rm -f $filename; tar czf $filename -C $dirname $verfn $sigfn $dbfn $extradb $tarfn") == 0 ||
+    };
+    my $err = $@;
+
+    if ($err) {
+	die $err;
+    }
+}
+
+sub pmg_backup_pack {
+    my ($filename, $include_statistics) = @_;
+
+    my $time = time;
+    my $dirname = "/tmp/proxbackup_$$.$time";
+
+    eval {
+
+	my $targetdir = dirname($filename);
+	mkdir $targetdir; # try to create target dir
+	-d $targetdir ||
+	    die "unable to access target directory '$targetdir'\n";
+
+	rmtree $dirname;
+	# create backup directory
+	mkdir $dirname;
+
+	pmg_backup($dirname, $include_statistics);
+
+	system("rm -f $filename; tar czf $filename --strip-components=1 -C $dirname .") == 0 ||
 	    die "unable to create backup archive: ERROR";
     };
     my $err = $@;
