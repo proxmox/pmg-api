@@ -243,12 +243,23 @@ sub pmg_restore {
     my $tarfn = "config_backup.tar";
     my $sigfn = "proxmox_backup_v1.md5";
 
-    eval {
-	# create a temporary directory
-	mkdir $dirname;
+    my $untar = 1;
 
-	system("cd $dirname; tar xzf $filename >/dev/null 2>&1") == 0 ||
-	    die "unable to extract backup archive: ERROR";
+    # directory indicates that the files were restored from a PBS remote
+    if ( -d $filename ) {
+	$dirname = $filename;
+	$untar = 0;
+    }
+
+    eval {
+
+	if ($untar) {
+	    # create a temporary directory
+	    mkdir $dirname;
+
+	    system("cd $dirname; tar xzf $filename >/dev/null 2>&1") == 0 ||
+		die "unable to extract backup archive: ERROR";
+	}
 
 	system("cd $dirname; md5sum -c $sigfn") == 0 ||
 	    die "proxmox backup signature check failed: ERROR";
