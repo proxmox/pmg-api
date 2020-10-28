@@ -69,7 +69,9 @@ sub signing_domain {
     my $dkimdomains = PVE::INotify::read_file('dkimdomains');
     $dkimdomains = PVE::INotify::read_file('domains') if !scalar(%$dkimdomains);
 
-    foreach my $domain (sort keys %$dkimdomains) {
+    # Sort domains by length first, so if we have both a sub domain and its parent
+    # the correct one will be returned
+    foreach my $domain (sort { length($b) <=> length($a) || $a cmp $b} keys %$dkimdomains) {
 	if ( $input_domain =~ /\Q$domain\E$/i ) {
 	    $self->domain($domain);
 	    return 1;
