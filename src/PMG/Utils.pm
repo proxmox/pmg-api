@@ -211,7 +211,7 @@ sub reinject_mail {
     my $resmess;
 
     eval {
-	my $smtp = Net::SMTP->new('127.0.0.1', Port => 10025, Hello => $me) ||
+	my $smtp = Net::SMTP->new('::FFFF:127.0.0.1', Port => 10025, Hello => $me) ||
 	    die "unable to connect to localhost at port 10025";
 
 	if (defined($xforward)) {
