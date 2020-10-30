@@ -254,6 +254,8 @@ sub pmg_restore {
     eval {
 
 	if ($untar) {
+	    # remove any leftovers
+	    rmtree $dirname;
 	    # create a temporary directory
 	    mkdir $dirname;
 
