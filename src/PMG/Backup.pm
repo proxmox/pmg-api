@@ -132,6 +132,7 @@ sub dumpstatdb {
     die $err if $err;
 }
 
+# this function assumes that directory $dirname exists and is empty
 sub pmg_backup {
     my ($dirname, $include_statistics) = @_;
 
@@ -145,9 +146,6 @@ sub pmg_backup {
     my $verfn = "version.txt";
 
     eval {
-
-	# create backup directory
-	mkdir $dirname;
 
 	# dump the database first
 	my $fh = PMG::AtomicFile->open("$dirname/$dbfn", "w") ||
