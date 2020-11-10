@@ -13,7 +13,10 @@ use PMG::pmgcfg;
 use PMG::AtomicFile;
 use PMG::Utils qw(postgres_admin_cmd);
 
-my $sa_custom_config_fn = "/etc/mail/spamassassin/custom.cf";
+my $sa_configs = [
+    "/etc/mail/spamassassin/custom.cf",
+    "/etc/mail/spamassassin/pmg-scores.cf",
+];
 
 sub get_restore_options {
     return (
@@ -202,7 +205,7 @@ sub pmg_backup {
 
 	my $extra_cfgs =  [];
 
-	push @$extra_cfgs, $sa_custom_config_fn;
+	push @$extra_cfgs, @{$sa_configs};
 
 	my $extradb = $include_statistics ? $statfn : '';
 
@@ -308,10 +311,12 @@ sub pmg_restore {
 	    system("cp -a $dirname/config/etc/pmg/* /etc/pmg/") == 0 ||
 		die "unable to restore system configuration: ERROR";
 
-	    if (-f "$dirname/config/${sa_custom_config_fn}") {
-		my $data = PVE::Tools::file_get_contents(
-		    "$dirname/config/${sa_custom_config_fn}", 1024*1024);
-		PVE::Tools::file_set_contents($sa_custom_config_fn, $data);
+	    for my $sa_cfg (@{$sa_configs}) {
+		if (-f "$dirname/config/${sa_cfg}") {
+		    my $data = PVE::Tools::file_get_contents(
+			"$dirname/config/${sa_cfg}", 1024*1024);
+		    PVE::Tools::file_set_contents($sa_cfg, $data);
+		}
 	    }
 
 	    my $cfg = PMG::Config->new();
