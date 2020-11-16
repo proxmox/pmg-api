@@ -137,6 +137,7 @@ LIBSOURCES =				\
 	PMG/API2/Statistics.pm		\
 	PMG/API2/MailTracker.pm		\
 	PMG/API2/Backup.pm		\
+	PMG/API2/PBS/Remote.pm		\
 	PMG/API2/Nodes.pm		\
 	PMG/API2/Postfix.pm		\
 	PMG/API2/Quarantine.pm		\

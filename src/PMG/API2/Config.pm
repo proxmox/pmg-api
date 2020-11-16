@@ -25,6 +25,7 @@ use PMG::API2::Fetchmail;
 use PMG::API2::DestinationTLSPolicy;
 use PMG::API2::DKIMSign;
 use PMG::API2::SACustom;
+use PMG::API2::PBS::Remote;
 
 use base qw(PVE::RESTHandler);
 
@@ -94,6 +95,11 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method ({
+    subclass => "PMG::API2::PBS::Remote",
+    path => 'pbs',
+});
+
+__PACKAGE__->register_method ({
     name => 'index', 
     path => '',
     method => 'GET',
@@ -131,6 +137,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'regextest' };
 	push @$res, { section => 'tlspolicy' };
 	push @$res, { section => 'dkim' };
+	push @$res, { section => 'pbs' };
 
 	return $res;
     }});
