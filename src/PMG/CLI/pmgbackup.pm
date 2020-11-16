@@ -85,6 +85,12 @@ our $cmddef = {
 	forget => ['PMG::API2::PBS::Job', 'forget_snapshot', ['remote', 'time'], { node => $nodename} ],
 	run => ['PMG::API2::PBS::Job', 'run_backup', ['remote'], { node => $nodename} ],
 	restore => ['PMG::API2::PBS::Job', 'restore', ['remote'], { node => $nodename} ],
+	create => ['PMG::API2::PBS::Job', 'create_timer', ['remote'], { node => $nodename }],
+	delete => ['PMG::API2::PBS::Job', 'delete_timer', ['remote'], { node => $nodename }],
+	schedule => ['PMG::API2::PBS::Job', 'list_timer', ['remote'], { node => $nodename },  sub {
+	    my ($data, $schema, $options) = @_;
+	    PVE::CLIFormatter::print_api_result($data, $schema, ['remote', 'schedule', 'delay'], $options);
+	}, $PVE::RESTHandler::standard_output_options ],
     },
 };
 

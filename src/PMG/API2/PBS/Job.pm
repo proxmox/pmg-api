@@ -14,6 +14,7 @@ use PVE::PBSClient;
 use PMG::RESTEnvironment;
 use PMG::Backup;
 use PMG::PBSConfig;
+use PMG::PBSSchedule;
 
 use base qw(PVE::RESTHandler);
 
@@ -366,6 +367,135 @@ __PACKAGE__->register_method ({
 	};
 
 	return $rpcenv->fork_worker('pbs_restore', undef, $authuser, $worker);
+    }});
+
+__PACKAGE__->register_method ({
+    name => 'create_timer',
+    path => '{remote}/timer',
+    method => 'POST',
+    description => "Create backup schedule",
+    proxyto => 'node',
+    protected => 1,
+    permissions => { check => [ 'admin', 'audit' ] },
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	    remote => {
+		description => "Proxmox Backup Server ID.",
+		type => 'string', format => 'pve-configid',
+	    },
+	    schedule => {
+		description => "Schedule for the backup (OnCalendar setting of the systemd.timer)",
+		type => 'string', pattern => '[0-9a-zA-Z*.:,\-/ ]+',
+		default => 'daily', optional => 1,
+	    },
+	    delay => {
+		description => "Randomized delay to add to the starttime (RandomizedDelaySec setting of the systemd.timer)",
+		type => 'string', pattern => '[0-9a-zA-Z. ]+',
+		default => 'daily', optional => 1,
+	    },
+	},
+    },
+    returns => { type => 'null' },
+    code => sub {
+	my ($param) = @_;
+
+	my $remote = $param->{remote};
+	my $schedule = $param->{schedule} // 'daily';
+	my $delay = $param->{delay} // '5min';
+
+	my $conf = PMG::PBSConfig->new();
+
+	my $remote_config = $conf->{ids}->{$remote};
+	die "PBS remote '$remote' does not exist\n" if !$remote_config;
+	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
+
+	PMG::PBSSchedule::create_schedule($remote, $schedule, $delay);
+
+    }});
+
+__PACKAGE__->register_method ({
+    name => 'delete_timer',
+    path => '{remote}/timer',
+    method => 'DELETE',
+    description => "Delete backup schedule",
+    proxyto => 'node',
+    protected => 1,
+    permissions => { check => [ 'admin', 'audit' ] },
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	    remote => {
+		description => "Proxmox Backup Server ID.",
+		type => 'string', format => 'pve-configid',
+	    },
+	},
+    },
+    returns => { type => 'null' },
+    code => sub {
+	my ($param) = @_;
+
+	my $remote = $param->{remote};
+
+	PMG::PBSSchedule::delete_schedule($remote);
+
+    }});
+
+__PACKAGE__->register_method ({
+    name => 'list_timer',
+    path => '{remote}/timer',
+    method => 'GET',
+    description => "Get timer specification",
+    proxyto => 'node',
+    protected => 1,
+    permissions => { check => [ 'admin', 'audit' ] },
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	    remote => {
+		description => "Proxmox Backup Server ID.",
+		type => 'string', format => 'pve-configid',
+	    },
+	},
+    },
+    returns => { type => 'object', properties => {
+	    remote => {
+		description => "Proxmox Backup Server ID.",
+		type => 'string', format => 'pve-configid',
+		optional => 1,
+	    },
+	    schedule => {
+		description => "Schedule for the backup (OnCalendar setting of the systemd.timer)",
+		type => 'string', pattern => '[0-9a-zA-Z*.:,\-/ ]+',
+		default => 'daily', optional => 1,
+	    },
+	    delay => {
+		description => "Randomized delay to add to the starttime (RandomizedDelaySec setting of the systemd.timer)",
+		type => 'string', pattern => '[0-9a-zA-Z. ]+',
+		default => 'daily', optional => 1,
+	    },
+	    unitfile => {
+		description => "unit file for the systemd.timer unit",
+		type => 'string', optional => 1,
+	    },
+	}},
+    code => sub {
+	my ($param) = @_;
+
+	my $remote = $param->{remote};
+
+	my $schedules = PMG::PBSSchedule::get_schedules();
+	my @data = grep {$_->{remote} eq $remote} @$schedules;
+
+	my $res = {};
+	if (scalar(@data) == 1) {
+	    $res = $data[0];
+	}
+
+	return $res
     }});
 
 1;

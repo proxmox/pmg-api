@@ -20,6 +20,7 @@ override_dh_installinit:
 	dh_systemd_enable --name=pmgspamreport pmgspamreport.service
 	dh_systemd_enable --name=pmgreport pmgreport.service
 	dh_systemd_enable --name=pmgsync pmgsync.service
+	dh_systemd_enable --no-enable --name=pmg-pbsbackup@ pmg-pbsbackup@.service
 
 override_dh_systemd_start:
 	dh_systemd_start pmg-hourly.timer pmg-daily.timer pmgspamreport.timer pmgreport.timer

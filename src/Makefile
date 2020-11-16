@@ -15,7 +15,7 @@ CRONSCRIPTS = pmg-hourly pmg-daily
 
 CLI_CLASSES = $(addprefix PMG/CLI/, $(addsuffix .pm, ${CLITOOLS}))
 SERVICE_CLASSES = $(addprefix PMG/Service/, $(addsuffix .pm, ${SERVICES}))
-SERVICE_UNITS = $(addprefix debian/, $(addsuffix .service, ${SERVICES}))
+SERVICE_UNITS = $(addprefix debian/, $(addsuffix .service, ${SERVICES} pmg-pbsbackup@))
 TIMER_UNITS = $(addprefix debian/, $(addsuffix .timer, ${CRONSCRIPTS} pmgspamreport pmgreport))
 
 CLI_BINARIES = $(addprefix bin/, ${CLITOOLS} ${CLISCRIPTS} ${CRONSCRIPTS})
@@ -67,6 +67,7 @@ LIBSOURCES =				\
 	PMG/Unpack.pm			\
 	PMG/Backup.pm			\
 	PMG/PBSConfig.pm		\
+	PMG/PBSSchedule.pm		\
 	PMG/RuleCache.pm		\
 	PMG/Statistic.pm		\
 	PMG/UserConfig.pm		\
