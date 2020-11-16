@@ -66,6 +66,7 @@ LIBSOURCES =				\
 	PMG/SMTP.pm			\
 	PMG/Unpack.pm			\
 	PMG/Backup.pm			\
+	PMG/PBSConfig.pm		\
 	PMG/RuleCache.pm		\
 	PMG/Statistic.pm		\
 	PMG/UserConfig.pm		\
