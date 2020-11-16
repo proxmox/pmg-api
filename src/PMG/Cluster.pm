@@ -409,6 +409,7 @@ sub sync_config_from_master {
     my $dirs = [
 	'templates',
 	'dkim',
+	'pbs',
     ];
 
     foreach my $dir (@$dirs) {
