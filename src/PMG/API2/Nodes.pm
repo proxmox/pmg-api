@@ -26,6 +26,7 @@ use PMG::API2::SpamAssassin;
 use PMG::API2::Postfix;
 use PMG::API2::MailTracker;
 use PMG::API2::Backup;
+use PMG::API2::PBS::Job;
 
 use base qw(PVE::RESTHandler);
 
@@ -80,6 +81,11 @@ __PACKAGE__->register_method ({
 });
 
 __PACKAGE__->register_method ({
+    subclass => "PMG::API2::PBS::Job",
+    path => 'pbs',
+});
+
+__PACKAGE__->register_method ({
     name => 'index',
     path => '',
     method => 'GET',
@@ -105,6 +111,7 @@ __PACKAGE__->register_method ({
 	my $result = [
 	    { name => 'apt' },
 	    { name => 'backup' },
+	    { name => 'pbs' },
 	    { name => 'clamav' },
 	    { name => 'spamassassin' },
 	    { name => 'postfix' },
