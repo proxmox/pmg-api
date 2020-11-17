@@ -186,7 +186,7 @@ __PACKAGE__->register_method ({
 		type => 'string', format => 'pve-configid',
 	    },
 	    time => {
-		description => "Backup time in RFC 3399 format",
+		description => "Backup time in RFC 3339 format",
 		type => 'string',
 	    },
 	},
@@ -390,7 +390,7 @@ __PACKAGE__->register_method ({
 	    delay => {
 		description => "Randomized delay to add to the starttime (RandomizedDelaySec setting of the systemd.timer)",
 		type => 'string', pattern => '[0-9a-zA-Z. ]+',
-		default => 'daily', optional => 1,
+		default => '5min', optional => 1,
 	    },
 	},
     },
@@ -472,7 +472,7 @@ __PACKAGE__->register_method ({
 	    delay => {
 		description => "Randomized delay to add to the starttime (RandomizedDelaySec setting of the systemd.timer)",
 		type => 'string', pattern => '[0-9a-zA-Z. ]+',
-		default => 'daily', optional => 1,
+		default => '5min', optional => 1,
 	    },
 	    unitfile => {
 		description => "unit file for the systemd.timer unit",
