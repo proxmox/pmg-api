@@ -84,17 +84,49 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $result = [
-	    { section => 'snapshots' },
-	    { section => 'backup' },
-	    { section => 'restore' },
+	    { section => 'snapshot' },
 	    { section => 'timer' },
 	];
 	return $result;
 }});
 
+
+my sub get_snapshots {
+    my ($remote, $group) = @_;
+
+    my $conf = PMG::PBSConfig->new();
+
+    my $remote_config = $conf->{ids}->{$remote};
+    die "PBS remote '$remote' does not exist\n" if !$remote_config;
+
+    my $res = [];
+    return $res if $remote_config->{disable};
+
+    my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
+
+    my $snapshots = $pbs->get_snapshots($group);
+    foreach my $item (@$snapshots) {
+	my ($type, $id, $time) = $item->@{qw(backup-type backup-id backup-time)};
+	next if $type ne 'host';
+
+	my @pxar = grep { $_->{filename} eq 'pmgbackup.pxar.didx' } @{$item->{files}};
+	next if (scalar(@pxar) != 1);
+
+	my $time_rfc3339 = strftime("%FT%TZ", gmtime($time));
+
+	push @$res, {
+	    'backup-id' => $id,
+	    'backup-time' => $time_rfc3339,
+	    ctime => $time,
+	    size => $item->{size} // 1,
+	};
+    }
+    return $res;
+}
+
 __PACKAGE__->register_method ({
     name => 'get_snapshots',
-    path => '{remote}/snapshots',
+    path => '{remote}/snapshot',
     method => 'GET',
     description => "Get snapshots stored on remote.",
     proxyto => 'node',
@@ -115,52 +147,64 @@ __PACKAGE__->register_method ({
 	items => {
 	    type => "object",
 	    properties => {
-		time => { type => 'string'},
+		'backup-time' => { type => 'string'},
+		'backup-id' => { type => 'string'},
 		ctime => { type => 'string'},
 		size => { type => 'integer'},
 	    },
 	},
-	links => [ { rel => 'child', href => "{time}" } ],
+	links => [ { rel => 'child', href => "{backup-id}" } ],
     },
     code => sub {
 	my ($param) = @_;
 
-	my $remote = $param->{remote};
-	my $node = $param->{node};
+	return get_snapshots($param->{remote});
+    }});
 
-	my $conf = PMG::PBSConfig->new();
+__PACKAGE__->register_method ({
+    name => 'get_group_snapshots',
+    path => '{remote}/snapshot/{backup-id}',
+    method => 'GET',
+    description => "Get snapshots from a specific ID stored on remote.",
+    proxyto => 'node',
+    protected => 1,
+    permissions => { check => [ 'admin', 'audit' ] },
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	    remote => {
+		description => "Proxmox Backup Server ID.",
+		type => 'string', format => 'pve-configid',
+	    },
+	    'backup-id' => {
+		description => "ID (hostname) of backup snapshot",
+		type => 'string',
+	    },
+	},
+    },
+    returns => {
+	type => 'array',
+	items => {
+	    type => "object",
+	    properties => {
+		'backup-time' => { type => 'string'},
+		'backup-id' => { type => 'string'},
+		ctime => { type => 'string'},
+		size => { type => 'integer'},
+	    },
+	},
+	links => [ { rel => 'child', href => "{backup-time}" } ],
+    },
+    code => sub {
+	my ($param) = @_;
 
-	my $remote_config = $conf->{ids}->{$remote};
-	die "PBS remote '$remote' does not exist\n" if !$remote_config;
-
-	my $res = [];
-	return $res if $remote_config->{disable};
-
-	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
-
-	my $snapshots = $pbs->get_snapshots("host/$node");
-	foreach my $item (@$snapshots) {
-	    my ($type, $id, $time) = $item->@{qw(backup-type backup-id backup-time)};
-	    next if $type ne 'host' || $id ne $node;
-
-	    my @pxar = grep { $_->{filename} eq 'pmgbackup.pxar.didx' } @{$item->{files}};
-	    die "unexpected number of pmgbackup archives in snapshot\n" if (scalar(@pxar) != 1);
-
-	    my $time_rfc3339 = strftime("%FT%TZ", gmtime($time));
-
-	    push @$res, {
-		time => $time_rfc3339,
-		ctime => $time,
-		size => $item->{size} // 1,
-	    };
-	}
-
-	return $res;
+	return get_snapshots($param->{remote}, "host/$param->{node}");
     }});
 
 __PACKAGE__->register_method ({
     name => 'forget_snapshot',
-    path => '{remote}/snapshots/{time}',
+    path => '{remote}/snapshot/{backup-id}/{backup-time}',
     method => 'DELETE',
     description => "Forget a snapshot",
     proxyto => 'node',
@@ -174,7 +218,11 @@ __PACKAGE__->register_method ({
 		description => "Proxmox Backup Server ID.",
 		type => 'string', format => 'pve-configid',
 	    },
-	    time => {
+	    'backup-id' => {
+		description => "ID (hostname) of backup snapshot",
+		type => 'string',
+	    },
+	    'backup-time' => {
 		description => "Backup time in RFC 3339 format",
 		type => 'string',
 	    },
@@ -185,20 +233,17 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $remote = $param->{remote};
-	my $node = $param->{node};
-	my $time = $param->{time};
-
-	my $snapshot = "host/$node/$time";
+	my $id = $param->{'backup-id'};
+	my $time = $param->{'backup-time'};
 
 	my $conf = PMG::PBSConfig->new();
-
 	my $remote_config = $conf->{ids}->{$remote};
 	die "PBS remote '$remote' does not exist\n" if !$remote_config;
 	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 
-	eval { $pbs->forget_snapshot($snapshot) };
+	eval { $pbs->forget_snapshot("host/$id/$time") };
 	die "Forgetting backup failed: $@" if $@;
 
 	return;
@@ -207,9 +252,9 @@ __PACKAGE__->register_method ({
 
 __PACKAGE__->register_method ({
     name => 'run_backup',
-    path => '{remote}/backup',
+    path => '{remote}/snapshot',
     method => 'POST',
-    description => "run backup and prune the backupgroup afterwards.",
+    description => "Create a new backup and prune the backup group afterwards, if configured.",
     proxyto => 'node',
     protected => 1,
     permissions => { check => [ 'admin', 'audit' ] },
@@ -276,7 +321,7 @@ __PACKAGE__->register_method ({
 
 __PACKAGE__->register_method ({
     name => 'restore',
-    path => '{remote}/restore',
+    path => '{remote}/snapshot/{backup-id}/{backup-time}',
     method => 'POST',
     description => "Restore the system configuration.",
     permissions => { check => [ 'admin' ] },
@@ -290,11 +335,13 @@ __PACKAGE__->register_method ({
 		description => "Proxmox Backup Server ID.",
 		type => 'string', format => 'pve-configid',
 	    },
-	    'backup-time' => {description=> "backup-time to restore",
-		optional => 1, type => 'string'
+	    'backup-time' => {
+		description=> "backup-time to restore",
+		type => 'string'
 	    },
-	    'backup-id' => {description => "backup-id (hostname) of backup snapshot",
-		optional => 1, type => 'string'
+	    'backup-id' => {
+		description => "backup-id (hostname) of backup snapshot",
+		type => 'string'
 	    },
 	},
     },
@@ -306,9 +353,9 @@ __PACKAGE__->register_method ({
 	my $authuser = $rpcenv->get_user();
 
 	my $remote = $param->{remote};
-	my $backup_id = $param->{'backup-id'} // $param->{node};
-	my $snapshot = "host/$backup_id";
-	$snapshot .= "/$param->{'backup-time'}" if defined($param->{'backup-time'});
+	my $id = $param->{'backup-id'};
+	my $time = $param->{'backup-time'};
+	my $snapshot = "host/$id/$time";
 
 	my $conf = PMG::PBSConfig->new();
 
@@ -327,17 +374,17 @@ __PACKAGE__->register_method ({
 	    if !($param->{database} || $param->{config});
 
 	my $worker = sub {
-	    my $upid = shift;
-
 	    print "starting restore of $snapshot from $remote\n";
 
 	    $pbs->restore_pxar($snapshot, 'pmgbackup', $dirname);
 	    print "starting restore of PMG config\n";
-	    PMG::Backup::pmg_restore($dirname, $param->{database},
-		 $param->{config}, $param->{statistic});
+	    PMG::Backup::pmg_restore(
+		$dirname,
+		$param->{database},
+		$param->{config},
+		$param->{statistic}
+	    );
 	    print "restore finished\n";
-
-	    return;
 	};
 
 	return $rpcenv->fork_worker('pbs_restore', undef, $authuser, $worker);
