@@ -133,37 +133,26 @@ __PACKAGE__->register_method ({
 	my $remote_config = $conf->{ids}->{$remote};
 	die "PBS remote '$remote' does not exist\n" if !$remote_config;
 
-	return [] if $remote_config->{disable};
-
-	my $snap_param = {
-	    group => "host/$node",
-	};
+	my $res = [];
+	return $res if $remote_config->{disable};
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
-	my $snapshots = $pbs->get_snapshots($snap_param);
-	my $res = [];
+
+	my $snapshots = $pbs->get_snapshots("host/$node");
 	foreach my $item (@$snapshots) {
-	    my $btype = $item->{"backup-type"};
-	    my $bid = $item->{"backup-id"};
-	    my $epoch = $item->{"backup-time"};
-	    my $size = $item->{size} // 1;
+	    my ($type, $id, $time) = $item->@{qw(backup-type backup-id backup-time)};
+	    next if $type ne 'host' || $id ne $node;
 
 	    my @pxar = grep { $_->{filename} eq 'pmgbackup.pxar.didx' } @{$item->{files}};
 	    die "unexpected number of pmgbackup archives in snapshot\n" if (scalar(@pxar) != 1);
 
+	    my $time_rfc3339 = strftime("%FT%TZ", gmtime($time));
 
-	    next if !($btype eq 'host');
-	    next if !($bid eq $node);
-
-	    my $time = strftime("%FT%TZ", gmtime($epoch));
-
-	    my $info = {
-		time => $time,
-		ctime => $epoch,
-		size => $size,
+	    push @$res, {
+		time => $time_rfc3339,
+		ctime => $time,
+		size => $item->{size} // 1,
 	    };
-
-	    push @$res, $info;
 	}
 
 	return $res;
@@ -335,8 +324,8 @@ __PACKAGE__->register_method ({
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 
-	my $time = time;
-	my $dirname = "/tmp/proxrestore_$$.$time";
+	my $now = time;
+	my $dirname = "/tmp/proxrestore_$$.$now";
 
 	$param->{database} //= 1;
 
