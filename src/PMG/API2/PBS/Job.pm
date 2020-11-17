@@ -249,14 +249,8 @@ __PACKAGE__->register_method ({
 
 	    -d $backup_dir || mkdir $backup_dir;
 	    PMG::Backup::pmg_backup($backup_dir, $param->{statistic});
-	    my $pbs_opts = {
-		type => 'host',
-		id => $node,
-		pxarname => 'pmgbackup',
-		root => $backup_dir,
-	    };
 
-	    $pbs->backup_tree($pbs_opts);
+	    $pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup');
 
 	    print "backup finished\n";
 
