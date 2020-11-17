@@ -26,9 +26,9 @@ __PACKAGE__->register_method ({
 	properties => {}
     },
     returns => {
-        type => "array",
-        items => PMG::PBSConfig->createSchema(1),
-        links => [ { rel => 'child', href => "{remote}" } ],
+	type => "array",
+	items => PMG::PBSConfig->createSchema(1),
+	links => [ { rel => 'child', href => "{remote}" } ],
     },
     code => sub {
 	my ($param) = @_;
@@ -36,19 +36,17 @@ __PACKAGE__->register_method ({
 	my $res = [];
 
 	my $conf = PMG::PBSConfig->new();
+	return $res if !defined($conf);
 
-	if (defined($conf)) {
-	    foreach my $remote (keys %{$conf->{ids}}) {
-		my $d = $conf->{ids}->{$remote};
-		my $entry = {
-		    remote => $remote,
-		    server => $d->{server},
-		    datastore => $d->{datastore},
-		    username => $d->{username},
-		    disable => $d->{disable},
-		};
-		push @$res, $entry;
-	    }
+	for my $remote (sort keys %{$conf->{ids}}) {
+	    my $d = $conf->{ids}->{$remote};
+	    push @$res, {
+		remote => $remote,
+		server => $d->{server},
+		datastore => $d->{datastore},
+		username => $d->{username},
+		disable => $d->{disable},
+	    };
 	}
 
 	return $res;
@@ -58,7 +56,7 @@ __PACKAGE__->register_method ({
     name => 'create',
     path => '',
     method => 'POST',
-    description => "Add Proxmox Backup Server instance.",
+    description => "Add Proxmox Backup Server remote instance.",
     permissions => { check => [ 'admin' ] },
     proxyto => 'master',
     protected => 1,
@@ -68,14 +66,12 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $code = sub {
-
 	    my $conf = PMG::PBSConfig->new();
 	    $conf->{ids} //= {};
 	    my $ids = $conf->{ids};
 
 	    my $remote = extract_param($param, 'remote');
-	    die "PBS remote '$remote' already exists\n"
-		if $ids->{$remote};
+	    die "PBS remote '$remote' already exists\n" if $ids->{$remote};
 
 	    my $remotecfg = PMG::PBSConfig->check_config($remote, $param, 1);
 
@@ -97,7 +93,7 @@ __PACKAGE__->register_method ({
     name => 'read_config',
     path => '{remote}',
     method => 'GET',
-    description => "Get PBS remote configuration.",
+    description => "Get Proxmox Backup Server remote configuration.",
     proxyto => 'master',
     permissions => { check => [ 'admin', 'audit' ] },
     parameters => {
@@ -151,19 +147,16 @@ __PACKAGE__->register_method ({
 
 	    my $remote = extract_param($param, 'remote');
 
-	    die "PBS remote '$remote' does not exist\n"
-		if !$ids->{$remote};
+	    die "PBS remote '$remote' does not exist\n" if !$ids->{$remote};
 
 	    my $delete_str = extract_param($param, 'delete');
-	    die "no options specified\n"
-		if !$delete_str && !scalar(keys %$param);
+	    die "no options specified\n" if !$delete_str && !scalar(keys %$param);
 
 	    my $pbs = PVE::PBSClient->new($ids->{$remote}, $remote, $conf->{secret_dir});
 	    foreach my $opt (PVE::Tools::split_list($delete_str)) {
 		if ($opt eq 'password') {
 		    $pbs->delete_password();
 		}
-
 		delete $ids->{$remote}->{$opt};
 	    }
 
@@ -212,9 +205,7 @@ __PACKAGE__->register_method ({
 	    my $ids = $conf->{ids};
 
 	    my $remote = $param->{remote};
-
-	    die "PBS remote '$remote' does not exist\n"
-		if !$ids->{$remote};
+	    die "PBS remote '$remote' does not exist\n" if !$ids->{$remote};
 
 	    my $pbs = PVE::PBSClient->new($ids->{$remote}, $remote, $conf->{secret_dir});
 	    $pbs->delete_password($remote);
