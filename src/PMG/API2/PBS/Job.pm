@@ -326,18 +326,12 @@ __PACKAGE__->register_method ({
 	die "nothing selected - please select what you want to restore (config or database?)\n"
 	    if !($param->{database} || $param->{config});
 
-	my $pbs_opts = {
-	    pxarname => 'pmgbackup',
-	    target => $dirname,
-	    snapshot => $snapshot,
-	};
-
 	my $worker = sub {
 	    my $upid = shift;
 
 	    print "starting restore of $snapshot from $remote\n";
 
-	    $pbs->restore_pxar($pbs_opts);
+	    $pbs->restore_pxar($snapshot, 'pmgbackup', $dirname);
 	    print "starting restore of PMG config\n";
 	    PMG::Backup::pmg_restore($dirname, $param->{database},
 		 $param->{config}, $param->{statistic});
