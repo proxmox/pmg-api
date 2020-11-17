@@ -125,12 +125,14 @@ sub prune_options {
     my $remote_cfg = $self->{ids}->{$remote};
 
     my $res = {};
+    my $pruning_setup;
     foreach my $keep_opt (keys %prune_properties) {
 	if (defined($remote_cfg->{$keep_opt})) {
+	    $pruning_setup = 1;
 	    $res->{$keep_opt} = $remote_cfg->{$keep_opt};
 	}
     }
-    return $res;
+    return $pruning_setup ? $res : undef;
 }
 
 sub new {

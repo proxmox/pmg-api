@@ -272,17 +272,17 @@ __PACKAGE__->register_method ({
 	    print "backup finished\n";
 
 	    my $group = "host/$node";
-	    print "starting prune of $group\n";
-	    my $prune_opts = $conf->prune_options($remote);
-	    my $res = $pbs->prune_group(undef, $prune_opts, $group);
+	    if (defined(my $prune_opts = $conf->prune_options($remote))) {
+		print "starting prune of $group\n";
+		my $res = $pbs->prune_group(undef, $prune_opts, $group);
 
-	    foreach my $pruned (@$res){
-		my $time = strftime("%FT%TZ", gmtime($pruned->{'backup-time'}));
-		my $snap = $pruned->{'backup-type'} . '/' . $pruned->{'backup-id'} . '/' .  $time;
-		print "pruned snapshot: $snap\n";
+		foreach my $pruned (@$res){
+		    my $time = strftime("%FT%TZ", gmtime($pruned->{'backup-time'}));
+		    my $snap = $pruned->{'backup-type'} . '/' . $pruned->{'backup-id'} . '/' .  $time;
+		    print "pruned snapshot: $snap\n";
+		}
+		print "prune finished\n";
 	    }
-
-	    print "prune finished\n";
 
 	    return;
 	};
