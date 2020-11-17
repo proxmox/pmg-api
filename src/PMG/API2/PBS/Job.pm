@@ -33,9 +33,9 @@ __PACKAGE__->register_method ({
 	},
     },
     returns => {
-        type => "array",
-        items => PMG::PBSConfig->createSchema(1),
-        links => [ { rel => 'child', href => "{remote}" } ],
+	type => "array",
+	items => PMG::PBSConfig->createSchema(1),
+	links => [ { rel => 'child', href => "{remote}" } ],
     },
     code => sub {
 	my ($param) = @_;
@@ -43,16 +43,15 @@ __PACKAGE__->register_method ({
 	my $res = [];
 
 	my $conf = PMG::PBSConfig->new();
-	if (defined($conf)) {
-	    foreach my $remote (keys %{$conf->{ids}}) {
-		my $d = $conf->{ids}->{$remote};
-		my $entry = {
-		    remote => $remote,
-		    server => $d->{server},
-		    datastore => $d->{datastore},
-		};
-		push @$res, $entry;
-	    }
+	return $res if !defined($conf);
+
+	foreach my $remote (keys %{$conf->{ids}}) {
+	    my $d = $conf->{ids}->{$remote};
+	    push @$res, {
+		remote => $remote,
+		server => $d->{server},
+		datastore => $d->{datastore},
+	    };
 	}
 
 	return $res;
@@ -210,9 +209,7 @@ __PACKAGE__->register_method ({
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 
-	eval {
-	    $pbs->forget_snapshot($snapshot);
-	};
+	eval { $pbs->forget_snapshot($snapshot) };
 	die "Forgetting backup failed: $@" if $@;
 
 	return;
