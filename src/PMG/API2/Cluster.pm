@@ -302,6 +302,10 @@ __PACKAGE__->register_method({
 		$next_cid = ++$master->{maxcid};
 	    }
 
+	    # create spooldir for new node to prevent problems if it gets
+	    # delete from the cluster before being synced initially
+	    PMG::MailQueue::create_spooldirs($master->{maxcid});
+
 	    my $node = {
 		type => 'node',
 		cid => $master->{maxcid},
