@@ -305,6 +305,8 @@ __PACKAGE__->register_method ({
 
 	    $pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup');
 
+	    rmtree $backup_dir;
+
 	    print "backup finished\n";
 
 	    my $group = "host/$node";
