@@ -266,6 +266,12 @@ __PACKAGE__->register_method ({
 		description => "Proxmox Backup Server ID.",
 		type => 'string', format => 'pve-configid',
 	    },
+	    statistic => {
+		description => "Backup statistic databases.",
+		type => 'boolean',
+		optional => 1,
+		default => 1,
+	    },
 	},
     },
     returns => { type => "string" },
@@ -283,6 +289,8 @@ __PACKAGE__->register_method ({
 	my $remote_config = $conf->{ids}->{$remote};
 	die "PBS remote '$remote' does not exist\n" if !$remote_config;
 	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
+
+	$param->{statistic} //= 1;
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 	my $backup_dir = "/var/lib/pmg/backup/current";
