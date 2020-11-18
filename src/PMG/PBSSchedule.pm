@@ -123,7 +123,7 @@ sub delete_schedule {
     my $timer_unit_path = "/etc/systemd/system/$timer_unit";
 
     eval {
-	run_command(['systemctl', 'disable', $timer_unit]);
+	run_command(['systemctl', 'disable', '--now', $timer_unit]);
 	unlink($timer_unit_path) || die "delete '$timer_unit_path' failed - $!\n";
 	run_command(['systemctl', 'daemon-reload']);
 
