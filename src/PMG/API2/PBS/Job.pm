@@ -482,9 +482,11 @@ __PACKAGE__->register_method ({
 	    },
 	},
     },
-    returns => { type => 'object', properties => {
+    returns => {
+	type => 'object',
+	properties => {
 	    remote => {
-		description => "Proxmox Backup Server ID.",
+		description => "Proxmox Backup Server remote ID.",
 		type => 'string', format => 'pve-configid',
 		optional => 1,
 	    },
@@ -502,7 +504,8 @@ __PACKAGE__->register_method ({
 		description => "unit file for the systemd.timer unit",
 		type => 'string', optional => 1,
 	    },
-	}},
+	}
+    },
     code => sub {
 	my ($param) = @_;
 
