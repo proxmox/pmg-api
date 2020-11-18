@@ -3,6 +3,6 @@
 use strict;
 use warnings;
 
-use PMG::CLI::pmgbackup
+use PMG::CLI::pmgbackup;
 
 PMG::CLI::pmgbackup->run_cli_handler();
