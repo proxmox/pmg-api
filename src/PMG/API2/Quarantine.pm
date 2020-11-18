@@ -131,9 +131,7 @@ my $parse_header_info = sub {
 
     $res->{subject} = PMG::Utils::decode_rfc1522(PVE::Tools::trim($head->get('subject'))) // '';
 
-    my @fromarray = split('\s*,\s*', $head->get('from') || $ref->{sender});
-
-    $res->{from} = PMG::Utils::decode_rfc1522(PVE::Tools::trim ($fromarray[0])) // '';
+    $res->{from} = PMG::Utils::decode_rfc1522(PVE::Tools::trim($head->get('from') || $ref->{sender})) // '';
 
     my $sender = PMG::Utils::decode_rfc1522(PVE::Tools::trim($head->get('sender')));
     $res->{sender} = $sender if $sender && ($sender ne $res->{from});
