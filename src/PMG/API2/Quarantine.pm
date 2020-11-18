@@ -1314,7 +1314,6 @@ __PACKAGE__->register_method ({
 	    sleep(3);
 	    die "Too many requests. Please try again later\n";
 	}
-	warn "mtime: ". $stat->mtime ."\n";
 
 	my $domains = PVE::INotify::read_file('domains');
 	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
