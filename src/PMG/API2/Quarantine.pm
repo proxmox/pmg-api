@@ -8,6 +8,10 @@ use Data::Dumper;
 use Encode;
 use File::Path;
 use IO::File;
+use MIME::Entity;
+use URI::Escape;
+use Time::HiRes qw(usleep gettimeofday tv_interval);
+use File::stat ();
 
 use Mail::Header;
 use Mail::SpamAssassin;
@@ -193,6 +197,7 @@ __PACKAGE__->register_method ({
 	    { name => 'attachment' },
 	    { name => 'listattachments' },
 	    { name => 'download' },
+	    { name => 'sendlink' },
 	];
 
 	return $result;
@@ -1233,6 +1238,127 @@ __PACKAGE__->register_method ({
 		die "internal error"; # should not be reached
 	    }
 	}
+
+	return undef;
+    }});
+
+my $link_map_fn = "/run/pmgproxy/quarantinelink.map";
+my $per_user_limit = 60*60; # 1 hour
+
+my sub send_link_mail {
+    my ($cfg, $receiver) = @_;
+
+    my $hostname = PVE::INotify::nodename();
+    my $fqdn = $cfg->get('spamquar', 'hostname') //
+    PVE::Tools::get_fqdn($hostname);
+
+    my $port = $cfg->get('spamquar', 'port') // 8006;
+
+    my $protocol = $cfg->get('spamquar', 'protocol') // 'https';
+
+    my $protocol_fqdn_port = "$protocol://$fqdn";
+    if (($protocol eq 'https' && $port != 443) ||
+	($protocol eq 'http' && $port != 80)) {
+	$protocol_fqdn_port .= ":$port";
+    }
+
+    my $mailfrom = $cfg->get ('spamquar', 'mailfrom') //
+    "Proxmox Mail Gateway <postmaster>";
+
+    my $ticket = PMG::Ticket::assemble_quarantine_ticket($receiver);
+    my $esc_ticket = uri_escape($ticket);
+    my $link = "$protocol_fqdn_port/quarantine?ticket=${esc_ticket}";
+
+    my $text = "Here is your Link for the Spam Quarantine on $fqdn:\n\n$link\n";
+
+    my $mail = MIME::Entity->build(
+	Type    => "text/plain",
+	To      => $receiver,
+	From    => $mailfrom,
+	Subject => "Proxmox Mail Gateway - Quarantine Link",
+	Data    => $text,
+    );
+
+    # we use an empty envelope sender (we dont want to receive NDRs)
+    PMG::Utils::reinject_mail ($mail, '', [$receiver], undef, $fqdn);
+}
+
+__PACKAGE__->register_method ({
+    name =>'sendlink',
+    path => 'sendlink',
+    method => 'POST',
+    description => "Send Quarantine link to given e-mail.",
+    permissions => { user => 'world' },
+    protected => 1,
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    mail => get_standard_option('pmg-email-address'),
+	},
+    },
+    returns => { type => "null" },
+    code => sub {
+	my ($param) = @_;
+
+	my $starttime = [gettimeofday];
+
+	my $cfg = PMG::Config->new();
+	my $is_enabled = $cfg->get('spamquar', 'quarantinelink');
+	if (!$is_enabled) {
+	    die "This feature is not enabled\n";
+	}
+
+	my $stat = File::stat::stat($link_map_fn);
+
+	if (defined($stat) && ($stat->mtime) + 5 > $starttime->[0]) {
+	    die "Too many requests. Please try again later\n";
+	}
+
+	my $domains = PVE::INotify::read_file('domains');
+	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
+
+	my $receiver = $param->{mail};
+
+	if ($receiver !~ $domainregex) {
+	    return undef; # silently ignore invalid mails
+	}
+
+	PVE::Tools::lock_file_full("${link_map_fn}.lck", 10, 1, sub {
+	    if (-f $link_map_fn) {
+		# check if user is allowed to request mail
+		my $lines = [split("\n", PVE::Tools::file_get_contents($link_map_fn))];
+		for my $line (@$lines) {
+		    next if $line !~ m/^\Q$receiver\E (\d+)$/;
+		    if (($1 + $per_user_limit) > $starttime->[0]) {
+			die "Too many requests for '$receiver', only one request per hour is permitted. ".
+			"Please try again later\n";
+		    } else {
+			last;
+		    }
+		}
+	    }
+	});
+	die $@ if $@;
+
+	# we are allowed to send mail, lock and update file and send
+	PVE::Tools::lock_file("${link_map_fn}.lck", 10, sub {
+	    my $newdata = "";
+	    if (-f $link_map_fn) {
+		my $data = PVE::Tools::file_get_contents($link_map_fn);
+		for my $line (split("\n", $data)) {
+		    if ($line =~ m/^(.*) (\d+)$/) {
+			if (($2 + $per_user_limit) > $starttime->[0]) {
+			    $newdata .= $line . "\n";
+			}
+		    }
+		}
+	    }
+	    $newdata .= "$receiver $starttime->[0]\n";
+	    PVE::Tools::file_set_contents($link_map_fn, $newdata);
+	});
+	die $@ if $@;
+
+	send_link_mail($cfg, $receiver);
 
 	return undef;
     }});

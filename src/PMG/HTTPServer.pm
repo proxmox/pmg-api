@@ -58,6 +58,7 @@ sub auth_handler {
 
     # explicitly allow some calls without auth
     if (($rel_uri eq '/access/domains' && $method eq 'GET') ||
+	($rel_uri eq '/quarantine/sendlink' && ($method eq 'GET' || $method eq 'POST')) ||
 	($rel_uri eq '/access/ticket' && ($method eq 'GET' || $method eq 'POST'))) {
 	$require_auth = 0;
     }
