@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use POSIX qw(strftime);
+use File::Path qw(rmtree);
 
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::RESTHandler;
