@@ -21,6 +21,7 @@ use PVE::APIServer::Utils;
 
 use PMG::HTTPServer;
 use PMG::API2;
+use PMG::Config;
 
 use Template;
 
@@ -227,6 +228,8 @@ sub get_index {
 	$version = $1;
     };
 
+    my $cfg = PMG::Config->new();
+    my $quarantinelink = $cfg->get('spamquar', 'quarantinelink');
 
     $username = '' if !$username;
 
@@ -242,6 +245,7 @@ sub get_index {
 	debug => $args->{debug} || $server->{debug},
 	version => $version,
 	wtversion => $wtversion,
+	quarantinelink => $quarantinelink,
     };
 
     my $template_name;

@@ -289,6 +289,11 @@ sub properties {
 	    description => "Text for 'From' header in daily spam report mails.",
 	    type => 'string',
 	},
+	quarantinelink => {
+	    description => "Enables user self-service for Quarantine Links. Caution: this is accessible without authentication",
+	    type => 'boolean',
+	    default => 0,
+	},
     };
 }
 
@@ -303,6 +308,7 @@ sub options {
 	allowhrefs => { optional => 1 },
 	port => { optional => 1 },
 	protocol => { optional => 1 },
+	quarantinelink => { optional => 1 },
     };
 }
 
