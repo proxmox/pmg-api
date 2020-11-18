@@ -200,7 +200,6 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $code = sub {
-
 	    my $conf = PMG::PBSConfig->new();
 	    my $ids = $conf->{ids};
 
@@ -212,6 +211,8 @@ __PACKAGE__->register_method ({
 	    delete $ids->{$remote};
 
 	    $conf->write();
+
+	    eval { PMG::PBSSchedule::delete_schedule($remote) }; # best effort only
 	};
 
 	PMG::PBSConfig::lock_config($code, "delete PBS remote failed");
