@@ -1,3 +1,20 @@
+pmg-api (6.3-1) pmg; urgency=medium
+
+  * integrate Proxmox Backup Server for automatic configuration backups
+
+  * fix #3098: DKIM: sort domains by length first
+
+  * backup: add Spam Assassin custom score file to backup
+
+  * reinject email: fix connecting for ipv6-only hosts
+
+  * fix #3141: do not split on ', ' for returning the from header
+
+  * allow to enable a user self-service login for the user spam quarantine as
+    opt-in config option
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 18 Nov 2020 17:59:41 +0100
+
 pmg-api (6.2-6) pmg; urgency=medium
 
   * fix #2785: prefix message-id in attachment-quarantine
