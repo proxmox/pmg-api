@@ -1,4 +1,4 @@
-pmg-api (6.3-3) pmg; urgency=medium
+pmg-api (6.3-4) pmg; urgency=medium
 
   * integrate Proxmox Backup Server for automatic configuration backups
 
@@ -13,7 +13,7 @@ pmg-api (6.3-3) pmg; urgency=medium
   * allow to enable a user self-service login for the user spam quarantine as
     opt-in config option
 
- -- Proxmox Support Team <support@proxmox.com>  Wed, 18 Nov 2020 19:47:04 +0100
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 18 Nov 2020 19:52:58 +0100
 
 pmg-api (6.2-6) pmg; urgency=medium
 
