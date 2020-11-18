@@ -1324,17 +1324,16 @@ __PACKAGE__->register_method ({
 	}
 
 	PVE::Tools::lock_file_full("${link_map_fn}.lck", 10, 1, sub {
-	    if (-f $link_map_fn) {
-		# check if user is allowed to request mail
-		my $lines = [split("\n", PVE::Tools::file_get_contents($link_map_fn))];
-		for my $line (@$lines) {
-		    next if $line !~ m/^\Q$receiver\E (\d+)$/;
-		    if (($1 + $per_user_limit) > $starttime) {
-			die "Too many requests for '$receiver', only one request per hour is permitted. ".
-			"Please try again later\n";
-		    } else {
-			last;
-		    }
+	    return if !-f $link_map_fn;
+	    # check if user is allowed to request mail
+	    my $data = PVE::Tools::file_get_contents($link_map_fn);
+	    for my $line (split("\n", $data)) {
+		next if $line !~ m/^\Q$receiver\E (\d+)$/;
+		if (($1 + $per_user_limit) > $starttime) {
+		    die "Too many requests for '$receiver', only one request per"
+		        ."hour is permitted. Please try again later\n";
+		} else {
+		    last;
 		}
 	    }
 	});
