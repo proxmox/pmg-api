@@ -3,4 +3,4 @@ Description=Backup to PBS remote %I
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/pmgbackup pbsjob run %I
+ExecStart=/usr/bin/pmgbackup proxmox-backup backup %I
