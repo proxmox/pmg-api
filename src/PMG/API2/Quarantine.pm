@@ -2,6 +2,7 @@ package PMG::API2::Quarantine;
 
 use strict;
 use warnings;
+
 use Time::Local;
 use Time::Zone;
 use Data::Dumper;
@@ -9,8 +10,7 @@ use Encode;
 use File::Path;
 use IO::File;
 use MIME::Entity;
-use URI::Escape;
-use Time::HiRes qw(usleep gettimeofday tv_interval);
+use URI::Escape qw(uri_escape);
 use File::stat ();
 
 use Mail::Header;
