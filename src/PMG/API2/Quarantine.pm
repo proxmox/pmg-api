@@ -1310,9 +1310,11 @@ __PACKAGE__->register_method ({
 
 	my $stat = File::stat::stat($link_map_fn);
 
-	if (defined($stat) && ($stat->mtime) + 5 > $starttime) {
+	if (defined($stat) && ($stat->mtime + 5) > $starttime) {
+	    sleep(3);
 	    die "Too many requests. Please try again later\n";
 	}
+	warn "mtime: ". $stat->mtime ."\n";
 
 	my $domains = PVE::INotify::read_file('domains');
 	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
@@ -1320,6 +1322,7 @@ __PACKAGE__->register_method ({
 	my $receiver = $param->{mail};
 
 	if ($receiver !~ $domainregex) {
+	    sleep(3);
 	    return undef; # silently ignore invalid mails
 	}
 
@@ -1330,6 +1333,7 @@ __PACKAGE__->register_method ({
 	    for my $line (split("\n", $data)) {
 		next if $line !~ m/^\Q$receiver\E (\d+)$/;
 		if (($1 + $per_user_limit) > $starttime) {
+		    sleep(3);
 		    die "Too many requests for '$receiver', only one request per"
 		        ."hour is permitted. Please try again later\n";
 		} else {
@@ -1358,6 +1362,7 @@ __PACKAGE__->register_method ({
 	die $@ if $@;
 
 	send_link_mail($cfg, $receiver);
+	sleep(1); # always delay for a bit
 
 	return undef;
     }});
