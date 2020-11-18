@@ -1300,7 +1300,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $starttime = [gettimeofday];
+	my $starttime = time();
 
 	my $cfg = PMG::Config->new();
 	my $is_enabled = $cfg->get('spamquar', 'quarantinelink');
@@ -1310,7 +1310,7 @@ __PACKAGE__->register_method ({
 
 	my $stat = File::stat::stat($link_map_fn);
 
-	if (defined($stat) && ($stat->mtime) + 5 > $starttime->[0]) {
+	if (defined($stat) && ($stat->mtime) + 5 > $starttime) {
 	    die "Too many requests. Please try again later\n";
 	}
 
@@ -1329,7 +1329,7 @@ __PACKAGE__->register_method ({
 		my $lines = [split("\n", PVE::Tools::file_get_contents($link_map_fn))];
 		for my $line (@$lines) {
 		    next if $line !~ m/^\Q$receiver\E (\d+)$/;
-		    if (($1 + $per_user_limit) > $starttime->[0]) {
+		    if (($1 + $per_user_limit) > $starttime) {
 			die "Too many requests for '$receiver', only one request per hour is permitted. ".
 			"Please try again later\n";
 		    } else {
@@ -1342,18 +1342,18 @@ __PACKAGE__->register_method ({
 
 	# we are allowed to send mail, lock and update file and send
 	PVE::Tools::lock_file("${link_map_fn}.lck", 10, sub {
-	    my $newdata = "";
+	    my $newdata = "$receiver $starttime\n";
+
 	    if (-f $link_map_fn) {
 		my $data = PVE::Tools::file_get_contents($link_map_fn);
 		for my $line (split("\n", $data)) {
-		    if ($line =~ m/^(.*) (\d+)$/) {
-			if (($2 + $per_user_limit) > $starttime->[0]) {
+		    if ($line =~ m/^(?:.*) (\d+)$/) {
+			if (($1 + $per_user_limit) > $starttime) {
 			    $newdata .= $line . "\n";
 			}
 		    }
 		}
 	    }
-	    $newdata .= "$receiver $starttime->[0]\n";
 	    PVE::Tools::file_set_contents($link_map_fn, $newdata);
 	});
 	die $@ if $@;
