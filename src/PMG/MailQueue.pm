@@ -285,7 +285,6 @@ sub quarantine_mail {
     eval {
 	if ($lcid) {
 	    my $subdir = "cluster/$lcid/$subpath";
-	    mkpath $subdir;
 	    ($fh, $uid, $path) = new_fileid ($spooldir, $subdir);
 	} else {
 	    ($fh, $uid, $path) = new_fileid ($spooldir, $subpath);
