@@ -8,7 +8,7 @@ use PVE::Systemd;
 
 # systemd timer
 sub get_schedules {
-    my ($param) = @_;
+    my ($filter_remote) = @_;
 
     my $result = [];
 
@@ -20,7 +20,11 @@ sub get_schedules {
 	if ($filename =~ /^pmg-pbsbackup\@(.+)\.timer$/) {
 	    $remote = PVE::Systemd::unescape_unit($1);
 	} else {
-	    die 'Unrecognized timer name!\n';
+	    die "Unrecognized timer name!\n";
+	}
+
+	if (defined($filter_remote) && $filter_remote ne $remote) {
+	    return; # next
 	}
 
 	my $unitfile = "$systemd_dir/$filename";
@@ -79,9 +83,9 @@ sub create_schedule {
 sub delete_schedule {
     my ($remote) = @_;
 
-    my $schedules = get_schedules();
+    my $schedules = get_schedules($remote);
 
-    die "Schedule for $remote not found!\n" if !grep {$_->{remote} eq $remote} @$schedules;
+    die "Schedule for $remote not found!\n" if scalar(@$schedules) < 1;
 
     my $unit_name = 'pmg-pbsbackup@' . PVE::Systemd::escape_unit($remote);
     my $service_unit = $unit_name . '.service';

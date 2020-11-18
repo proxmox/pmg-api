@@ -511,12 +511,11 @@ __PACKAGE__->register_method ({
 
 	my $remote = $param->{remote};
 
-	my $schedules = PMG::PBSSchedule::get_schedules();
-	my @data = grep {$_->{remote} eq $remote} @$schedules;
+	my $schedules = PMG::PBSSchedule::get_schedules($remote);
 
 	my $res = {};
-	if (scalar(@data) == 1) {
-	    $res = $data[0];
+	if (scalar(@$schedules) >= 1) {
+	    $res = $schedules->[0];
 	}
 
 	return $res
