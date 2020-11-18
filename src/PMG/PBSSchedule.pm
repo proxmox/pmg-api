@@ -6,7 +6,27 @@ use warnings;
 use PVE::Tools qw(run_command file_set_contents file_get_contents trim dir_glob_foreach);
 use PVE::Systemd;
 
-# systemd timer
+# note: not exactly cheap...
+my sub next_calendar_event {
+    my ($spec) = @_;
+
+    my $res = '-';
+    eval {
+	run_command(
+	    ['systemd-analyze', 'calendar', $spec],
+	    noerr => 1,
+	    outfunc => sub {
+		my $line = shift;
+		if ($line =~ /^\s*Next elapse:\s*(.+)$/) {
+		    $res = $1;
+		}
+	    },
+	);
+    };
+    return $res;
+}
+
+# systemd timer, filter optionally by a $remote
 sub get_schedules {
     my ($filter_remote) = @_;
 
@@ -29,12 +49,14 @@ sub get_schedules {
 
 	my $unitfile = "$systemd_dir/$filename";
 	my $unit = PVE::Systemd::read_ini($unitfile);
+	my $timer = $unit->{'Timer'};
 
 	push @$result, {
 	    unitfile => $unitfile,
 	    remote => $remote,
-	    schedule => $unit->{'Timer'}->{'OnCalendar'},
-	    delay => $unit->{'Timer'}->{'RandomizedDelaySec'},
+	    schedule => $timer->{'OnCalendar'},
+	    delay => $timer->{'RandomizedDelaySec'},
+	    'next-run' => next_calendar_event($timer->{'OnCalendar'}),
 	};
     });
 
@@ -51,8 +73,16 @@ sub create_schedule {
     my $timer_unit_path = "/etc/systemd/system/$timer_unit";
 
     # create systemd timer
-    run_command(['systemd-analyze', 'calendar', $schedule], errmsg => "Invalid schedule specification", outfunc => sub {});
-    run_command(['systemd-analyze', 'timespan', $delay], errmsg => "Invalid delay specification", outfunc => sub {});
+    run_command(
+	['systemd-analyze', 'calendar', $schedule],
+	errmsg => "Invalid schedule specification",
+	outfunc => sub {},
+    );
+    run_command(
+	['systemd-analyze', 'timespan', $delay],
+	errmsg => "Invalid delay specification",
+	outfunc => sub {},
+    );
     my $timer = {
 	'Unit' => {
 	    'Description' => "Timer for PBS Backup to remote $remote",

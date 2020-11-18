@@ -500,6 +500,11 @@ __PACKAGE__->register_method ({
 		type => 'string', pattern => '[0-9a-zA-Z. ]+',
 		default => '5min', optional => 1,
 	    },
+	    'next-run' => {
+		description => "The date time of the next run, in server locale.",
+		type => 'string',
+		optional => 1,
+	    },
 	    unitfile => {
 		description => "unit file for the systemd.timer unit",
 		type => 'string', optional => 1,
