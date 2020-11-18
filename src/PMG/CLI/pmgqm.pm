@@ -33,31 +33,6 @@ sub setup_environment {
     PMG::RESTEnvironment->setup_default_cli_env();
 }
 
-sub domain_regex {
-    my ($domains) = @_;
-
-    my @ra;
-    foreach my $d (@$domains) {
-	# skip domains with non-DNS name characters
-	next if $d =~ m/[^A-Za-z0-9\-\.]/;
-	if ($d =~ m/^\.(.*)$/) {
-	    my $dom = $1;
-	    $dom =~ s/\./\\\./g;
-	    push @ra, $dom;
-	    push @ra, "\.\*\\.$dom";
-	} else {
-	    $d =~ s/\./\\\./g;
-	    push @ra, $d;
-	}
-    }
-
-    my $re = join ('|', @ra);
-
-    my $regex = qr/\@($re)$/i;
-
-    return $regex;
-}
-
 sub get_item_data {
     my ($data, $ref) = @_;
 
@@ -145,7 +120,7 @@ __PACKAGE__->register_method ({
 	my $dbh = PMG::DBTools::open_ruledb();
 
 	my $domains = PVE::INotify::read_file('domains');
-	my $domainregex = domain_regex([keys %$domains]);
+	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
 
 	my $sth = $dbh->prepare(
 	    "SELECT pmail, AVG(spamlevel) as spamlevel, count(*)  FROM CMailStore, CMSReceivers " .
@@ -278,7 +253,7 @@ __PACKAGE__->register_method ({
 	}
 
 	my $domains = PVE::INotify::read_file('domains');
-	my $domainregex = domain_regex([keys %$domains]);
+	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
 
 	my $template = "spamreport-${reportstyle}.tt";
 	my $found = 0;

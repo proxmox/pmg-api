@@ -1417,4 +1417,30 @@ sub reload_smtp_filter {
     return kill (10, $pid); # send SIGUSR1
 }
 
+sub domain_regex {
+    my ($domains) = @_;
+
+    my @ra;
+    foreach my $d (@$domains) {
+	# skip domains with non-DNS name characters
+	next if $d =~ m/[^A-Za-z0-9\-\.]/;
+	if ($d =~ m/^\.(.*)$/) {
+	    my $dom = $1;
+	    $dom =~ s/\./\\\./g;
+	    push @ra, $dom;
+	    push @ra, "\.\*\\.$dom";
+	} else {
+	    $d =~ s/\./\\\./g;
+	    push @ra, $d;
+	}
+    }
+
+    my $re = join ('|', @ra);
+
+    my $regex = qr/\@($re)$/i;
+
+    return $regex;
+}
+
+
 1;
