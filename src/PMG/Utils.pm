@@ -1164,7 +1164,7 @@ sub load_sa_descriptions {
 	return if !defined($fh);
 
 	while (defined(my $line = <$fh>)) {
-	    if ($line =~ m/^describe\s+(\S+)\s+(.*)\s*$/) {
+	    if ($line =~ m/^(?:\s*)describe\s+(\S+)\s+(.*)\s*$/) {
 		my ($name, $desc) = ($1, $2);
 		next if $res->{$name};
 		$res->{$name}->{desc} = $desc;
