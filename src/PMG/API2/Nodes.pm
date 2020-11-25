@@ -334,6 +334,35 @@ __PACKAGE__->register_method({
 	return $lines;
     }});
 
+my $shell_cmd_map = {
+    'login' => {
+	cmd => [ '/bin/login', '-f', 'root' ],
+    },
+    'upgrade' => {
+	cmd => [ 'pmgupgrade', '--shell' ],
+    },
+};
+
+sub get_shell_command  {
+    my ($user, $shellcmd, $args) = @_;
+
+    my $cmd;
+    if ($user eq 'root@pam') {
+	if (defined($shellcmd) && exists($shell_cmd_map->{$shellcmd})) {
+	    my $def = $shell_cmd_map->{$shellcmd};
+	    $cmd = [ @{$def->{cmd}} ]; # clone
+	    if (defined($args) && $def->{allow_args}) {
+		push @$cmd, split("\0", $args);
+	    }
+	} else {
+	    $cmd = [ '/bin/login', '-f', 'root' ];
+	}
+    } else {
+	# non-root must always login for now, we do not have a superuser role!
+	$cmd = [ '/bin/login' ];
+    }
+    return $cmd;
+}
 
 __PACKAGE__->register_method ({
     name => 'termproxy',
@@ -351,6 +380,20 @@ __PACKAGE__->register_method ({
 		description => "Run 'apt-get dist-upgrade' instead of normal shell.",
 		optional => 1,
 		default => 0,
+	    },
+	    cmd => {
+		type => 'string',
+		description => "Run specific command or default to login.",
+		enum => [keys %$shell_cmd_map],
+		optional => 1,
+		default => 'login',
+	    },
+	    'cmd-opts' => {
+		type => 'string',
+		description => "Add parameters to a command. Encoded as null terminated strings.",
+		requires => 'cmd',
+		optional => 1,
+		default => '',
 	    },
 	},
     },
@@ -384,22 +427,13 @@ __PACKAGE__->register_method ({
 	my $family = PVE::Tools::get_host_address_family($node);
 	my $port = PVE::Tools::next_vnc_port($family);
 
-	my $shcmd;
-
-	if ($user eq 'root@pam') {
-	    if ($param->{upgrade}) {
-		my $upgradecmd = "pmgupgrade --shell";
-		# $upgradecmd = PVE::Tools::shellquote($upgradecmd) if $remip;
-		$shcmd = [ '/bin/bash', '-c', $upgradecmd ];
-	    } else {
-		$shcmd = [ '/bin/login', '-f', 'root' ];
-	    }
-	} else {
-	    $shcmd = [ '/bin/login' ];
+	# FIXME: remove with 7.0 (check if all works before!!)
+	if ($param->{upgrade}) {
+	    $param->{cmd} = 'upgrade';
 	}
+	my $shcmd = get_shell_command($user, $param->{cmd}, $param->{'cmd-opts'});
 
-	my $cmd = ['/usr/bin/termproxy', $port, '--path', $authpath,
-		   '--', @$shcmd];
+	my $cmd = ['/usr/bin/termproxy', $port, '--path', $authpath, '--', @$shcmd];
 
 	my $realcmd = sub {
 	    my $upid = shift;
