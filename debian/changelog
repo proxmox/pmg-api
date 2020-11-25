@@ -1,3 +1,12 @@
+pmg-api (6.3-5) pmg; urgency=medium
+
+  * utils: ignore leading whitespace in SpamAssassin rule description
+
+  * api: termproxy: adapt to newer Proxmox VE and Proxmox Backup Server 'cmd'
+    interface, to stay compatible
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 25 Nov 2020 10:21:49 +0100
+
 pmg-api (6.3-4) pmg; urgency=medium
 
   * integrate Proxmox Backup Server for automatic configuration backups
