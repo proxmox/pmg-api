@@ -1,6 +1,6 @@
 #export TESTDB = "Proxmox_testdb"
 
-export PERLIB = ".."
+export PERLLIB = ..
 
 all:
 
