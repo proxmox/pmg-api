@@ -73,12 +73,19 @@ if (my $http_proxy = $cfg->get('admin', 'http_proxy')) {
 }
 
 # update spamassassin rules
+my $restart_filter = 0;
 if (system('sa-update') == 0) {
     # if the exit code is 0, new updates were downloaded
     # then restart the pmg-smtp-filter to load the new rules
-    PMG::Utils::service_cmd('pmg-smtp-filter', 'restart');
+    $restart_filter = 1;
 }
 
+eval {
+    $restart_filter ||= PMG::Utils::update_local_spamassassin_channels(0);
+};
+syslog('err', "$@") if $@;
+
+PMG::Utils::service_cmd('pmg-smtp-filter', 'restart') if $restart_filter;
 # run bayes database maintainance
 system('sa-learn --force-expire >/dev/null 2>&1');
 
