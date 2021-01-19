@@ -27,7 +27,7 @@ upload: ${DEB}
 
 .PHONY: check
 check:
-	make -C tests check
+	make -C src/tests check
 
 .PHONY: clean distclean
 distclean: clean
