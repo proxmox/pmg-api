@@ -18,8 +18,6 @@ use Mail::SpamAssassin;
 
 use base qw(PVE::RESTHandler);
 
-my $SAUPDATE = '/usr/bin/sa-update';
-
 __PACKAGE__->register_method ({
     name => 'index',
     path => '',
@@ -108,7 +106,7 @@ __PACKAGE__->register_method({
 	    }
 	    # call sa-update to see if updates are available
 
-	    my $cmd = "$SAUPDATE -v --checkonly --channel $channel";
+	    my $cmd = "sa-update -v --checkonly --channel $channel";
 	    PVE::Tools::run_command($cmd, noerr => 1, logfunc => sub {
 		my ($line) = @_;
 
@@ -171,9 +169,11 @@ __PACKAGE__->register_method({
 		$ENV{http_proxy} = $http_proxy;
 	    }
 
-	    my $cmd = "$SAUPDATE -v";
+	    my $cmd = "sa-update -v";
 
 	    PVE::Tools::run_command($cmd, noerr => 1);
+
+	    PMG::Utils::update_local_spamassassin_channels(1);
 	};
 
 	return $rpcenv->fork_worker('saupdate', undef, $authuser, $realcmd);

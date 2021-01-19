@@ -1475,4 +1475,32 @@ sub local_spamassassin_channels {
     return $res;
 }
 
+sub update_local_spamassassin_channels {
+    my ($verbose) = @_;
+    # import all configured channel's gpg-keys to sa-update's keyring
+    my $localchannels = PMG::Utils::local_spamassassin_channels();
+    for my $channel (@$localchannels) {
+	my $importcmd = ['sa-update', '--import', $channel->{filename}];
+	push @$importcmd, '-v' if $verbose;
+
+	print "Importing gpg key from $channel->{filename}\n" if $verbose;
+	PVE::Tools::run_command($importcmd);
+    }
+
+    my $fresh_updates = 0;
+
+    for my $channel (@$localchannels) {
+	my $cmd = ['sa-update', '--channel', $channel->{channelurl}, '--gpgkey', $channel->{keyid}];
+	push @$cmd, '-v' if $verbose;
+
+	print "Updating $channel->{channelurl}\n" if $verbose;
+	my $ret = PVE::Tools::run_command($cmd, noerr => 1);
+	die "updating $channel->{channelurl} failed - sa-update exited with $ret\n" if $ret >= 2;
+
+	$fresh_updates = 1 if $ret == 0;
+    }
+
+    return $fresh_updates
+}
+
 1;
