@@ -80,50 +80,65 @@ __PACKAGE__->register_method({
 	my ($param) = @_;
 
 	my $saversion = $Mail::SpamAssassin::VERSION;
-	my $channelfile = "/var/lib/spamassassin/$saversion/updates_spamassassin_org.cf";
+	my $sa_update_dir = "/var/lib/spamassassin/$saversion/";
 
-	my $mtime = -1;
-	my $version = -1;
-	my $newversion = -1;
+	my $check_channel = sub {
+	    my ($channel) = @_;
 
-	if (-f $channelfile) {
-	    # stat metadata cf file
-	    $mtime = (stat($channelfile))[9]; # 9 is mtime
+	    # see sa-update source:
+	    my $channel_file_base = $channel;
+	    $channel_file_base =~ s/[^A-Za-z0-9-]+/_/g;
+	    my $channelfile = "${sa_update_dir}${channel_file_base}.cf";
 
-	    # parse version from metadata cf file
-	    my $metadata = PVE::Tools::file_read_firstline($channelfile);
-	    if ($metadata =~ m/\s([0-9]+)$/) {
-		$version = $1;
+	    my $mtime = -1;
+	    my $version = -1;
+	    my $newversion = -1;
+
+	    if (-f $channelfile) {
+		# stat metadata cf file
+		$mtime = (stat($channelfile))[9]; # 9 is mtime
+
+		# parse version from metadata cf file
+		my $metadata = PVE::Tools::file_read_firstline($channelfile);
+		if ($metadata =~ m/\s([0-9]+)$/) {
+		    $version = $1;
+		} else {
+		    warn "invalid metadata in '$channelfile'\n";
+		}
+	    }
+	    # call sa-update to see if updates are available
+
+	    my $cmd = "$SAUPDATE -v --checkonly --channel $channel";
+	    PVE::Tools::run_command($cmd, noerr => 1, logfunc => sub {
+		my ($line) = @_;
+
+		if ($line =~ m/Update available for channel \S+: -?[0-9]+ -> ([0-9]+)/) {
+		    $newversion = $1;
+		}
+	    });
+
+	    my $result = {
+		channel => $channel,
+	    };
+
+	    $result->{version} = $version if $version > -1;
+	    $result->{update_version} = $newversion if $newversion > -1;
+	    $result->{last_updated} = $mtime if $mtime > -1;
+
+	    if ($newversion > $version) {
+		$result->{update_avail} = 1;
 	    } else {
-		warn "invalid metadata in '$channelfile'\n";
+		$result->{update_avail} = 0;
 	    }
-	}
-	# call sa-update to see if updates are available
-
-	my $cmd = "$SAUPDATE -v --checkonly";
-	PVE::Tools::run_command($cmd, noerr => 1, logfunc => sub {
-	    my ($line) = @_;
-
-	    if ($line =~ m/Update available for channel \S+: -?[0-9]+ -> ([0-9]+)/) {
-		$newversion = $1;
-	    }
-	});
-
-	my $result = {
-	    channel => 'updates.spamassassin.org',
+	    return $result;
 	};
 
-	$result->{version} = $version if $version > -1;
-	$result->{update_version} = $newversion if $newversion > -1;
-	$result->{last_updated} = $mtime if $mtime > -1;
+	my @channels = ('updates.spamassassin.org');
 
-	if ($newversion > $version) {
-	    $result->{update_avail} = 1;
-	} else {
-	    $result->{update_avail} = 0;
-	}
+	my $localchannels = PMG::Utils::local_spamassassin_channels();
+	push(@channels, map { $_->{channelurl} } @$localchannels);
 
-	return [$result];
+	return [ map { $check_channel->($_) } @channels];
     }});
 
 __PACKAGE__->register_method({
