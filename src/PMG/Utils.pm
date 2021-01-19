@@ -1442,5 +1442,37 @@ sub domain_regex {
     return $regex;
 }
 
+sub read_sa_channel {
+    my ($filename) = @_;
+
+    my $content = PVE::Tools::file_get_contents($filename);
+    my $channel = {
+	filename => $filename,
+    };
+
+    ($channel->{keyid}) = ($content =~ /^KEYID=([a-fA-F0-9]+)$/m);
+    die "no KEYID in $filename!\n" if !defined($channel->{keyid});
+    ($channel->{channelurl}) = ($content =~ /^CHANNELURL=(.+)$/m);
+    die "no CHANNELURL in $filename!\n" if !defined($channel->{channelurl});
+    ($channel->{gpgkey}) = ($content =~ /(?:^|\n)(-----BEGIN PGP PUBLIC KEY BLOCK-----.+-----END PGP PUBLIC KEY BLOCK-----)(?:\n|$)/s);
+    die "no GPG public key in $filename!\n" if !defined($channel->{gpgkey});
+
+    return $channel;
+};
+
+sub local_spamassassin_channels {
+
+    my $res = [];
+
+    my $local_channel_dir = '/etc/mail/spamassassin/channel.d/';
+
+    PVE::Tools::dir_glob_foreach($local_channel_dir, '.*\.conf', sub {
+	my ($filename) = @_;
+	my $channel = read_sa_channel($local_channel_dir.$filename);
+	push(@$res, $channel);
+    });
+
+    return $res;
+}
 
 1;

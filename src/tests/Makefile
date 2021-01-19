@@ -10,6 +10,7 @@ check:
 	./print_testdb.pl > testdb.txt.new
 	diff -u testdb.txt testdb.txt.new
 	./test_greylist.pl
+	./test_sa_channel_parser.pl
 
 #	test_config.pl		\
 #	test_mimetype.pl	\
