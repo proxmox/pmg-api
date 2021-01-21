@@ -291,6 +291,37 @@ my $detail_return_properties = sub {
     return $prop;
 };
 
+sub get_detail_statistics {
+    my ($type, $param) =@_;
+
+    my ($start, $end) = $extract_start_end->($param);
+
+    my $stat = PMG::Statistic->new($start, $end);
+    my $rdb = PMG::RuleDB->new();
+
+    my $sorters = [];
+    if ($param->{orderby}) {
+	my $props = ['time', 'sender', 'bytes', 'blocked', 'spamlevel', 'virusinfo'];
+	$props->[1] = 'receiver' if $type eq 'sender';
+	$sorters = $decode_orderby->($param->{orderby}, $props);
+    }
+
+    my $res = [];
+    if ($type eq 'contact') {
+	$res = $stat->user_stat_contact_details(
+	    $rdb, $param->{contact}, $userstat_limit, $sorters, $param->{filter});
+    } elsif ($type eq 'sender') {
+	$res = $stat->user_stat_sender_details(
+	    $rdb, $param->{sender}, $userstat_limit, $sorters, $param->{filter});
+    } elsif ($type eq 'receiver') {
+	$res = $stat->user_stat_receiver_details(
+	    $rdb, $param->{receiver}, $userstat_limit, $sorters, $param->{filter});
+    } else {
+	die "invalid type provided (not 'contact', 'sender', 'receiver')\n";
+    }
+    return $res;
+}
+
 __PACKAGE__->register_method ({
     name => 'contactdetails',
     path => 'contact/{contact}',
@@ -327,22 +358,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
-	my ($start, $end) = $extract_start_end->($param);
-
-	my $stat = PMG::Statistic->new($start, $end);
-	my $rdb = PMG::RuleDB->new();
-
-	my $sorters = [];
-	if ($param->{orderby}) {
-	    my $props = ['time', 'sender', 'bytes', 'blocked', 'spamlevel', 'virusinfo'];
-	    $sorters = $decode_orderby->($param->{orderby}, $props);
-	}
-
-	return $stat->user_stat_contact_details(
-	    $rdb, $param->{contact}, $userstat_limit, $sorters, $param->{filter});
+	return get_detail_statistics('contact', $param);
     }});
 
 __PACKAGE__->register_method ({
@@ -445,22 +461,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
-	my ($start, $end) = $extract_start_end->($param);
-
-	my $stat = PMG::Statistic->new($start, $end);
-	my $rdb = PMG::RuleDB->new();
-
-	my $sorters = [];
-	if ($param->{orderby}) {
-	    my $props = ['time', 'receiver', 'bytes', 'blocked', 'spamlevel', 'virusinfo'];
-	    $sorters = $decode_orderby->($param->{orderby}, $props);
-	}
-
-	return $stat->user_stat_sender_details(
-	    $rdb, $param->{sender}, $userstat_limit, $sorters, $param->{filter});
+	return get_detail_statistics('sender', $param);
     }});
 
 __PACKAGE__->register_method ({
@@ -571,22 +572,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
-	my ($start, $end) = $extract_start_end->($param);
-
-	my $stat = PMG::Statistic->new($start, $end);
-	my $rdb = PMG::RuleDB->new();
-
-	my $sorters = [];
-	if ($param->{orderby}) {
-	    my $props = ['time', 'sender', 'bytes', 'blocked', 'spamlevel', 'virusinfo'];
-	    $sorters = $decode_orderby->($param->{orderby}, $props);
-	}
-
-	return $stat->user_stat_receiver_details(
-	    $rdb, $param->{receiver}, $userstat_limit, $sorters, $param->{filter});
+	return get_detail_statistics('receiver', $param);
     }});
 
 __PACKAGE__->register_method ({
