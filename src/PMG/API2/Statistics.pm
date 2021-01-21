@@ -257,6 +257,40 @@ __PACKAGE__->register_method ({
 	return $res;
     }});
 
+my $detail_return_properties = sub {
+    my ($prop) = @_;
+
+    $prop //= {};
+
+    $prop->{time} = {
+	description => "Receive time stamp",
+	type => 'integer',
+    };
+
+    $prop->{bytes} = {
+	description => "Mail traffic (Bytes).",
+	type => 'number',
+    };
+
+    $prop->{blocked} = {
+	description => "Mail was blocked.",
+	type => 'boolean',
+    };
+
+    $prop->{spamlevel} = {
+	description => "Spam score.",
+	type => 'number',
+    };
+
+    $prop->{virusinfo} = {
+	description => "Virus name.",
+	type => 'string',
+	optional => 1,
+    };
+
+    return $prop;
+};
+
 __PACKAGE__->register_method ({
     name => 'contactdetails',
     path => 'contact/{contact}',
@@ -282,33 +316,12 @@ __PACKAGE__->register_method ({
 	type => 'array',
 	items => {
 	    type => "object",
-	    properties => {
-		time => {
-		    description => "Receive time stamp",
-		    type => 'integer',
-		},
+	    properties => $detail_return_properties->({
 		sender => {
 		    description => "Sender email.",
 		    type => 'string',
 		},
-		bytes => {
-		    description => "Mail traffic (Bytes).",
-		    type => 'number',
-		},
-		blocked => {
-		    description => "Mail was blocked.",
-		    type => 'boolean',
-		},
-		spamlevel => {
-		    description => "Spam score.",
-		    type => 'number',
-		},
-		virusinfo => {
-		    description => "Virus name.",
-		    type => 'string',
-		    optional => 1,
-		},
-	    },
+	    }),
 	},
     },
     code => sub {
@@ -421,33 +434,12 @@ __PACKAGE__->register_method ({
 	type => 'array',
 	items => {
 	    type => "object",
-	    properties => {
-		time => {
-		    description => "Receive time stamp",
-		    type => 'integer',
-		},
+	    properties => $detail_return_properties->({
 		receiver => {
 		    description => "Receiver email.",
 		    type => 'string',
 		},
-		bytes => {
-		    description => "Mail traffic (Bytes).",
-		    type => 'number',
-		},
-		blocked => {
-		    description => "Mail was blocked.",
-		    type => 'boolean',
-		},
-		spamlevel => {
-		    description => "Spam score.",
-		    type => 'number',
-		},
-		virusinfo => {
-		    description => "Virus name.",
-		    type => 'string',
-		    optional => 1,
-		},
-	    },
+	    }),
 	},
     },
     code => sub {
@@ -568,33 +560,12 @@ __PACKAGE__->register_method ({
 	type => 'array',
 	items => {
 	    type => "object",
-	    properties => {
-		time => {
-		    description => "Receive time stamp",
-		    type => 'integer',
-		},
+	    properties => $detail_return_properties->({
 		sender => {
 		    description => "Sender email.",
 		    type => 'string',
 		},
-		bytes => {
-		    description => "Mail traffic (Bytes).",
-		    type => 'number',
-		},
-		blocked => {
-		    description => "Mail was blocked.",
-		    type => 'boolean',
-		},
-		spamlevel => {
-		    description => "Spam score.",
-		    type => 'number',
-		},
-		virusinfo => {
-		    description => "Virus name.",
-		    type => 'string',
-		    optional => 1,
-		},
-	    },
+	    }),
 	},
     },
     code => sub {
