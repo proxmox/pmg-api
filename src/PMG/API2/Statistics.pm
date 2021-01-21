@@ -238,9 +238,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
 	my ($start, $end) = $extract_start_end->($param);
 
 	my $cfg = PMG::Config->new();
@@ -382,9 +379,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
 
 	my ($start, $end) = $extract_start_end->($param);
 
@@ -529,9 +523,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
 
 	my ($start, $end) = $extract_start_end->($param);
 
@@ -684,9 +675,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
 	my ($start, $end) = $extract_start_end->($param);
 
 	my $stat = PMG::Statistic->new($start, $end);
@@ -790,9 +778,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
 
 	my ($start, $end) = $extract_start_end->($param);
 
@@ -910,8 +895,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-
 	my $hours = $param->{hours} // 12;
 	my $span = $param->{timespan} // 1800;
 
@@ -971,8 +954,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
 
 	my $hours = $param->{hours} // 12;
 
@@ -1071,9 +1052,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
 	my ($start, $end) = $extract_start_end->($param);
 
 	my $span = $param->{timespan} // 3600;
@@ -1138,9 +1116,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
 	my ($start, $end) = $extract_start_end->($param);
 
 	my $stat = PMG::Statistic->new($start, $end);
@@ -1184,9 +1159,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
 
 	my ($start, $end) = $extract_start_end->($param);
 
@@ -1284,9 +1256,6 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
-
 	my ($start, $end) = $extract_start_end->($param);
 
 	my $stat = PMG::Statistic->new($start, $end);
@@ -1344,9 +1313,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $restenv = PMG::RESTEnvironment->get();
-	my $cinfo = $restenv->{cinfo};
 
 	my ($start, $end) = $extract_start_end->($param);
 
