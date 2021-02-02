@@ -117,7 +117,7 @@ PVE::JSONSchema::register_standard_option('username', {
 PVE::JSONSchema::register_standard_option('pmg-email-address', {
     description => "Email Address (allow most characters).",
     type => 'string',
-    pattern => '(?:[^\s\/\\\@]+\@[^\s\/\\\@]+)',
+    pattern => '(?:[^\s\\\@]+\@[^\s\/\\\@]+)',
     maxLength => 512,
     minLength => 3,
 });
