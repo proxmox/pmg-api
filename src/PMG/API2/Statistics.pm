@@ -44,6 +44,7 @@ __PACKAGE__->register_method ({
 
 	return [
 	    { name => "contact" },
+	    { name => "detail" },
 	    { name => "domains" },
 	    { name => "mail" },
 	    { name => "mailcount" },
@@ -323,6 +324,60 @@ sub get_detail_statistics {
 }
 
 __PACKAGE__->register_method ({
+    name => 'detailstats',
+    path => 'detail',
+    method => 'GET',
+    description => "Detailed Statistics.",
+    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
+    parameters => {
+	additionalProperties => 0,
+	properties => $default_properties->({
+	    type => {
+		description => "Type of statistics",
+		type => 'string',
+		enum => [ 'contact', 'sender', 'receiver' ],
+	    },
+	    address => get_standard_option('pmg-email-address', {
+		description => "Email address.",
+	    }),
+	    filter => {
+		description => "Address filter.",
+		type => 'string',
+		maxLength => 512,
+		optional => 1,
+	    },
+	    orderby => $api_properties->{orderby},
+	}),
+    },
+    returns => {
+	type => 'array',
+	items => {
+	    type => "object",
+	    properties => $detail_return_properties->({
+		sender => {
+		    description => "Sender email. (for contact and receiver statistics)",
+		    type => 'string',
+		    optional => 1,
+		},
+		receiver => {
+		    description => "Receiver email. (for sender statistics)",
+		    type => 'string',
+		    optional => 1,
+		},
+	    }),
+	},
+    },
+    code => sub {
+	my ($param) = @_;
+
+	my $type = $param->{type};
+	$param->{$type} = $param->{address};
+
+	return get_detail_statistics($param->{type}, $param);
+    }});
+
+# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
+__PACKAGE__->register_method ({
     name => 'contactdetails',
     path => 'contact/{contact}',
     method => 'GET',
@@ -425,6 +480,7 @@ __PACKAGE__->register_method ({
 	return $res;
     }});
 
+# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
 __PACKAGE__->register_method ({
     name => 'senderdetails',
     path => 'sender/{sender}',
@@ -536,6 +592,7 @@ __PACKAGE__->register_method ({
 	return $res;
     }});
 
+# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
 __PACKAGE__->register_method ({
     name => 'receiverdetails',
     path => 'receiver/{receiver}',
