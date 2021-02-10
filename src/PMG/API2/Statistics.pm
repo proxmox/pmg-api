@@ -293,34 +293,30 @@ my $detail_return_properties = sub {
 };
 
 sub get_detail_statistics {
-    my ($type, $param) =@_;
+    my ($type, $param) = @_;
 
     my ($start, $end) = $extract_start_end->($param);
-
-    my $stat = PMG::Statistic->new($start, $end);
-    my $rdb = PMG::RuleDB->new();
-
     my $sorters = [];
     if ($param->{orderby}) {
 	my $props = ['time', 'sender', 'bytes', 'blocked', 'spamlevel', 'virusinfo'];
 	$props->[1] = 'receiver' if $type eq 'sender';
 	$sorters = $decode_orderby->($param->{orderby}, $props);
     }
+    my $address = $param->{address} // $param->{$type};
+    my $rdb = PMG::RuleDB->new();
 
-    my $res = [];
+    my @args = ($rdb, $address, $userstat_limit, $sorters, $param->{filter});
+
+    my $stat = PMG::Statistic->new($start, $end);
     if ($type eq 'contact') {
-	$res = $stat->user_stat_contact_details(
-	    $rdb, $param->{contact}, $userstat_limit, $sorters, $param->{filter});
+	return $stat->user_stat_contact_details(@args);
     } elsif ($type eq 'sender') {
-	$res = $stat->user_stat_sender_details(
-	    $rdb, $param->{sender}, $userstat_limit, $sorters, $param->{filter});
+	return $stat->user_stat_sender_details(@args);
     } elsif ($type eq 'receiver') {
-	$res = $stat->user_stat_receiver_details(
-	    $rdb, $param->{receiver}, $userstat_limit, $sorters, $param->{filter});
+	return $stat->user_stat_receiver_details(@args);
     } else {
 	die "invalid type provided (not 'contact', 'sender', 'receiver')\n";
     }
-    return $res;
 }
 
 __PACKAGE__->register_method ({
@@ -369,9 +365,6 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-
-	my $type = $param->{type};
-	$param->{$type} = $param->{address};
 
 	return get_detail_statistics($param->{type}, $param);
     }});
