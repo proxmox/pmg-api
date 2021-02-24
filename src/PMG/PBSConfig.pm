@@ -90,6 +90,11 @@ sub properties {
 	    description => "Username or API token ID on the Proxmox Backup Server"
 	}),
 	fingerprint => get_standard_option('fingerprint-sha256'),
+	'include-statistics' => {
+	    description => "Include statistics in scheduled backups",
+	    type => 'boolean',
+	    optional => 1,
+	},
 	%prune_properties,
     };
 }
@@ -102,6 +107,7 @@ sub options {
 	username => { optional => 1 },
 	password => { optional => 1 },
 	fingerprint => { optional => 1 },
+	'include-statistics' => { optional => 1 },
 	'keep-last' => { optional => 1 },
 	'keep-hourly' =>  { optional => 1 },
 	'keep-daily' => { optional => 1 },

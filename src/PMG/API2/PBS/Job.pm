@@ -291,7 +291,7 @@ __PACKAGE__->register_method ({
 	die "PBS remote '$remote' does not exist\n" if !$remote_config;
 	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
 
-	$param->{statistic} //= 1;
+	$param->{statistic} //= $remote_config->{'include-statistics'} // 1;
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 	my $backup_dir = "/var/lib/pmg/backup/current";
