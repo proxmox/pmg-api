@@ -246,7 +246,7 @@ sub pmg_backup_pack {
 	pmg_backup($dirname, $include_statistics);
 
 	system("rm -f $filename; tar czf $filename --strip-components=1 -C $dirname .") == 0 ||
-	    die "unable to create backup archive: ERROR";
+	    die "unable to create backup archive: ERROR\n";
     };
     my $err = $@;
 
