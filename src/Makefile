@@ -42,7 +42,7 @@ TEMPLATES =				\
 	freshclam.conf.in		\
 	clamd.conf.in 			\
 	postgresql.conf.in		\
-	pg_hba.conf.in
+	pg_hba.conf.in			\
 
 TEMPLATES_FILES = $(addprefix templates/, ${TEMPLATES})
 
@@ -116,8 +116,8 @@ LIBSOURCES =				\
 	${CLI_CLASSES} 			\
 	${SERVICE_CLASSES}		\
 	PMG/API2/Subscription.pm	\
-	PMG/API2/APT.pm             	\
-	PMG/API2/Network.pm             \
+	PMG/API2/APT.pm			\
+	PMG/API2/Network.pm		\
 	PMG/API2/Services.pm		\
 	PMG/API2/Tasks.pm		\
 	PMG/API2/LDAP.pm		\
@@ -152,7 +152,7 @@ LIBSOURCES =				\
 	PMG/API2/When.pm		\
 	PMG/API2/What.pm		\
 	PMG/API2/Action.pm		\
-	PMG/API2.pm
+	PMG/API2.pm			\
 
 SOURCES = ${LIBSOURCES} ${CLI_BINARIES} ${TEMPLATES_FILES} ${CONF_MANS} ${CLI_MANS} ${SERVICE_MANS} ${SERVICE_UNITS} ${TIMER_UNITS} pmg-sources.list pmg-apt.conf pmg-initramfs.conf
 
