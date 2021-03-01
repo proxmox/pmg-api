@@ -110,6 +110,13 @@ __PACKAGE__->register_method ({
 		optional => 1,
 		default => 1,
 	    },
+	    notify => {
+		description => "Specify when to notify via e-mail",
+		type => 'string',
+		enum => [ 'always', 'error', 'never' ],
+		optional => 1,
+		default => 'never',
+	    },
 	},
     },
     returns => { type => "string" },
@@ -129,11 +136,21 @@ __PACKAGE__->register_method ({
 	my $worker = sub {
 	    my $upid = shift;
 
-	    print "starting backup to: $filename\n";
+	    my $full_log = "";
+	    my $log = sub { print "$_[0]\n"; $full_log .= "$_[0]\n"; };
 
-	    PMG::Backup::pmg_backup_pack($filename, $param->{statistic});
+	    $log->("starting backup to: $filename");
 
-	    print "backup finished\n";
+	    eval { PMG::Backup::pmg_backup_pack($filename, $param->{statistic}) };
+	    if (my $err = $@) {
+		$log->($err);
+		PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, $err);
+		die "backup failed: $err\n";
+	    }
+
+	    $log->("backup finished");
+
+	    PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, undef);
 
 	    return;
 	};
