@@ -294,20 +294,28 @@ __PACKAGE__->register_method ({
 	$param->{statistic} //= $remote_config->{'include-statistics'} // 1;
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
-	my $backup_dir = "/var/lib/pmg/backup/current";
+
+	my $time = time;
+	my $backup_dir = "/tmp/pbsbackup_${remote}_$$.$time";
 
 	my $worker = sub {
 	    my $upid = shift;
 
 	    print "starting update of current backup state\n";
 
-	    -d $backup_dir || mkdir $backup_dir;
-	    PMG::Backup::pmg_backup($backup_dir, $param->{statistic});
+	    eval {
+		-d $backup_dir || mkdir $backup_dir;
+		PMG::Backup::pmg_backup($backup_dir, $param->{statistic});
 
-	    $pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup');
+		$pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup');
 
-	    rmtree $backup_dir;
+		rmtree $backup_dir;
+	    };
+	    if (my $err = $@) {
+		rmtree $backup_dir;
+		die "backup failed: $err\n";
 
+	    }
 	    print "backup finished\n";
 
 	    my $group = "host/$node";
