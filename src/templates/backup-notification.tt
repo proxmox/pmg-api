@@ -1,0 +1,19 @@
+[%- IF err -%]
+[%- SET titleprefix = "Backup failed" -%]
+[%- ELSE %]
+[%- SET titleprefix = "Backup successful" -%]
+[%- END -%]
+[%- IF target -%]
+[%- SET titlesuffix = "to ${target} - ($fqdn)" -%]
+[%- ELSE %]
+[%- SET titlesuffix = "($fqdn)" -%]
+[%- END -%]
+<html>
+  <head>
+    <title>[% titleprefix %] [% titlesuffix %]</title>
+  </head>
+  <body>
+    Detailed backup logs:<br /><br />
+    <pre>[% log %]</pre>
+  </body>
+</html>

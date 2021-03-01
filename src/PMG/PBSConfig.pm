@@ -90,6 +90,12 @@ sub properties {
 	    description => "Username or API token ID on the Proxmox Backup Server"
 	}),
 	fingerprint => get_standard_option('fingerprint-sha256'),
+	notify => {
+	    description => "Specify when to notify via e-mail",
+	    type => 'string',
+	    enum => [ 'always', 'error', 'never' ],
+	    optional => 1,
+	},
 	'include-statistics' => {
 	    description => "Include statistics in scheduled backups",
 	    type => 'boolean',
@@ -107,6 +113,7 @@ sub options {
 	username => { optional => 1 },
 	password => { optional => 1 },
 	fingerprint => { optional => 1 },
+	notify => { optional => 1 },
 	'include-statistics' => { optional => 1 },
 	'keep-last' => { optional => 1 },
 	'keep-hourly' =>  { optional => 1 },

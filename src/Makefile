@@ -43,6 +43,7 @@ TEMPLATES =				\
 	clamd.conf.in 			\
 	postgresql.conf.in		\
 	pg_hba.conf.in			\
+	backup-notification.tt		\
 
 TEMPLATES_FILES = $(addprefix templates/, ${TEMPLATES})
 

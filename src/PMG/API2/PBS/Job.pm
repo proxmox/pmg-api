@@ -273,6 +273,13 @@ __PACKAGE__->register_method ({
 		optional => 1,
 		default => 1,
 	    },
+	    notify => {
+		description => "Specify when to notify via e-mail",
+		type => 'string',
+		enum => [ 'always', 'error', 'never' ],
+		optional => 1,
+		default => 'never',
+	    },
 	},
     },
     returns => { type => "string" },
@@ -292,6 +299,7 @@ __PACKAGE__->register_method ({
 	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
 
 	$param->{statistic} //= $remote_config->{'include-statistics'} // 1;
+	my $notify = $param->{notify} // $remote_config->{notify} // 'never';
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 
@@ -301,7 +309,10 @@ __PACKAGE__->register_method ({
 	my $worker = sub {
 	    my $upid = shift;
 
-	    print "starting update of current backup state\n";
+	    my $full_log = "";
+	    my $log = sub { print "$_[0]\n"; $full_log .= "$_[0]\n"; };
+
+	    $log->("starting update of current backup state");
 
 	    eval {
 		-d $backup_dir || mkdir $backup_dir;
@@ -312,24 +323,31 @@ __PACKAGE__->register_method ({
 		rmtree $backup_dir;
 	    };
 	    if (my $err = $@) {
+		$log->($err);
+		PMG::Backup::send_backup_notification($notify, $remote, $full_log, $err);
 		rmtree $backup_dir;
 		die "backup failed: $err\n";
-
 	    }
-	    print "backup finished\n";
+	    $log->("backup finished");
 
 	    my $group = "host/$node";
 	    if (defined(my $prune_opts = $conf->prune_options($remote))) {
-		print "starting prune of $group\n";
-		my $res = $pbs->prune_group(undef, $prune_opts, $group);
-
+		$log->("starting prune of $group");
+		my $res = eval { $pbs->prune_group(undef, $prune_opts, $group) };
+		if (my $err = $@) {
+		    $log->($err);
+		    PMG::Backup::send_backup_notification($notify, $remote, $full_log, $err);
+		    die "pruning failed: $err\n";
+		}
 		foreach my $pruned (@$res){
 		    my $time = strftime("%FT%TZ", gmtime($pruned->{'backup-time'}));
 		    my $snap = $pruned->{'backup-type'} . '/' . $pruned->{'backup-id'} . '/' .  $time;
-		    print "pruned snapshot: $snap\n";
+		    $log->("pruned snapshot: $snap");
 		}
-		print "prune finished\n";
+		$log->("prune finished");
 	    }
+
+	    PMG::Backup::send_backup_notification($notify, $remote, $full_log, undef);
 
 	    return;
 	};

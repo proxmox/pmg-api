@@ -5,6 +5,7 @@ use warnings;
 use Data::Dumper;
 use File::Basename;
 use File::Path;
+use POSIX qw(strftime);
 
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::Tools;
@@ -374,6 +375,40 @@ sub pmg_restore {
     rmtree $dirname;
 
     die $err if $err;
+}
+
+sub send_backup_notification {
+    my ($notify_on, $target, $log, $err) = @_;
+
+    return if !$notify_on;
+    return if $notify_on eq 'never';
+    return if $notify_on eq 'error' && !$err;
+
+    my $cfg = PMG::Config->new();
+    my $email = $cfg->get ('admin', 'email');
+    if (!$email) {
+	warn "not sending notifcation: no admin email configured\n";
+	return;
+    }
+
+    my $nodename = PVE::INotify::nodename();
+    my $fqdn = PVE::Tools::get_fqdn($nodename);
+
+
+    my $vars = {
+	hostname => $nodename,
+	fqdn => $fqdn,
+	date => strftime("%F", localtime()),
+	target => $target,
+	log => $log,
+	err => $err,
+    };
+
+    my $tt = PMG::Config::get_template_toolkit();
+
+    my $mailfrom = "Proxmox Mail Gateway <postmaster>";
+    PMG::Utils::finalize_report($tt, 'backup-notification.tt', $vars, $mailfrom, $email);
+
 }
 
 1;
