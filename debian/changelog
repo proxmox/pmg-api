@@ -1,3 +1,19 @@
+pmg-api (6.3-6) pmg; urgency=medium
+
+  * api: spamassassin: read local channels and include them in daily SA
+    update
+
+  * api: statistics: add central API enpoint for details, avoiding
+    issues with certain characters in mail addresses
+
+  * utils: allow / inside email address localpart
+
+  * fix #3154: backup: add include-statistics to Proxmox Backup Server
+
+  * fix #3146: backup: add email notifications
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 05 Mar 2021 22:48:07 +0100
+
 pmg-api (6.3-5) pmg; urgency=medium
 
   * utils: ignore leading whitespace in SpamAssassin rule description
