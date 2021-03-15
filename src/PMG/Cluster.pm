@@ -289,6 +289,27 @@ my $ssh_command = sub {
     return $cmd;
 };
 
+sub get_remote_cert_fingerprint {
+    my ($ni) = @_;
+
+    my $ssh_cmd = $ssh_command->(
+	$ni->{name}, $ni->{ip},
+	'openssl x509 -noout -fingerprint -sha256 -in /etc/pmg/pmg-api.pem');
+    my $fp;
+    eval {
+	PVE::Tools::run_command($ssh_cmd, outfunc => sub {
+	    my ($line) = @_;
+	    if ($line =~ m/SHA256 Fingerprint=((?:[A-Fa-f0-9]{2}:){31}[A-Fa-f0-9]{2})/) {
+		$fp = $1;
+	    }
+	});
+	die "parsing failed\n" if !$fp;
+    };
+    die "unable to get remote node fingerprint from '$ni->{name}': $@\n" if $@;
+
+    return $fp;
+}
+
 my $rsync_command = sub {
     my ($host_key_alias, @args) = @_;
 
