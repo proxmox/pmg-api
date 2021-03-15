@@ -111,6 +111,7 @@ __PACKAGE__->register_method({
 	    { name => 'status' },
 	    { name => 'create' },
 	    { name => 'join' },
+	    { name => 'update-fingerprints' },
         ];
 
 	return $result;
@@ -451,5 +452,44 @@ __PACKAGE__->register_method({
 	return PMG::ClusterConfig::lock_config($code, "cluster join failed");
     }});
 
+__PACKAGE__->register_method({
+    name => 'update_fingerprints',
+    path => 'update-fingerprints',
+    method => 'POST',
+    description => "Update API certificate fingerprints (by fetching it via ssh).",
+    proxyto => 'master',
+    protected => 1,
+    parameters => {
+	additionalProperties => 0,
+    },
+    returns => { type => 'null' },
+    code => sub {
+	my ($param) = @_;
+
+	my $code = sub {
+	    my $cinfo = PMG::ClusterConfig->new();
+
+	    die "no cluster defined\n" if !scalar(keys %{$cinfo->{ids}});
+
+	    my $localcid = $cinfo->{local}->{cid};
+
+	    foreach my $cid (keys %{$cinfo->{ids}}) {
+	        my $d = $cinfo->{ids}->{$cid};
+		my $fp;
+		if ($d->{cid} == $localcid) {
+		    $fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
+		} else {
+		    $fp = PMG::Cluster::get_remote_cert_fingerprint($d);
+		}
+		$cinfo->{ids}->{$d->{cid}}->{fingerprint} = $fp;
+	    }
+
+	    $cinfo->write();
+
+	    return;
+	};
+
+	PMG::ClusterConfig::lock_config($code, "update fingerprints failed");
+    }});
 
 1;
