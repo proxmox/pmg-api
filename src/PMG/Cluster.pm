@@ -280,13 +280,21 @@ my $cond_commit_synced_file = sub {
     return 1;
 };
 
+my $ssh_command = sub {
+    my ($host_key_alias, @args) = @_;
+
+    my $cmd = ['ssh', '-l', 'root', '-o', 'BatchMode=yes'];
+    push @$cmd, '-o', "HostKeyAlias=${host_key_alias}" if $host_key_alias;
+    push @$cmd, @args if @args;
+    return $cmd;
+};
+
 my $rsync_command = sub {
     my ($host_key_alias, @args) = @_;
 
-    my $ssh_cmd = '--rsh=ssh -l root -o BatchMode=yes';
-    $ssh_cmd .=  " -o HostKeyAlias=${host_key_alias}" if $host_key_alias;
+    my $ssh_cmd = join(' ', @{$ssh_command->($host_key_alias)});
 
-    my $cmd = ['rsync', $ssh_cmd,  '-q', @args];
+    my $cmd = ['rsync', "--rsh=$ssh_cmd",  '-q', @args];
 
     return $cmd;
 };
