@@ -310,6 +310,32 @@ sub get_remote_cert_fingerprint {
     return $fp;
 }
 
+sub trigger_update_fingerprints {
+    my ($cinfo) = @_;
+
+    my $master = $cinfo->{master} || die "unable to lookup master node\n";
+    my $master_fp = $master->{fingerprint};
+
+    # if running on master the current fingerprint for the API-connection is needed
+    if ($cinfo->{local}->{type} eq 'master') {
+	$master_fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
+    }
+
+    my $ticket = PMG::Ticket::assemble_ticket('root@pam');
+    my $csrftoken = PMG::Ticket::assemble_csrf_prevention_token('root@pam');
+    my $conn = PVE::APIClient::LWP->new(
+	ticket => $ticket,
+	csrftoken => $csrftoken,
+	cookie_name => 'PMGAuthCookie',
+	host => $master->{ip},
+	cached_fingerprints => {
+	    $master_fp => 1,
+	});
+
+    $conn->post("/config/cluster/update-fingerprints", {});
+    return undef;
+}
+
 my $rsync_command = sub {
     my ($host_key_alias, @args) = @_;
 
