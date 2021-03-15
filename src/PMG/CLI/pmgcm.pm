@@ -306,6 +306,26 @@ __PACKAGE__->register_method({
 	return undef;
     }});
 
+__PACKAGE__->register_method({
+    name => 'trigger_update_fp',
+    path => 'trigger-update-fingerprint',
+    method => 'POST',
+    description => "Notify master to refresh all certificate fingerprints",
+    parameters => {
+	additionalProperties => 0,
+	properties => {},
+    },
+    returns => { type => 'null' },
+    code => sub {
+	my ($param) = @_;
+
+	my $cinfo = PMG::ClusterConfig->new();
+
+	die "no cluster defined\n" if !scalar(keys %{$cinfo->{ids}});
+
+	PMG::Cluster::trigger_update_fingerprints($cinfo);
+    }});
+
 our $cmddef = {
     status => [ 'PMG::API2::Cluster', 'status', [], {}, $format_nodelist],
     create => [ 'PMG::API2::Cluster', 'create', [], {}, $upid_exit],
@@ -314,6 +334,7 @@ our $cmddef = {
     join_cmd => [ __PACKAGE__, 'join_cmd', []],
     sync => [ __PACKAGE__, 'sync', []],
     promote => [ __PACKAGE__, 'promote', []],
+    'trigger-update-fingerprint' => [ __PACKAGE__, 'trigger_update_fp'],
 };
 
 1;
