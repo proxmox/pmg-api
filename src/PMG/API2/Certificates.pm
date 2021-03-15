@@ -43,6 +43,12 @@ my sub restart_after_cert_update : prototype($) {
     if ($type eq 'api') {
 	print "Restarting pmgproxy\n";
 	PVE::Tools::run_command(['systemctl', 'reload-or-restart', 'pmgproxy']);
+
+	my $cinfo = PMG::ClusterConfig->new();
+	if (scalar(keys %{$cinfo->{ids}})) {
+	    print "Notify cluster about new fingerprint\n";
+	    PMG::Cluster::trigger_update_fingerprints($cinfo);
+	}
     }
 };
 
