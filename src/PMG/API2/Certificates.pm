@@ -387,7 +387,11 @@ my $order_certificate = sub {
 			print "Status is 'valid', domain '$domain' OK!\n";
 			last;
 		    }
-		    die "validating challenge '$auth_url' failed - status: $auth->{status}\n";
+		    my $error = "validating challenge '$auth_url' failed - status: $auth->{status}";
+		    for (@{$auth->{challenges}}) {
+			$error .= ", $_->{error}->{detail}" if $_->{error}->{detail};
+		    }
+		    die "$error\n";
 		}
 	    };
 	    my $err = $@;
