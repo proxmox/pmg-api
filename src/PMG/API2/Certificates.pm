@@ -505,7 +505,7 @@ __PACKAGE__->register_method ({
 	my $node_config = PMG::NodeConfig::load_config();
 	my $acme_config = PMG::NodeConfig::get_acme_conf($node_config);
 	raise("ACME domain list in configuration is missing!", 400)
-	    if !$acme_config || !$acme_config->{domains}->%*;
+	    if !($acme_config && $acme_config->{domains} && $acme_config->{domains}->%*);
 
 	$filter_domains->($acme_config, $type);
 
