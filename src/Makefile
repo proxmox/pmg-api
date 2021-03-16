@@ -55,6 +55,7 @@ LIBSOURCES =				\
 	PMG/HTMLMail.pm			\
 	PMG/ModGroup.pm			\
 	PMG/SMTPPrinter.pm		\
+	PMG/CertHelpers.pm		\
 	PMG/Config.pm			\
 	PMG/Cluster.pm			\
 	PMG/ClusterConfig.pm		\
