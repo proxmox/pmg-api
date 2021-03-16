@@ -307,8 +307,8 @@ __PACKAGE__->register_method({
     }});
 
 __PACKAGE__->register_method({
-    name => 'trigger_update_fp',
-    path => 'trigger-update-fingerprint',
+    name => 'update_fingerprints',
+    path => 'update-fingerprints',
     method => 'POST',
     description => "Notify master to refresh all certificate fingerprints",
     parameters => {
@@ -334,7 +334,7 @@ our $cmddef = {
     join_cmd => [ __PACKAGE__, 'join_cmd', []],
     sync => [ __PACKAGE__, 'sync', []],
     promote => [ __PACKAGE__, 'promote', []],
-    'trigger-update-fingerprint' => [ __PACKAGE__, 'trigger_update_fp'],
+    'update-fingerprints' => [ __PACKAGE__, 'update_fingerprints'],
 };
 
 1;
