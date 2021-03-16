@@ -26,6 +26,7 @@ use PMG::API2::DestinationTLSPolicy;
 use PMG::API2::DKIMSign;
 use PMG::API2::SACustom;
 use PMG::API2::PBS::Remote;
+use PMG::API2::ACME;
 
 use base qw(PVE::RESTHandler);
 
@@ -100,6 +101,11 @@ __PACKAGE__->register_method ({
 });
 
 __PACKAGE__->register_method ({
+    subclass => "PMG::API2::ACME",
+    path => 'acme',
+});
+
+__PACKAGE__->register_method ({
     name => 'index', 
     path => '',
     method => 'GET',
@@ -138,6 +144,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'tlspolicy' };
 	push @$res, { section => 'dkim' };
 	push @$res, { section => 'pbs' };
+	push @$res, { section => 'acme' };
 
 	return $res;
     }});
