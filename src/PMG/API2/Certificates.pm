@@ -339,7 +339,7 @@ my $order_certificate = sub {
     my $plugins = PMG::API2::ACMEPlugin::load_config();
 
     print "Placing ACME order\n";
-    my ($order_url, $order) = $acme->new_order([ keys %{$acme_node_config->{domains}} ]);
+    my ($order_url, $order) = $acme->new_order([ sort keys %{$acme_node_config->{domains}} ]);
     print "Order URL: $order_url\n";
     for my $auth_url (@{$order->{authorizations}}) {
 	print "\nGetting authorization details from '$auth_url'\n";
@@ -458,7 +458,7 @@ my $filter_domains = sub {
     my ($acme_config, $type) = @_;
 
     my $domains = $acme_config->{domains};
-    foreach my $domain (keys %$domains) {
+    foreach my $domain (sort keys %$domains) {
 	my $entry = $domains->{$domain};
 	if (!(grep { $_ eq $type } PVE::Tools::split_list($entry->{usage}))) {
 	    delete $domains->{$domain};
