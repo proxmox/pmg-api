@@ -155,6 +155,7 @@ LIBSOURCES =				\
 	PMG/API2/When.pm		\
 	PMG/API2/What.pm		\
 	PMG/API2/Action.pm		\
+	PMG/API2/Certificates.pm	\
 	PMG/API2/ACME.pm		\
 	PMG/API2/ACMEPlugin.pm		\
 	PMG/API2.pm			\

@@ -27,6 +27,7 @@ use PMG::API2::Postfix;
 use PMG::API2::MailTracker;
 use PMG::API2::Backup;
 use PMG::API2::PBS::Job;
+use PMG::API2::Certificates;
 
 use base qw(PVE::RESTHandler);
 
@@ -86,6 +87,11 @@ __PACKAGE__->register_method ({
 });
 
 __PACKAGE__->register_method ({
+    subclass => "PMG::API2::Certificates",
+    path => 'certificates',
+});
+
+__PACKAGE__->register_method ({
     name => 'index',
     path => '',
     method => 'GET',
@@ -126,6 +132,7 @@ __PACKAGE__->register_method ({
 	    { name => 'subscription' },
 	    { name => 'termproxy' },
 	    { name => 'rrddata' },
+	    { name => 'certificates' },
 	];
 
 	return $result;
