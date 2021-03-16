@@ -293,8 +293,10 @@ sub get_remote_cert_fingerprint {
     my ($ni) = @_;
 
     my $ssh_cmd = $ssh_command->(
-	$ni->{name}, $ni->{ip},
-	'openssl x509 -noout -fingerprint -sha256 -in /etc/pmg/pmg-api.pem');
+        $ni->{name},
+        $ni->{ip},
+        'openssl x509 -noout -fingerprint -sha256 -in /etc/pmg/pmg-api.pem'
+    );
     my $fp;
     eval {
 	PVE::Tools::run_command($ssh_cmd, outfunc => sub {
@@ -330,7 +332,8 @@ sub trigger_update_fingerprints {
 	host => $master->{ip},
 	cached_fingerprints => {
 	    $master_fp => 1,
-	});
+	},
+    );
 
     $conn->post("/config/cluster/update-fingerprints", {});
     return undef;
