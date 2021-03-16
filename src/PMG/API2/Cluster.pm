@@ -473,15 +473,14 @@ __PACKAGE__->register_method({
 
 	    my $localcid = $cinfo->{local}->{cid};
 
-	    foreach my $cid (keys %{$cinfo->{ids}}) {
-	        my $d = $cinfo->{ids}->{$cid};
+	    foreach my $cid (sort keys %{$cinfo->{ids}}) {
 		my $fp;
-		if ($d->{cid} == $localcid) {
+		if ($cid == $localcid) {
 		    $fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
 		} else {
-		    $fp = PMG::Cluster::get_remote_cert_fingerprint($d);
+		    $fp = PMG::Cluster::get_remote_cert_fingerprint($cinfo->{ids}->{$cid});
 		}
-		$cinfo->{ids}->{$d->{cid}}->{fingerprint} = $fp;
+		$cinfo->{ids}->{$cid}->{fingerprint} = $fp;
 	    }
 
 	    $cinfo->write();
