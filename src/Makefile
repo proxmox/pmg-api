@@ -117,6 +117,7 @@ LIBSOURCES =				\
 	PMG/RuleDB.pm			\
 	${CLI_CLASSES} 			\
 	${SERVICE_CLASSES}		\
+	PMG/NodeConfig.pm		\
 	PMG/API2/Subscription.pm	\
 	PMG/API2/APT.pm			\
 	PMG/API2/Network.pm		\
