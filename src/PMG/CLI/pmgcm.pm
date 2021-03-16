@@ -320,8 +320,10 @@ __PACKAGE__->register_method({
 	my ($param) = @_;
 
 	my $cinfo = PMG::ClusterConfig->new();
-
-	die "no cluster defined\n" if !scalar(keys %{$cinfo->{ids}});
+	if (!scalar(keys %{$cinfo->{ids}})) {
+	    warn "no cluster defined, nothing to do...\n";
+	    return undef;
+	}
 
 	PMG::Cluster::trigger_update_fingerprints($cinfo);
     }});
