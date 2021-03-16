@@ -400,6 +400,7 @@ sub sync_config_from_master {
 	'transport',
 	'tls_policy',
 	'fetchmailrc',
+	'acme-plugins.conf',
 	];
 
     foreach my $filename (@$files) {
@@ -410,6 +411,7 @@ sub sync_config_from_master {
 	'templates',
 	'dkim',
 	'pbs',
+	'acme',
     ];
 
     foreach my $dir (@$dirs) {
