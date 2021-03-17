@@ -610,7 +610,11 @@ __PACKAGE__->register_method ({
 
 	    if (defined($old_cert)) {
 		print "Revoking old certificate\n";
-		eval { $acme->revoke_certificate($old_cert, undef) };
+		eval {
+		    $old_cert = pem_certificate($old_cert)
+			or die "no certificate section found in '$cert_path'\n";
+		    $acme->revoke_certificate($old_cert, undef);
+		};
 		warn "Revoke request to CA failed: $@" if $@;
 	    }
 	};
