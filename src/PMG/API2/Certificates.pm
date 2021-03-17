@@ -10,6 +10,7 @@ use PVE::Tools qw(extract_param file_get_contents file_set_contents);
 
 use PMG::CertHelpers;
 use PMG::NodeConfig;
+use PMG::RS::Acme;
 use PMG::RS::CSR;
 
 use PMG::API2::ACMEPlugin;
