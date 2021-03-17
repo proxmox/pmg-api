@@ -173,7 +173,7 @@ __PACKAGE__->register_method ({
     }});
 
 my $update_account = sub {
-    my ($param, $msg, %info) = @_;
+    my ($param, $msg, $force_deactivate, %info) = @_;
 
     my ($account_name, $account_file) = extract_account_name($param);
 
@@ -190,7 +190,13 @@ my $update_account = sub {
 		if ! -e $account_file;
 
 	    my $acme = PMG::RS::Acme->load($account_file);
-	    $acme->update_account(\%info);
+	    eval {
+		$acme->update_account(\%info);
+	    };
+	    if (my $err = $@) {
+		die $err if !$force_deactivate;
+		warn "got error, but forced to continue - $err\n";
+	    }
 	    if ($info{status} && $info{status} eq 'deactivated') {
 		my $deactivated_name;
 		for my $i (0..100) {
@@ -239,9 +245,9 @@ __PACKAGE__->register_method ({
 
 	my $contact = $account_contact_from_param->($param);
 	if (scalar @$contact) {
-	    return $update_account->($param, 'update', contact => $contact);
+	    return $update_account->($param, 'update', 0, contact => $contact);
 	} else {
-	    return $update_account->($param, 'refresh');
+	    return $update_account->($param, 'refresh', 0);
 	}
     }});
 
@@ -311,6 +317,13 @@ __PACKAGE__->register_method ({
 	additionalProperties => 0,
 	properties => {
 	    name => get_standard_option('pmg-acme-account-name'),
+	    force => {
+		type => 'boolean',
+		description =>
+		    'Delete account data even if the server refuses to deactivate the account.',
+		optional => 1,
+		default => 0,
+	    },
 	},
     },
     returns => {
@@ -319,7 +332,9 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	return $update_account->($param, 'deactivate', status => 'deactivated');
+	my $force_deactivate = extract_param($param, 'force');
+
+	return $update_account->($param, 'deactivate', $force_deactivate, status => 'deactivated');
     }});
 
 __PACKAGE__->register_method ({
