@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use Time::Local;
 
+use PVE::Certificate;
 use PVE::SafeSyslog;
 use PVE::INotify;
 use PVE::RESTEnvironment;
@@ -18,6 +19,9 @@ use PMG::ClusterConfig;
 use PMG::DBTools;
 use PMG::API2::Subscription;
 use PMG::API2::APT;
+use PMG::API2::Certificates;
+use PMG::CertHelpers;
+use PMG::NodeConfig;
 
 $SIG{'__WARN__'} = sub {
     my $err = $@;
@@ -88,6 +92,38 @@ syslog('err', "$@") if $@;
 PMG::Utils::service_cmd('pmg-smtp-filter', 'restart') if $restart_filter;
 # run bayes database maintainance
 system('sa-learn --force-expire >/dev/null 2>&1');
+
+eval {
+    my $node_config = PMG::NodeConfig::load_config();
+    my $acme_node_config = PMG::NodeConfig::get_acme_conf($node_config);
+    my $acme_domains = $acme_node_config && $acme_node_config->{domains};
+    if ($acme_domains) {
+	my %typed_domains = map {
+	    $_ => PMG::NodeConfig::filter_domains_by_type($acme_domains, $_)
+	} qw(api smtp);
+
+	foreach my $type (qw(api smtp)) {
+	    next if !$typed_domains{$type};
+
+	    # Guard both certificates separately.
+	    eval {
+		my $cert = PMG::CertHelpers::cert_path($type);
+		if (!-e $cert) {
+		    syslog ('info', "ACME config found for '$type' certificate, but no custom certificate exists. Skipping ACME renewal until initial certificate has been deployed.");
+		    next;
+		}
+
+		if (PVE::Certificate::check_expiry($cert, time() + 30*24*60*60)) {
+		    PMG::API2::Certificates->renew_acme_cert({ node => $nodename, type => $type });
+		} else {
+		    syslog ('info', "Custom '$type' certificate does not expire soon, skipping ACME renewal.");
+		}
+	    };
+	    syslog ('err', "Renewing '$type' ACME certificate failed: $@") if $@;
+	}
+    }
+};
+syslog ('err', "Renewing ACME certificate failed: $@") if $@;
 
 exit (0);
 
