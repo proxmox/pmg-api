@@ -468,17 +468,13 @@ my $order_certificate = sub {
 my $filter_domains = sub {
     my ($acme_config, $type) = @_;
 
-    my $domains = $acme_config->{domains};
-    foreach my $domain (sort keys %$domains) {
-	my $entry = $domains->{$domain};
-	if (!(grep { $_ eq $type } PVE::Tools::split_list($entry->{usage}))) {
-	    delete $domains->{$domain};
-	}
-    }
+    my $domains = PMG::NodeConfig::filter_domains_by_type($acme_config->{domains}, $type);
 
-    if (!%$domains) {
+    if (!$domains) {
 	raise("No domains configured for type '$type'\n", 400);
     }
+
+    $acme_config->{domains} = $domains;
 };
 
 __PACKAGE__->register_method ({

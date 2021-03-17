@@ -222,4 +222,23 @@ sub get_acme_conf {
     return $res;
 }
 
+# Helper to filter the domains hash. Returns `undef` if the list is empty.
+sub filter_domains_by_type : prototype($$) {
+    my ($domains, $type) = @_;
+
+    return undef if !$domains || !%$domains;
+
+    my $out = {};
+
+    foreach my $domain (keys %$domains) {
+	my $entry = $domains->{$domain};
+	if (grep { $_ eq $type } PVE::Tools::split_list($entry->{usage})) {
+	    $out->{$domain} = $entry;
+	}
+    }
+
+    return undef if !%$out;
+    return $out;
+}
+
 1;
