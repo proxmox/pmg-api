@@ -12,7 +12,7 @@ use constant {
     SMTP_CERT => '/etc/pmg/pmg-tls.pem',
 };
 
-my $account_prefix = '/etc/pmg/acme';
+my $account_prefix = '/etc/pmg/acme/accounts';
 
 # TODO: Move `pve-acme-account-name` to common and reuse instead of this.
 PVE::JSONSchema::register_standard_option('pmg-acme-account-name', {

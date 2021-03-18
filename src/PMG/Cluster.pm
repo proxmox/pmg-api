@@ -458,7 +458,6 @@ sub sync_config_from_master {
 	'transport',
 	'tls_policy',
 	'fetchmailrc',
-	'acme-plugins.conf',
 	];
 
     foreach my $filename (@$files) {

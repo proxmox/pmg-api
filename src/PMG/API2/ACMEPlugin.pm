@@ -15,7 +15,7 @@ use PVE::Tools qw(extract_param);
 use base qw(PVE::RESTHandler);
 
 my $inotify_file_id = 'pmg-acme-plugins-config.conf';
-my $config_filename = '/etc/pmg/acme-plugins.conf';
+my $config_filename = '/etc/pmg/acme/plugins.conf';
 my $lockfile = "/var/lock/pmg-acme-plugins-config.lck";
 
 PVE::ACME::DNSChallenge->register();
