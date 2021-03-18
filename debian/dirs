@@ -1,4 +1,5 @@
 /etc/pmg
+/etc/pmg/acme/accounts
 /etc/pmg/dkim
 /etc/pmg/pbs
 /var/lib/pmg
