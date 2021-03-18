@@ -45,6 +45,7 @@ my $acme_domain_desc = {
     usage => {
 	type => 'string',
 	format => 'pmg-certificate-type-list',
+	format_description => 'usage list',
 	description => 'Whether this domain is used for the API, SMTP or both',
     },
 };
