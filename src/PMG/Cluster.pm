@@ -316,11 +316,13 @@ sub trigger_update_fingerprints {
     my ($cinfo) = @_;
 
     my $master = $cinfo->{master} || die "unable to lookup master node\n";
-    my $master_fp = $master->{fingerprint};
+    my $cached_fp = { $master->{fingerprint} => 1 };
 
     # if running on master the current fingerprint for the API-connection is needed
+    # in addition (to prevent races with restarting pmgproxy
     if ($cinfo->{local}->{type} eq 'master') {
-	$master_fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
+	my $new_fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
+	$cached_fp->{$new_fp} = 1;
     }
 
     my $ticket = PMG::Ticket::assemble_ticket('root@pam');
@@ -330,10 +332,8 @@ sub trigger_update_fingerprints {
 	csrftoken => $csrftoken,
 	cookie_name => 'PMGAuthCookie',
 	host => $master->{ip},
-	cached_fingerprints => {
-	    $master_fp => 1,
-	},
-    );
+	cached_fingerprints => $cached_fp,
+	);
 
     $conn->post("/config/cluster/update-fingerprints", {});
     return undef;
