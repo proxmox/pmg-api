@@ -69,16 +69,14 @@ my sub set_smtp : prototype($$) {
 
     my $code = sub {
 	my $cfg = PMG::Config->new();
-	if (!$cfg->get('mail', 'tls') == !$on) {
-	    return;
+	if (!$cfg->get('mail', 'tls') != !$on) {
+	    print "Rewriting postfix config\n";
+	    $cfg->set('mail', 'tls', $on);
+	    $cfg->write();
+	    my $changed = $cfg->rewrite_config_postfix();
 	}
 
-	print "Rewriting postfix config\n";
-	$cfg->set('mail', 'tls', $on);
-	$cfg->write();
-	my $changed = $cfg->rewrite_config_postfix();
-
-	if ($changed && $reload) {
+	if ($reload) {
 	    print "Reloading postfix\n";
 	    PMG::Utils::service_cmd('postfix', 'reload');
 	}
