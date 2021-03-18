@@ -24,7 +24,7 @@ sub create_spooldirs {
     my ($lcid, $cleanup) = @_;
 
     # if requested, remove any stale date
-    File::Path::remove_tree(
+    rmtree(
 	"$spooldir/cluster",
 	"$spooldir/active",
 	"$spooldir/virus",
@@ -32,7 +32,7 @@ sub create_spooldirs {
 	"$spooldir/attachment",
     ) if $cleanup;
 
-    File::Path::make_path(
+    mkpath(
 	"$spooldir/active",
 	"$spooldir/spam",
 	"$spooldir/virus",

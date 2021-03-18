@@ -144,7 +144,7 @@ __PACKAGE__->register_method ({
 	my $authuser = $rpcenv->get_user();
 
 	my ($account_name, $account_file) = extract_account_name($param);
-	File::Path::make_path($acme_account_dir) if ! -e $acme_account_dir;
+	mkpath $acme_account_dir if ! -e $acme_account_dir;
 
 	raise_param_exc({'name' => "ACME account config file '${account_name}' already exists."})
 	    if -e $account_file;
