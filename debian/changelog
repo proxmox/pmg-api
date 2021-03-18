@@ -1,3 +1,14 @@
+pmg-api (6.3-7) pmg; urgency=medium
+
+  * implement Automatic Certificate Management Environment (ACME) for API and
+    SMTP TLS certificates. Allowing one to use providers like Let's Encrypt for
+    deployment and automatic renewal of trusted certificates.
+
+  * cluster: automatically trigger an update of the pinned certificate
+    fingerprint for a node in the cluster configuration on certificate change
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 18 Mar 2021 11:05:17 +0100
+
 pmg-api (6.3-6) pmg; urgency=medium
 
   * api: spamassassin: read local channels and include them in daily SA
