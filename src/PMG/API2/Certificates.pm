@@ -69,11 +69,12 @@ my sub set_smtp : prototype($$) {
 
     my $code = sub {
 	my $cfg = PMG::Config->new();
+	# check if value actually would change
 	if (!$cfg->get('mail', 'tls') != !$on) {
 	    print "Rewriting postfix config\n";
 	    $cfg->set('mail', 'tls', $on);
 	    $cfg->write();
-	    my $changed = $cfg->rewrite_config_postfix();
+	    $cfg->rewrite_config_postfix();
 	}
 
 	if ($reload) {
