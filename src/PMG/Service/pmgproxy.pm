@@ -83,6 +83,7 @@ sub init {
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
     add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
     add_dirs($dirs, '/pwt/css/' => "$widgettoolkit_dir/css/");
+    add_dirs($dirs, '/pwt/images/' => "$widgettoolkit_dir/images/");
 
     $self->{server_config} = {
 	title => 'Proxmox Mail Gateway API',
