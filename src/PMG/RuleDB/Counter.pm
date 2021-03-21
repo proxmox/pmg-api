@@ -146,7 +146,7 @@ __END__
 
 Counter Object
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 count
 

@@ -873,7 +873,7 @@ Attach an object to an object group.
 =head3 $ruledb->save_object ($obj)
 
 Save or update an object. This can be used to add new objects
-to the database (although group_add_object() is the prefered way):
+to the database (although group_add_object() is the preferred way):
 
     $obj =  PMG::RuleDB::EMail->new ('.*@mydomain.com');
     # we need to set the object group manually

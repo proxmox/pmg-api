@@ -79,7 +79,7 @@ my $schema = {
 	    optional => 1,
 	},
 	role => {
-	    description => "User role. Role 'root' is reseved for the Unix Superuser.",
+	    description => "User role. Role 'root' is reserved for the Unix Superuser.",
 	    type => 'string',
 	    enum => ['root', 'admin', 'helpdesk', 'qmanager', 'audit'],
 	},

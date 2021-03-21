@@ -824,7 +824,7 @@ sub clamav_dbstat {
         my $header;
 	my $fh = IO::File->new("<$dbfile");
 	if (!$fh) {
-	    warn "cant open ClamAV Database $dbname ($dbfile) - $!\n";
+	    warn "can't open ClamAV Database $dbname ($dbfile) - $!\n";
 	    return;
 	}
 	$fh->read($header, 512);
@@ -1236,7 +1236,7 @@ sub finalize_report {
 	$top->print();
 	return;
     }
-    # we use an empty envelope sender (we dont want to receive NDRs)
+    # we use an empty envelope sender (we don't want to receive NDRs)
     PMG::Utils::reinject_mail ($top, '', [$receiver], undef, $data->{fqdn});
 }
 

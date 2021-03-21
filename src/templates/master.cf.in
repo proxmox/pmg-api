@@ -56,7 +56,7 @@
 # in the main.cf configuration file). See individual command man pages
 # for specific command-line options, if any.
 #
-# In order to use the "uucp" message tranport below, set up entries
+# In order to use the "uucp" message transport below, set up entries
 # in the transport table.
 #
 # In order to use the "cyrus" message transport below, configure it

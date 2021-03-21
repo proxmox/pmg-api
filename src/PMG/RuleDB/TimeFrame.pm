@@ -187,7 +187,7 @@ __END__
 
 A WHEN object to check for a specific daytime.
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 start
 

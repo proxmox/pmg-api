@@ -52,7 +52,7 @@ my $verify_optional_pmail = sub {
     my $pmail;
     if ($role eq 'quser') {
 	$pmail = $extract_pmail->($authuser, $role);
-	raise_param_exc({ pmail => "parameter not allwed with role '$role'"})
+	raise_param_exc({ pmail => "parameter not allowed with role '$role'"})
 	    if defined($pmail_param) && ($pmail ne $pmail_param);
     } else {
 	raise_param_exc({ pmail => "parameter required with role '$role'"})
@@ -159,7 +159,7 @@ my $parse_header_info = sub {
 };
 
 my $pmail_param_type = get_standard_option('pmg-email-address', {
-    description => "List entries for the user with this primary email address. Quarantine users cannot speficy this parameter, but it is required for all other roles.",
+    description => "List entries for the user with this primary email address. Quarantine users cannot specify this parameter, but it is required for all other roles.",
     optional => 1,
 });
 
@@ -542,7 +542,7 @@ __PACKAGE__->register_method ({
     path => 'quarusers',
     method => 'GET',
     permissions => { check => [ 'admin', 'qmanager', 'audit'] },
-    description => "Get a list of users with whitelist/blacklist setttings.",
+    description => "Get a list of users with whitelist/blacklist settings.",
     parameters => {
 	additionalProperties => 0,
 	properties => {
@@ -1200,7 +1200,7 @@ __PACKAGE__->register_method ({
 	additionalProperties => 0,
 	properties => {
 	    id => {
-		description => 'Unique IDs, seperate with ;',
+		description => 'Unique IDs, separate with ;',
 		type => 'string',
 		pattern => 'C\d+R\d+T\d+(;C\d+R\d+T\d+)*',
 	    },
@@ -1279,7 +1279,7 @@ my sub send_link_mail {
 	Data    => $text,
     );
 
-    # we use an empty envelope sender (we dont want to receive NDRs)
+    # we use an empty envelope sender (we don't want to receive NDRs)
     PMG::Utils::reinject_mail ($mail, '', [$receiver], undef, $fqdn);
 }
 

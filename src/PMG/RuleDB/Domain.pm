@@ -77,7 +77,7 @@ __END__
 
 A WHO object to check email domains.
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 address
 

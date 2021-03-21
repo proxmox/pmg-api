@@ -22,7 +22,7 @@ if (my $err = $@) { # FIXME: HACK: cope better with managed CTs and DHCP
     my $in_ct = detect_container();
     die $err if !$in_ct;
     warn "ignore failure to get local IP of $nodename, we're in a container ($in_ct)\n";
-    $localip = '<uknown>';
+    $localip = '<unknown>';
 }
 
 my $xline = '-' x 78;

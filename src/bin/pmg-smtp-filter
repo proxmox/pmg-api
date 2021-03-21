@@ -464,7 +464,7 @@ sub pre_loop_hook {
 	# reloading server configuration
 	if (defined $prop->{children}) {
 	    foreach my $pid (keys %{$prop->{children}}) {
-		kill (10, $pid); # SIGUSR1 childs
+		kill (10, $pid); # SIGUSR1 children
 	    }
 	}
     }
@@ -506,7 +506,7 @@ sub run_dequeue {
 
     my $err;
 
-    # do database maintainance here
+    # do database maintenance here
 
     # this is called every 30 secends
     eval {
@@ -525,7 +525,7 @@ sub run_dequeue {
 
     $last_dequeue_time = $ctime;
 
-    $self->log (2, "starting database maintainance");
+    $self->log (2, "starting database maintenance");
 
     my ($csec, $usec) = gettimeofday ();
 
@@ -552,7 +552,7 @@ sub run_dequeue {
     if ($err) {
 	$self->log (0, $err);
     } else {
-	$self->log (2, "end database maintainance ($ptime ms)");
+	$self->log (2, "end database maintenance ($ptime ms)");
     }
 
     $dbh->disconnect() if $dbh;
@@ -930,11 +930,11 @@ sub pre_server_close_hook {
 
     if (defined $prop->{children}) {
 	foreach my $pid (keys %{$prop->{children}}) {
-	    kill (1, $pid); # HUP childs
+	    kill (1, $pid); # HUP children
 	}
     }
 
-    # nicely shutdown childs (give them max 30 seconds to shut down)
+    # nicely shutdown children (give them max 30 seconds to shut down)
     my $previous_alarm = alarm(30);
     eval {
 	local $SIG{ALRM} = sub { die "Timed Out!\n" };

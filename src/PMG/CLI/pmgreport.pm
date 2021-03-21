@@ -267,7 +267,7 @@ __PACKAGE__->register_method ({
 		default => 0,
 	    },
 	    auto => {
-		description => "Auto mode. Use setting from system configuration (set when invoked fron cron).",
+		description => "Auto mode. Use setting from system configuration (set when invoked from cron).",
 		type => 'boolean',
 		optional => 1,
 		default => 0,

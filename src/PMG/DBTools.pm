@@ -286,7 +286,7 @@ my $cstatistic_ctablecmd =  <<__EOD;
 __EOD
 
 # user preferences (black an whitelists, ...)
-# Name: perference name ('BL' -> blacklist, 'WL' -> whitelist)
+# Name: preference name ('BL' -> blacklist, 'WL' -> whitelist)
 # Data: arbitrary data
 my $userprefs_ctablecmd =  <<__EOD;
     CREATE TABLE UserPrefs

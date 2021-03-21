@@ -104,7 +104,7 @@ __PACKAGE__->register_method ({
     name => 'sync',
     path => 'sync',
     method => 'POST',
-    description => "Syncronize Proxmox Mail Gateway configurations with system configuration.",
+    description => "Synchronize Proxmox Mail Gateway configurations with system configuration.",
     parameters => {
 	additionalProperties => 0,
 	properties => {
@@ -134,7 +134,7 @@ __PACKAGE__->register_method ({
     name => 'ldapsync',
     path => 'ldapsync',
     method => 'POST',
-    description => "Syncronize the LDAP database.",
+    description => "Synchronize the LDAP database.",
     parameters => {
 	additionalProperties => 0,
 	properties => {},

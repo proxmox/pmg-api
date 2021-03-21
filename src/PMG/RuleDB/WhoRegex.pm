@@ -138,9 +138,9 @@ __END__
 
 =head1 PMG::RuleDB::WhoRegex
 
-A WHO object to check email addresses with regular expresssions.
+A WHO object to check email addresses with regular expressions.
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 address
 

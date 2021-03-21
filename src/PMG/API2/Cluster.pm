@@ -122,7 +122,7 @@ __PACKAGE__->register_method({
     path => 'nodes',
     method => 'GET',
     description => "Cluster node index.",
-    # alway read local file
+    # always read local file
     parameters => {
 	additionalProperties => 0,
 	properties => {},
@@ -163,7 +163,7 @@ __PACKAGE__->register_method({
     path => 'status',
     method => 'GET',
     description => "Cluster node status.",
-    # alway read local file
+    # always read local file
     parameters => {
 	additionalProperties => 0,
 	properties => {
@@ -335,7 +335,7 @@ __PACKAGE__->register_method({
     path => 'create',
     method => 'POST',
     description => "Create initial cluster config with current node as master.",
-    # alway read local file
+    # always read local file
     parameters => {
 	additionalProperties => 0,
 	properties => {},
@@ -399,7 +399,7 @@ __PACKAGE__->register_method({
     path => 'join',
     method => 'POST',
     description => "Join local node to an existing cluster.",
-    # alway read local file
+    # always read local file
     protected => 1,
     parameters => {
 	additionalProperties => 0,

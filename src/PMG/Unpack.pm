@@ -102,7 +102,7 @@ sub helper_pipe_open {
 
     $inputfilename = '/dev/null' if !$inputfilename;
 
-    # same algorythm as used inside SA
+    # same algorithm as used inside SA
 
     my $fd = fileno (STDIN);
     close STDIN;
@@ -261,9 +261,9 @@ sub new {
     $self->{mime} = {};
     $self->{filenames} = {};
 
-    $self->{ufid} = 0; # counter to creat unique file names
-    $self->{udid} = 0; # counter to creat unique dir names
-    $self->{ulid} = 0; # counter to creat unique link names
+    $self->{ufid} = 0; # counter to create unique file names
+    $self->{udid} = 0; # counter to create unique dir names
+    $self->{ulid} = 0; # counter to create unique link names
 
     $self->{todo} = [];
 
@@ -463,7 +463,7 @@ sub check_comp_ratio {
 
     my $ratio = $usize/$compsize;
 
-    die "compresion ratio too large (> $self->{maxratio})"
+    die "compression ratio too large (> $self->{maxratio})"
 	if $ratio > $self->{maxratio};
 }
 
@@ -472,7 +472,7 @@ sub check_quota {
 
     my $sizediff = $csize ? $size - $csize : $size;
 
-    die "compresion ratio too large (> $self->{maxratio})"
+    die "compression ratio too large (> $self->{maxratio})"
 	if $self->{maxratio} && (($self->{size} + $sizediff) > $self->{ratioquota});
 
     die "archive too large (> $self->{quota})"
@@ -1059,7 +1059,7 @@ sub is_archive {
 # content types (detected by magic numbers and file extension)
 # Extracted files are stored inside 'tempdir'.
 #
-# returns: true if file is archive, undef otherwhise
+# returns: true if file is archive, undef otherwise
 
 sub unpack_archive {
     my ($self, $filename, $ct) = @_;

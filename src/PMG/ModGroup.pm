@@ -104,7 +104,7 @@ with a mail containing both disclaimers, which is not what we want.
 
 Another example is when you have receiver specific content filters,
 for example you don't want to get .exe files for a specific user, but
-allow it for everone else:
+allow it for everyone else:
 
   Rule1: user1@domain1.com && .exe attachments --> remove attachments
   Rule1: .*@domain2.com && .exe attachments --> accept
@@ -128,8 +128,8 @@ modification have to call:
     my_modify_entity ($entity, $targets);
   }
 
-That way we seemlessly hide the fact that mails are delivered to more
-than one receipient, without the requirement to make a copy for each
-receipient (which would lead to many unnecessays notification
+That way we seamlessly hide the fact that mails are delivered to more
+than one recipient, without the requirement to make a copy for each
+recipient (which would lead to many unnecessays notification
 mail). Insead we only make a minimum number of copies for specific
 target groups.

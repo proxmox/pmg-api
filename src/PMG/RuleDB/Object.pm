@@ -346,7 +346,7 @@ is used in the database to uniquely identify object types.
 
 =head3 $obj->id
 
-Returns the unique database ID of the object. undef means the object is not jet stored in the databse.
+Returns the unique database ID of the object. undef means the object is not jet stored in the database.
 
 =head3 $obj->final()
 

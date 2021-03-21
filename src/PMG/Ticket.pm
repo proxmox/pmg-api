@@ -22,7 +22,7 @@ my $basedir = "/etc/pmg";
 
 my $pmg_api_cert_fn = "$basedir/pmg-api.pem";
 
-# this is just a secret accessable by all API servers
+# this is just a secret accessible by all API servers
 # and is used for CSRF prevention
 my $pmg_csrf_key_fn = "$basedir/pmg-csrf.key";
 

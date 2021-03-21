@@ -179,7 +179,7 @@ __END__
 
 A WHO object to check LDAP users
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 ldapuser
 

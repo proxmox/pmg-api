@@ -247,7 +247,7 @@ sub execute {
 	print $fh "notify content:\n";
 	
 	if ($self->{attach} eq 'O') {
-	    # make result reproducable for regression testing
+	    # make result reproducible for regression testing
 	    $top->head->replace('content-type', 
 				'multipart/mixed; boundary="---=_1234567"');
 	}

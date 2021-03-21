@@ -73,7 +73,7 @@ __END__
 
 A WHO object to check email addresses.
 
-=head2 Attribues
+=head2 Attributes
 
 =head3 address
 

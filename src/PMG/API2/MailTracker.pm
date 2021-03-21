@@ -391,7 +391,7 @@ __PACKAGE__->register_method({
 	    starttime => get_standard_option('pmg-starttime'),
 	    endtime => get_standard_option('pmg-endtime'),
 	    id => {
-		description => "Mail ID (as returend by the list API).",
+		description => "Mail ID (as returned by the list API).",
 		type => 'string',
 		minLength => 3,
 		maxLength => 64,

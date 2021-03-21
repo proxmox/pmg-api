@@ -59,7 +59,7 @@ if (my $statlifetime = $cfg->get ('admin', 'statlifetime')) {
 }
 
 # check for available updates
-# We assume that users with subscriptions want informations
+# We assume that users with subscriptions want information
 # about new packages.
 my $info = PVE::INotify::read_file('subscription');
 my $notify = ($info && $info->{status} eq 'Active') ? 1 : 0;
@@ -90,7 +90,7 @@ eval {
 syslog('err', "$@") if $@;
 
 PMG::Utils::service_cmd('pmg-smtp-filter', 'restart') if $restart_filter;
-# run bayes database maintainance
+# run bayes database maintenance
 system('sa-learn --force-expire >/dev/null 2>&1');
 
 eval {

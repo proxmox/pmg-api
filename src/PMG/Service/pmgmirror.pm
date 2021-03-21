@@ -92,7 +92,7 @@ sub cluster_sync {
 
     my $start_time = [ gettimeofday() ];
 
-    syslog ('info', "starting cluster syncronization");
+    syslog ('info', "starting cluster synchronization");
 
     my $master_ip = $cinfo->{master}->{ip};
     my $master_name = $cinfo->{master}->{name};
@@ -162,7 +162,7 @@ sub cluster_sync {
 
     my $dbtime = $cptime - $rsynctime - $csynctime;
 
-    syslog('info', sprintf("cluster syncronization finished  (%d errors, %.2f seconds " .
+    syslog('info', sprintf("cluster synchronization finished  (%d errors, %.2f seconds " .
 			   "(files %.2f, database %.2f, config %.2f))",
 			   $errcount, $cptime, $rsynctime, $dbtime, $csynctime));
 

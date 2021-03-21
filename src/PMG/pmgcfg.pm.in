@@ -19,7 +19,7 @@ sub repoid {
     return '@REPOID@';
 }
 
-# this is diplayed on the GUI
+# this is displayed on the GUI
 sub version_text {
     return '@VERSION@/@REPOID@';
 }

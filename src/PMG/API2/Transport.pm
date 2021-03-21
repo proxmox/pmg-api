@@ -282,7 +282,7 @@ __PACKAGE__->register_method ({
 	    PMG::Config::postmap_pmg_transport();
 	};
 
-	PMG::Config::lock_config($code, "delete transport map extry failed");
+	PMG::Config::lock_config($code, "delete transport map entry failed");
 
 	return undef;
     }});

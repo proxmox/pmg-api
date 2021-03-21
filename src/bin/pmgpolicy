@@ -129,7 +129,7 @@ sub update_rbl_stats {
 sub run_dequeue {
     my $self = shift;
 
-    $self->log(2, "starting policy database maintainance (greylist, rbl)");
+    $self->log(2, "starting policy database maintenance (greylist, rbl)");
 
     my $cinfo = PMG::ClusterConfig->new();
     my $lcid = $cinfo->{local}->{cid};
@@ -274,7 +274,7 @@ sub run_dequeue {
 	$self->log(0, "greylist database update error: $err");
     }
 
-    $self->log(2, "end policy database maintainance ($rbltime ms, $ptime ms)");
+    $self->log(2, "end policy database maintenance ($rbltime ms, $ptime ms)");
 
     $dbh->disconnect() if $dbh;
 }
@@ -292,7 +292,7 @@ sub pre_loop_hook {
 	# reloading server configuration
 	if (defined $prop->{children}) {
 	    foreach my $pid (keys %{$prop->{children}}) {
-		kill(10, $pid); # SIGUSR1 childs
+		kill(10, $pid); # SIGUSR1 children
 	    }
 	}
     };
@@ -412,7 +412,7 @@ sub get_spf_result {
     my $auth_expl;
 
     # we only use helo tests when we have no sender,
-    # helo is sometimes empty, so we cant use SPF helo tests
+    # helo is sometimes empty, so we can't use SPF helo tests
     # in that case - strange
     if ($helo && !$sender) {
 	my $query;
@@ -489,7 +489,7 @@ sub is_backup_mx {
 	$self->{cache}->{$dkey}->{status} = 1;
 	my @mxa = grep { $_->type eq 'MX' } $mx->answer;
 	my @mxl = sort { $a->preference <=> $b->preference } @mxa;
-	# shift @mxl; # optionaly skip primary MX ?
+	# shift @mxl; # optionally skip primary MX ?
 	foreach my $rr (@mxl) {
 	    my $a = $resolver->send ($rr->exchange, 'A');
 	    if ($a) {
@@ -534,7 +534,7 @@ sub greylist_value {
     if (defined ($user) && defined ($domain)) {
 	# see http://cr.yp.to/proto/verp.txt
 	$user =~ s/\+.*//; # strip extensions  (mailing-list VERP)
-	$user =~ s/\b\d+\b/#/g; #replace nubmers in VERP address
+	$user =~ s/\b\d+\b/#/g; #replace numbers in VERP address
 	$sender = "$user\@$domain";
     }
 
@@ -665,7 +665,7 @@ sub greylist_value {
 
     eval {
 
-	# we dont use alarm here, because it does not work with DBI
+	# we don't use alarm here, because it does not work with DBI
 
 	$dbh->begin_work;
 
@@ -861,11 +861,11 @@ sub pre_server_close_hook {
 
     if (defined $prop->{children}) {
 	foreach my $pid (keys %{$prop->{children}}) {
-	    kill(1, $pid); # HUP childs
+	    kill(1, $pid); # HUP children
 	}
     }
 
-    # nicely shutdown childs (give them max 30 seconds to shut down)
+    # nicely shutdown children (give them max 30 seconds to shut down)
     my $previous_alarm = alarm(30);
     eval {
 	local $SIG{ALRM} = sub { die "Timed Out!\n" };
@@ -898,7 +898,7 @@ sub setup_fork_signal_mask {
 # subroutine to start up a specified number of children.
 # We need to block signals until handlers are set up correctly.
 # Else its possible that HUP occurs after fork, which triggers
-# singal TERM at childs and calls server_close() instead of
+# signal TERM at children and calls server_close() instead of
 # simply exit the child.
 # Note: on server startup signals are setup to trigger
 # asynchronously for a short period of time (in PreForkSimple]::loop,

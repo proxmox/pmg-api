@@ -214,7 +214,7 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb");
-	print "Updateing Proxmox Statistic Databases... ";
+	print "Updating Proxmox Statistic Databases... ";
 	my $cinfo = PVE::INotify::read_file("cluster.conf");
 	PMG::Statistic::update_stats($dbh, $cinfo);
 	print "done\n";

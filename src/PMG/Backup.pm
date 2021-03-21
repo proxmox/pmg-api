@@ -177,7 +177,7 @@ sub pmg_backup {
 
 	# dump the database first
 	my $fh = PMG::AtomicFile->open("$dirname/$dbfn", "w") ||
-	    die "cant open '$dirname/$dbfn' - $! :ERROR";
+	    die "can't open '$dirname/$dbfn' - $! :ERROR";
 
 	dumpdb($fh);
 
@@ -186,7 +186,7 @@ sub pmg_backup {
 	if ($include_statistics) {
 	    # dump the statistic db
 	    my $sfh = PMG::AtomicFile->open("$dirname/$statfn", "w") ||
-		die "cant open '$dirname/$statfn' - $! :ERROR";
+		die "can't open '$dirname/$statfn' - $! :ERROR";
 
 	    dumpstatdb($sfh);
 
@@ -197,7 +197,7 @@ sub pmg_backup {
 	my $release = PMG::pmgcfg::release();
 
 	my $vfh = PMG::AtomicFile->open ("$dirname/$verfn", "w") ||
-	    die "cant open '$dirname/$verfn' - $! :ERROR";
+	    die "can't open '$dirname/$verfn' - $! :ERROR";
 
 	$time = time;
 	my $now = localtime;
@@ -387,7 +387,7 @@ sub send_backup_notification {
     my $cfg = PMG::Config->new();
     my $email = $cfg->get ('admin', 'email');
     if (!$email) {
-	warn "not sending notifcation: no admin email configured\n";
+	warn "not sending notification: no admin email configured\n";
 	return;
     }
 

@@ -122,7 +122,7 @@ sub add_data {
 
     return undef if !$fh;
 
-    # in memory (we cant modify the file, because
+    # in memory (we can't modify the file, because
     # a.) that would modify all entities (see ModGroup)
     # b.) bad performance 
     my $body = new MIME::Body::InCore || return undef;
