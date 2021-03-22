@@ -597,14 +597,14 @@ my $quarantine_api = sub {
 
     my $rpcenv = PMG::RESTEnvironment->get();
     my $authuser = $rpcenv->get_user();
+    my $role = $rpcenv->get_role();
 
     my $start = $param->{starttime} // (time - 86400);
     my $end = $param->{endtime} // ($start + 86400);
 
     my $select;
     my $pmail;
-    if ($check_pmail) {
-	my $role = $rpcenv->get_role();
+    if ($check_pmail || $role eq 'quser') {
 	$pmail = $verify_optional_pmail->($authuser, $role, $param->{pmail});
 	$select = "SELECT * " .
 		  "FROM CMailStore, CMSReceivers WHERE " .
@@ -700,7 +700,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-	return $quarantine_api->($param, 'S', 1);
+	return $quarantine_api->($param, 'S', defined($param->{pmail}));
     }});
 
 __PACKAGE__->register_method ({
