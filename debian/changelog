@@ -1,3 +1,17 @@
+pmg-api (6.4-1) pmg; urgency=medium
+
+  * fix #3164: api: quarantine: allow to return spam from all users
+
+  * ensure '/etc/pmg/acme/accounts' directory exists
+
+  * certs: reload postfix to activate new certificate even if TLS config stayed
+    the same
+
+  * cluster: trust both, old and new certificate fingerprint of master during
+    update
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 22 Mar 2021 17:30:35 +0100
+
 pmg-api (6.3-7) pmg; urgency=medium
 
   * implement Automatic Certificate Management Environment (ACME) for API and
