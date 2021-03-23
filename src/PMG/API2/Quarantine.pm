@@ -625,7 +625,7 @@ my $quarantine_api = sub {
 
     my $sth = $dbh->prepare($select);
 
-    if ($check_pmail) {
+    if ($check_pmail || $role eq 'quser') {
 	$sth->execute($pmail);
     } else {
 	$sth->execute();
