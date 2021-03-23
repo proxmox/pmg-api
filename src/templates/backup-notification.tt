@@ -13,7 +13,7 @@
     <title>[% titleprefix %] [% titlesuffix %]</title>
   </head>
   <body>
-    Detailed backup logs:<br /><br />
+    Backup messages:<br /><br />
     <pre>[% log %]</pre>
   </body>
 </html>
