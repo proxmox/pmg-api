@@ -24,20 +24,20 @@ sub create_spooldirs {
     my ($lcid, $cleanup) = @_;
 
     # if requested, remove any stale date
-    rmtree(
+    rmtree([
 	"$spooldir/cluster",
 	"$spooldir/active",
 	"$spooldir/virus",
 	"$spooldir/spam",
 	"$spooldir/attachment",
-    ) if $cleanup;
+    ]) if $cleanup;
 
-    mkpath(
+    mkpath([
 	"$spooldir/active",
 	"$spooldir/spam",
 	"$spooldir/virus",
 	"$spooldir/attachment",
-    );
+    ]);
 
     if ($lcid) {
 	mkpath "$spooldir/cluster/$lcid/virus";
