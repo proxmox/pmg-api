@@ -1,4 +1,4 @@
-pmg-api (6.4-2) pmg; urgency=medium
+pmg-api (6.4-3) pmg; urgency=medium
 
   * fix #3164: api: quarantine: allow to return spam from all users
 
@@ -10,7 +10,7 @@ pmg-api (6.4-2) pmg; urgency=medium
   * cluster: trust both, old and new certificate fingerprint of master during
     update
 
- -- Proxmox Support Team <support@proxmox.com>  Tue, 23 Mar 2021 08:30:22 +0100
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 26 Mar 2021 18:52:18 +0100
 
 pmg-api (6.3-7) pmg; urgency=medium
 
