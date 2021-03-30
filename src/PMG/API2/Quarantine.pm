@@ -1235,7 +1235,7 @@ __PACKAGE__->register_method ({
 	    } elsif ($action eq 'delete') {
 		PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
 	    } else {
-		die "internal error"; # should not be reached
+		die "internal error, unknown action '$action'"; # should not be reached
 	    }
 	}
 
