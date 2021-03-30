@@ -1228,8 +1228,10 @@ __PACKAGE__->register_method ({
 
 	    if ($action eq 'whitelist') {
 		PMG::Quarantine::add_to_blackwhite($dbh, $ref->{pmail}, 'WL', [ $sender ]);
+		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $ref->{receiver} // $ref->{pmail});
 	    } elsif ($action eq 'blacklist') {
 		PMG::Quarantine::add_to_blackwhite($dbh, $ref->{pmail}, 'BL', [ $sender ]);
+		PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
 	    } elsif ($action eq 'deliver') {
 		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $ref->{receiver} // $ref->{pmail});
 	    } elsif ($action eq 'delete') {
