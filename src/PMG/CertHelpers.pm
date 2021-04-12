@@ -57,7 +57,7 @@ PVE::JSONSchema::register_format('pmg-acme-domain', sub {
 
     my $label = qr/[a-z0-9][a-z0-9_-]*/i;
 
-    return $domain if $domain =~ /^$label(?:\.$label)+$/;
+    return $domain if $domain =~ /^(?:\*\.)?$label(?:\.$label)+$/;
     return undef if $noerr;
     die "value '$domain' does not look like a valid domain name!\n";
 });
