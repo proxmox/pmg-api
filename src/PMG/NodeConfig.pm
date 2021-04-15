@@ -131,6 +131,9 @@ sub read_pmg_node_config {
 sub write_pmg_node_config {
     my ($filename, $fh, $cfg) = @_;
     my $raw = PVE::JSONSchema::dump_config($config_schema, $filename, $cfg);
+
+    # higher level ACME sanity checking
+    get_acme_conf($cfg);
     PVE::Tools::safe_print($filename, $fh, $raw);
 }
 
