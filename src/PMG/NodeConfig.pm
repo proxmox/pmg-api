@@ -209,9 +209,9 @@ sub get_acme_conf {
 	}
 	$parsed->{plugin} //= 'standalone';
 
+	my $plugins = PMG::API2::ACMEPlugin::load_config();
 	my $plugin_id = $parsed->{plugin};
 	if ($plugin_id ne 'standalone') {
-	    my $plugins = PMG::API2::ACMEPlugin::load_config();
 	    die "plugin '$plugin_id' for domain '$domain' not found!\n"
 		if !$plugins->{ids}->{$plugin_id};
 	}
@@ -220,6 +220,9 @@ sub get_acme_conf {
 	# wildcard - see https://tools.ietf.org/html/rfc8555#section-7.1.3
 	if ($domain =~ /^\*\.(.*)$/ ) {
 	    $res->{validationtarget}->{$1} = $domain;
+	    die "wildcard domain validation for '$domain' needs a dns-01 plugin.\n"
+		if $plugins->{ids}->{$plugin_id}->{type} ne 'dns';
+
 	}
 
 	$parsed->{_configkey} = "acmedomain$index";
