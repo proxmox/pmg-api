@@ -216,6 +216,12 @@ sub get_acme_conf {
 		if !$plugins->{ids}->{$plugin_id};
 	}
 
+	# validation for wildcard domain names happens on the domain w/o
+	# wildcard - see https://tools.ietf.org/html/rfc8555#section-7.1.3
+	if ($domain =~ /^\*\.(.*)$/ ) {
+	    $res->{validationtarget}->{$1} = $domain;
+	}
+
 	$parsed->{_configkey} = "acmedomain$index";
 	$res->{domains}->{$domain} = $parsed;
     }

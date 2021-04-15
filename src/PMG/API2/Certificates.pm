@@ -361,6 +361,11 @@ my $order_certificate = sub {
 	    print "The validation for $domain is pending!\n";
 
 	    my $domain_config = $acme_node_config->{domains}->{$domain};
+	    if (!defined($domain_config)) {
+		# wildcard domains are validated through the basedomain
+		my $vtarget = $acme_node_config->{validationtarget}->{$domain} // '';
+		$domain_config = $acme_node_config->{domains}->{$vtarget};
+	    }
 	    die "no config for domain '$domain'\n" if !$domain_config;
 
 	    my $plugin_id = $domain_config->{plugin};
