@@ -57,11 +57,13 @@ my sub update_cert : prototype($$$$$) {
     my ($type, $cert_path, $certificate, $force, $restart) = @_;
     my $code = sub {
 	print "Setting custom certificate file $cert_path\n";
-	PMG::CertHelpers::set_cert_file($certificate, $cert_path, $force);
+	my $info = PMG::CertHelpers::set_cert_file($certificate, $cert_path, $force);
 
 	restart_after_cert_update($type) if $restart;
+
+	return $info;
     };
-    PMG::CertHelpers::cert_lock(10, $code);
+    return PMG::CertHelpers::cert_lock(10, $code);
 };
 
 my sub set_smtp : prototype($$) {
@@ -250,7 +252,7 @@ __PACKAGE__->register_method ({
 	my $info;
 
 	PMG::CertHelpers::cert_lock(10, sub {
-	    update_cert($type, $cert_path, $certs, $param->{force}, $param->{restart});
+	    $info = update_cert($type, $cert_path, $certs, $param->{force}, $param->{restart});
 	});
 
 	if ($type eq 'smtp') {
