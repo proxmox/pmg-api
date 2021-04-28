@@ -138,12 +138,12 @@ sub authenticate_pam_user {
 
     if (($res = $pamh->pam_authenticate(0)) != PAM_SUCCESS) {
 	my $err = $pamh->pam_strerror($res);
-	die "auth failed: $err";
+	die "auth failed: $err\n";
     }
 
     if (($res = $pamh->pam_acct_mgmt(0)) != PAM_SUCCESS) {
 	my $err = $pamh->pam_strerror($res);
-	die "auth failed: $err";
+	die "auth failed: $err\n";
     }
 
     $pamh = 0; # call destructor
