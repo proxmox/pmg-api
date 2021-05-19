@@ -186,7 +186,7 @@ sub properties {
 	    type => 'string',
 	},
 	clamav_heuristic_score => {
-	    description => "Score for ClamAV heuristics (Encrypted Archives/Documents, Google Safe Browsing database, PhishingScanURLs, ...).",
+	    description => "Score for ClamAV heuristics (Encrypted Archives/Documents, PhishingScanURLs, ...).",
 	    type => 'integer',
 	    minimum => 0,
 	    maximum => 1000,
@@ -388,10 +388,11 @@ sub properties {
 	    minimum => 0,
 	    default => 0,
 	},
+	# FIXME: remove for PMG 8.0 - https://blog.clamav.net/2021/04/are-you-still-attempting-to-download.html
 	safebrowsing => {
-	    description => "Enables support for Google Safe Browsing.",
+	    description => "Enables support for Google Safe Browsing. (deprecated option, will be ignored)",
 	    type => 'boolean',
-	    default => 1
+	    default => 0
 	},
 	scriptedupdates => {
 	    description => "Enables ScriptedUpdates (incremental download of signatures)",
@@ -410,7 +411,7 @@ sub options {
 	maxscansize  => { optional => 1 },
 	dbmirror => { optional => 1 },
 	maxcccount => { optional => 1 },
-	safebrowsing => { optional => 1 },
+	safebrowsing => { optional => 1 }, # FIXME: remove for PMG 8.0
 	scriptedupdates => { optional => 1},
     };
 }

@@ -861,9 +861,6 @@ sub clamav_dbstat {
     $filename = "/var/lib/clamav/bytecode.cvd";
     $read_cvd_info->('bytecode', $filename) if -f $filename;
 
-    $filename = "/var/lib/clamav/safebrowsing.cvd";
-    $read_cvd_info->('safebrowsing', $filename) if -f $filename;
-
     my $ss_dbs_fn = "/var/lib/clamav-unofficial-sigs/configs/ss-include-dbs.txt";
     my $ss_dbs_files = {};
     if (my $ssfh = IO::File->new("<${ss_dbs_fn}")) {
