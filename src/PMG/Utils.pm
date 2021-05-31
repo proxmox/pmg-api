@@ -710,11 +710,15 @@ sub find_local_network_for_ip {
 
 my $service_aliases = {
     'postfix' =>  'postfix@-',
-    'postgres' => 'postgresql@11-main',
 };
 
 sub lookup_real_service_name {
     my $alias = shift;
+
+    if ($alias eq 'postgres') {
+	my $pg_ver = get_pg_server_version();
+	return "postgresl\@${pg_ver}-main";
+    }
 
     return $service_aliases->{$alias} // $alias;
 }
