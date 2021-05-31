@@ -521,7 +521,7 @@ __PACKAGE__->register_method({
 	    lvm2
 	    pmg-docs
 	    pmg-log-tracker
-	    postgresql-11
+	    postgresql-13
 	    proxmox-mini-journalreader
 	    proxmox-spamassassin
 	    proxmox-widget-toolkit
