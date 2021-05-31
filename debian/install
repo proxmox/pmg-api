@@ -1,0 +1,13 @@
+debian/pmgbanner.service /lib/systemd/system/
+debian/pmgdaemon.service /lib/systemd/system/
+debian/pmg-daily.service /lib/systemd/system/
+debian/pmg-hourly.service /lib/systemd/system/
+debian/pmgmirror.service /lib/systemd/system/
+debian/pmgnetcommit.service /lib/systemd/system/
+debian/pmgpolicy.service /lib/systemd/system/
+debian/pmgproxy.service /lib/systemd/system/
+debian/pmgreport.service /lib/systemd/system/
+debian/pmg-smtp-filter.service /lib/systemd/system/
+debian/pmgspamreport.service /lib/systemd/system/
+debian/pmgsync.service /lib/systemd/system/
+debian/pmgtunnel.service /lib/systemd/system/
