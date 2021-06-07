@@ -3,7 +3,7 @@ Section: perl
 Priority: optional
 Maintainer: Proxmox Support Team <support@proxmox.com>
 Build-Depends: debhelper (>= 12~),
-               libarchive-perl,
+               libarchive-perl (>= 3.4.0-1),
                libarchive-zip-perl,
                libauthen-pam-perl,
                libcompress-bzip2-perl,
@@ -43,7 +43,7 @@ Depends: apt,
          fetchmail,
          fonts-font-awesome,
          libapt-pkg-perl,
-         libarchive-perl,
+         libarchive-perl (>= 3.4.0-1),
          libarchive-zip-perl,
          libauthen-pam-perl,
          libcompress-bzip2-perl,

@@ -681,7 +681,7 @@ sub unpack_tar {
     die "unable to create LibArchive object" if !$a;
 
     LibArchive::archive_read_support_format_all ($a);
-    LibArchive::archive_read_support_compression_all ($a);
+    LibArchive::archive_read_support_filter_all ($a);
 
     eval {
 	run_with_timeout ($timeout, sub {
@@ -785,7 +785,7 @@ sub unpack_tar {
     my $err = $@;
 
     LibArchive::archive_read_close($a);
-    LibArchive::archive_read_finish($a);
+    LibArchive::archive_read_free($a);
 
     die $err if $err;
 
