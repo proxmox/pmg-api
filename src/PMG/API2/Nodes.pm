@@ -389,12 +389,6 @@ __PACKAGE__->register_method ({
     	additionalProperties => 0,
 	properties => {
 	    node => get_standard_option('pve-node'),
-	    upgrade => {
-		type => 'boolean',
-		description => "Run 'apt-get dist-upgrade' instead of normal shell.",
-		optional => 1,
-		default => 0,
-	    },
 	    cmd => {
 		type => 'string',
 		description => "Run specific command or default to login.",
@@ -434,17 +428,13 @@ __PACKAGE__->register_method ({
 	my $restenv = PMG::RESTEnvironment->get();
 	my $user = $restenv->get_user();
 
-	raise_perm_exc('user != root@pam') if $param->{upgrade} && $user ne 'root@pam';
+	raise_perm_exc('user != root@pam') if $param->{cmd} eq 'upgrade' && $user ne 'root@pam';
 
 	my $ticket = PMG::Ticket::assemble_vnc_ticket($user, $authpath);
 
 	my $family = PVE::Tools::get_host_address_family($node);
 	my $port = PVE::Tools::next_vnc_port($family);
 
-	# FIXME: remove with 7.0 (check if all works before!!)
-	if ($param->{upgrade}) {
-	    $param->{cmd} = 'upgrade';
-	}
 	my $shcmd = get_shell_command($user, $param->{cmd}, $param->{'cmd-opts'});
 
 	my $cmd = ['/usr/bin/termproxy', $port, '--path', $authpath, '--', @$shcmd];
