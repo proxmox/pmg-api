@@ -11,8 +11,6 @@ use PMG::Config;
 
 use base qw(PVE::RESTHandler);
 
-#TODO: drop the domain property with PMG 7.0
-
 __PACKAGE__->register_method ({
     name => 'index',
     path => '',
@@ -30,7 +28,6 @@ __PACKAGE__->register_method ({
 	    type => 'object',
 	    properties => {
 		destination => { type => 'string', format => 'transport-domain-or-nexthop'},
-		domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 		policy => { type => 'string', format => 'tls-policy'},
 	    },
 	},
@@ -43,7 +40,6 @@ __PACKAGE__->register_method ({
 
 	my $policies = PVE::INotify::read_file('tls_policy');
 	foreach my $policy (sort keys %$policies) {
-	    $policies->{$policy}->{domain} = $policies->{$policy}->{destination};
 	    push @$res, $policies->{$policy};
 	}
 
@@ -61,15 +57,9 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    domain => {
-		description => "Deprecated - use 'destination'.",
-		type => 'string', format => 'transport-domain-or-nexthop',
-		optional => 1,
-	    },
 	    destination => {
 		description => "Destination (Domain or next-hop).",
 		type => 'string', format => 'transport-domain-or-nexthop',
-		optional => 1,
 	    },
 	    policy => {
 		description => "TLS policy",
@@ -80,14 +70,8 @@ __PACKAGE__->register_method ({
     returns => { type => 'null' },
     code => sub {
 	my ($param) = @_;
-	my $domain = $param->{domain};
-	warn "Parameter 'domain' is deprecated for DestinationTLSPolicy - use 'destination'\n"
-	    if defined($domain);
-	my $destination = $param->{destination} // $domain;
+	my $destination = $param->{destination};
 	my $policy = $param->{policy};
-
-	raise_param_exc({ destination => "No destination provided" })
-	    if !defined($destination);
 
 	my $code = sub {
 	    my $tls_policy = PVE::INotify::read_file('tls_policy');
@@ -128,7 +112,6 @@ __PACKAGE__->register_method ({
 	type => "object",
 	properties => {
 	    destination => { type => 'string', format => 'transport-domain-or-nexthop'},
-	    domain => { type => 'string', format => 'transport-domain-or-nexthop'},
 	    policy => { type => 'string', format => 'tls-policy'},
 	},
     },
@@ -139,7 +122,6 @@ __PACKAGE__->register_method ({
 	my $tls_policy = PVE::INotify::read_file('tls_policy');
 
 	if (my $entry = $tls_policy->{$destination}) {
-	    $entry->{domain} = $entry->{destination};
 	    return $entry;
 	}
 
