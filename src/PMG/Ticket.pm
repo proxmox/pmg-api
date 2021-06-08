@@ -132,16 +132,12 @@ PVE::INotify::register_file('auth_pub_key', $authpubkeyfn,
 			    $read_rsa_pub_key, undef, undef,
 			    noclone => 1);
 
-my $csrf_prevention_secret_legacy;
-
 my $read_csrf_secret = sub {
    my ($filename, $fh) = @_;
 
    local $/ = undef; # slurp mode
 
    my $input = <$fh>;
-
-   $csrf_prevention_secret_legacy = Digest::SHA::sha1_base64($input);
 
    return Digest::SHA::hmac_sha256_base64($input);
 };
@@ -154,15 +150,6 @@ sub verify_csrf_prevention_token {
     my ($username, $token, $noerr) = @_;
 
     my $secret = PVE::INotify::read_file('csrf_secret');
-
-    # FIXME: remove with PMG 7
-    if ($token =~ m/^([A-Z0-9]{8}):(\S+)$/) {
-        my $sig = $2;
-        if (length($sig) == 27) {
-            # the legacy secret got populated by read_file above
-            $secret = $csrf_prevention_secret_legacy;
-        }
-    }
 
     return PVE::Ticket::verify_csrf_prevention_token(
 	$secret, $username, $token, $min_ticket_lifetime,
