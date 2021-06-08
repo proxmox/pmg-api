@@ -369,46 +369,6 @@ __PACKAGE__->register_method ({
 	return get_detail_statistics($param->{type}, $param);
     }});
 
-# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
-__PACKAGE__->register_method ({
-    name => 'contactdetails',
-    path => 'contact/{contact}',
-    method => 'GET',
-    description => "Detailed Contact Statistics.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
-    parameters => {
-	additionalProperties => 0,
-	properties => $default_properties->({
-	    contact => get_standard_option('pmg-email-address', {
-		description => "Contact email address.",
-	    }),
-	    filter => {
-		description => "Sender address filter.",
-		type => 'string',
-		maxLength => 512,
-		optional => 1,
-	    },
-	    orderby => $api_properties->{orderby},
-	}),
-    },
-    returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => $detail_return_properties->({
-		sender => {
-		    description => "Sender email.",
-		    type => 'string',
-		},
-	    }),
-	},
-    },
-    code => sub {
-	my ($param) = @_;
-
-	return get_detail_statistics('contact', $param);
-    }});
-
 __PACKAGE__->register_method ({
     name => 'sender',
     path => 'sender',
@@ -471,46 +431,6 @@ __PACKAGE__->register_method ({
 	my $res = $stat->user_stat_sender($rdb, $userstat_limit, $sorters, $param->{filter});
 
 	return $res;
-    }});
-
-# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
-__PACKAGE__->register_method ({
-    name => 'senderdetails',
-    path => 'sender/{sender}',
-    method => 'GET',
-    description => "Detailed Sender Statistics.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
-    parameters => {
-	additionalProperties => 0,
-	properties => $default_properties->({
-	    sender => get_standard_option('pmg-email-address', {
-		description => "Sender email address.",
-	    }),
-	    filter => {
-		description => "Receiver address filter.",
-		type => 'string',
-		maxLength => 512,
-		optional => 1,
-	    },
-	    orderby => $api_properties->{orderby},
-	}),
-    },
-    returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => $detail_return_properties->({
-		receiver => {
-		    description => "Receiver email.",
-		    type => 'string',
-		},
-	    }),
-	},
-    },
-    code => sub {
-	my ($param) = @_;
-
-	return get_detail_statistics('sender', $param);
     }});
 
 __PACKAGE__->register_method ({
@@ -583,46 +503,6 @@ __PACKAGE__->register_method ({
 	my $res = $stat->user_stat_receiver($rdb, $userstat_limit, $sorters, $param->{filter}, $advfilter);
 
 	return $res;
-    }});
-
-# FIXME: remove for PMG 7.0 - handled by 'details' API call which allows addresses containing '/'
-__PACKAGE__->register_method ({
-    name => 'receiverdetails',
-    path => 'receiver/{receiver}',
-    method => 'GET',
-    description => "Detailed Receiver Statistics.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
-    parameters => {
-	additionalProperties => 0,
-	properties => $default_properties->({
-	    receiver => get_standard_option('pmg-email-address', {
-		description => "Receiver email address.",
-	    }),
-	    filter => {
-		description => "Sender address filter.",
-		type => 'string',
-		maxLength => 512,
-		optional => 1,
-	    },
-	    orderby => $api_properties->{orderby},
-	}),
-    },
-    returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => $detail_return_properties->({
-		sender => {
-		    description => "Sender email.",
-		    type => 'string',
-		},
-	    }),
-	},
-    },
-    code => sub {
-	my ($param) = @_;
-
-	return get_detail_statistics('receiver', $param);
     }});
 
 __PACKAGE__->register_method ({
