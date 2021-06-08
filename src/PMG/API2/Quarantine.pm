@@ -305,34 +305,6 @@ __PACKAGE__->register_method ({
 	return undef;
     }});
 
-# FIXME: remove for PMG 7.0 - addresses can contain stuff like '/' which breaks
-# API path resolution, thus we replaced it by above "un-templated" call
-__PACKAGE__->register_method ({
-    name => 'whitelist_delete',
-    path => 'whitelist/{address}',
-    method => 'DELETE',
-    description => "Delete user whitelist entries.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
-    protected => 1,
-    parameters => {
-	additionalProperties => 0,
-	properties => {
-	    pmail => $pmail_param_type,
-	    address => get_standard_option('pmg-whiteblacklist-entry-list', {
-		description => "The address you want to remove.",
-	    }),
-	},
-    },
-    returns => { type => 'null' },
-    code => sub {
-	my ($param) = @_;
-
-	my $addresses = [split(',', $param->{address})];
-	$read_or_modify_user_bw_list->('WL', $param, $addresses, 1);
-
-	return undef;
-    }});
-
 __PACKAGE__->register_method ({
     name => 'blacklist',
     path => 'blacklist',
@@ -415,33 +387,6 @@ __PACKAGE__->register_method ({
 	return undef;
     }});
 
-# FIXME: remove for PMG 7.0 - addresses can contain stuff like '/' which breaks
-# API path resolution, thus we replaced it by above "un-templated" call
-__PACKAGE__->register_method ({
-    name => 'blacklist_delete',
-    path => 'blacklist/{address}',
-    method => 'DELETE',
-    description => "Delete user blacklist entries.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
-    protected => 1,
-    parameters => {
-	additionalProperties => 0,
-	properties => {
-	    pmail => $pmail_param_type,
-	    address => get_standard_option('pmg-whiteblacklist-entry-list', {
-		description => "The address you want to remove.",
-	    }),
-	},
-    },
-    returns => { type => 'null' },
-    code => sub {
-	my ($param) = @_;
-
-	my $addresses = [split(',', $param->{address})];
-	$read_or_modify_user_bw_list->('BL', $param, $addresses, 1);
-
-	return undef;
-    }});
 
 __PACKAGE__->register_method ({
     name => 'spamusers',
