@@ -44,10 +44,16 @@ sub reset_gldb {
 
 reset_gldb();
 
-my $sock = IO::Socket::INET->new(
-    PeerAddr => '127.0.0.1',
-    PeerPort => $testport) ||
-    die "unable to open socket -  $!";
+
+my $sock;
+for (my $tries = 0 ; $tries < 3 ; $tries++) {
+    $sock = IO::Socket::INET->new(
+	PeerAddr => '127.0.0.1',
+	PeerPort => $testport);
+    last if $sock;
+    sleep 1;
+}
+die "unable to open socket -  $!" if !$sock;
 
 $/ = "\n\n";
 
