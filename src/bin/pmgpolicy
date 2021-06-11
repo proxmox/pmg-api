@@ -630,10 +630,8 @@ sub greylist_value {
 		    # table later. We set 'blocked' to 100000 to identify those entries.
 
 		    if (!defined($ref->{rctime})) {
-
-			# FIXME: drop Host column with PMG 7.0
 			$dbh->do(PMG::DBTools::cgreylist_merge_sql(1), undef,
-				 $ip, $masklen, 0, $sender, $rcpt, $instance,
+				 $ip, $masklen, $sender, $rcpt, $instance,
 				 $ctime, $ctime + 10, 0, 100000, 0, $ctime, $self->{lcid});
 		    }
 
@@ -687,7 +685,7 @@ sub greylist_value {
 
 	    $dbh->do(
 		PMG::DBTools::cgreylist_merge_sql(1), undef, $ip, $masklen,
-		0, $sender, $rcpt, $instance, $ctime, $ctime + $greylist_lifetime,
+		$sender, $rcpt, $instance, $ctime, $ctime + $greylist_lifetime,
 		0, 1, 0, $ctime, $self->{lcid}
 	    );
 
