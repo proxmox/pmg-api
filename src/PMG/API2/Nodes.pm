@@ -6,6 +6,7 @@ use Time::Local qw(timegm_nocheck);
 use Filesys::Df;
 use Data::Dumper;
 
+use PVE::Exception qw(raise_perm_exc);
 use PVE::INotify;
 use PVE::RESTHandler;
 use PVE::JSONSchema qw(get_standard_option);
@@ -428,7 +429,9 @@ __PACKAGE__->register_method ({
 	my $restenv = PMG::RESTEnvironment->get();
 	my $user = $restenv->get_user();
 
-	raise_perm_exc('user != root@pam') if $param->{cmd} eq 'upgrade' && $user ne 'root@pam';
+	if (defined($param->{cmd}) && $param->{cmd} eq 'upgrade' && $user ne 'root@pam') {
+	    raise_perm_exc('user != root@pam');
+	}
 
 	my $ticket = PMG::Ticket::assemble_vnc_ticket($user, $authpath);
 
