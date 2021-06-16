@@ -81,6 +81,9 @@ __PACKAGE__->register_method ({
 		$conf->{$opt} = $param->{$opt};
 	    }
 
+	    #validate the acme config (check for duplicates)
+	    PMG::NodeConfig::get_acme_conf($conf);
+
 	    PMG::NodeConfig::write_config($conf);
 	});
 
