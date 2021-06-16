@@ -16,13 +16,9 @@ sub normalize_path {
     my $path = shift;
 
     $path =~ s|/+|/|g;
-
     $path =~ s|/$||;
-
     $path = '/' if !$path;
-
     $path = "/$path" if $path !~ m|^/|;
-
     return undef if $path !~ m|^[[:alnum:]\.\-\_\/]+$|;
 
     return $path;
