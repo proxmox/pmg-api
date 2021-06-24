@@ -48,6 +48,16 @@ __PACKAGE__->register_method({
 		optional => 1,
 		description => 'Only list tasks of this type (e.g., aptupdate, saupdate).',
 	    },
+	    since => {
+		type => 'integer',
+		description => "Only list tasks since this UNIX epoch.",
+		optional => 1,
+	    },
+	    until => {
+		type => 'integer',
+		description => "Only list tasks until this UNIX epoch.",
+		optional => 1,
+	    },
 	},
     },
     returns => {
@@ -74,6 +84,8 @@ __PACKAGE__->register_method({
 	my $limit = $param->{limit} || 50;
 	my $userfilter = $param->{userfilter};
 	my $typefilter = $param->{typefilter};
+	my $since = $param->{since};
+	my $until = $param->{until};
 	my $errors = $param->{errors};
 
 	my $count = 0;
@@ -87,6 +99,8 @@ __PACKAGE__->register_method({
 		if ((my $task = PVE::Tools::upid_decode($upid, 1))) {
 		    return if $userfilter && $task->{user} !~ m/\Q$userfilter\E/i;
 		    return if $errors && $status && $status eq 'OK';
+		    return if defined($since) && $task->{starttime} < $since;
+		    return if defined($until) && $task->{starttime} > $until;
 		    return if $typefilter && $task->{type} ne $typefilter;
 
 		    return if $count++ < $start;
