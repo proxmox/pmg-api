@@ -43,6 +43,11 @@ __PACKAGE__->register_method({
 		type => 'boolean',
 		optional => 1,
 	    },
+	    typefilter => {
+		type => 'string',
+		optional => 1,
+		description => 'Only list tasks of this type (e.g., aptupdate, saupdate).',
+	    },
 	},
     },
     returns => {
@@ -68,6 +73,7 @@ __PACKAGE__->register_method({
 	my $start = $param->{start} || 0;
 	my $limit = $param->{limit} || 50;
 	my $userfilter = $param->{userfilter};
+	my $typefilter = $param->{typefilter};
 	my $errors = $param->{errors};
 
 	my $count = 0;
@@ -81,6 +87,8 @@ __PACKAGE__->register_method({
 		if ((my $task = PVE::Tools::upid_decode($upid, 1))) {
 		    return if $userfilter && $task->{user} !~ m/\Q$userfilter\E/i;
 		    return if $errors && $status && $status eq 'OK';
+		    return if $typefilter && $task->{type} ne $typefilter;
+
 		    return if $count++ < $start;
 		    return if $limit <= 0;
 
