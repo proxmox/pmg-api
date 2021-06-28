@@ -17,7 +17,13 @@ pmg-api (7.0-1) bullseye; urgency=medium
 
   * greylisting: drop unneeded Host column form cgreylist table
 
- -- Proxmox Support Team <support@proxmox.com>  Mon, 28 Jun 2021 14:20:59 +0200
+  * api: nodeconfig: validate acme config before writing
+
+  * fix #2013 spamreport: remove ticket if authmode is ldap
+
+  * api: tasks: add 'since', 'until', task-type and 'status' filters
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 28 Jun 2021 15:57:10 +0200
 
 pmg-api (6.4-4) pmg; urgency=medium
 
