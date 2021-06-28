@@ -23,7 +23,7 @@ deb ${DEB}:
 
 .PHONY: upload
 upload: ${DEB}
-	tar cf - ${DEB} | ssh -X repoman@repo.proxmox.com -- upload --product pmg --dist stretch
+	tar cf - ${DEB} | ssh -X repoman@repo.proxmox.com -- upload --product pmg --dist bullseye
 
 .PHONY: check
 check:
