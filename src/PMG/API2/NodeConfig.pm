@@ -27,7 +27,8 @@ __PACKAGE__->register_method ({
     returns =>  PMG::NodeConfig::acme_config_schema({
 	digest => {
 	    type => 'string',
-	    description => 'Prevent changes if current configuration file has different SHA1 digest. This can be used to prevent concurrent modifications.',
+	    description => 'Prevent changes if current configuration file has different SHA1 digest.'
+		.' This can be used to prevent concurrent modifications.',
 	    maxLength => 40,
 	    optional => 1,
 	},
@@ -54,7 +55,8 @@ __PACKAGE__->register_method ({
 	},
 	digest => {
 	    type => 'string',
-	    description => 'Prevent changes if current configuration file has different SHA1 digest. This can be used to prevent concurrent modifications.',
+	    description => 'Prevent changes if current configuration file has different SHA1 digest.'
+		.' This can be used to prevent concurrent modifications.',
 	    maxLength => 40,
 	    optional => 1,
 	},
@@ -75,13 +77,12 @@ __PACKAGE__->register_method ({
 
 	    foreach my $opt (PVE::Tools::split_list($delete)) {
 		delete $conf->{$opt};
-	    };
-
+	    }
 	    foreach my $opt (keys %$param) {
 		$conf->{$opt} = $param->{$opt};
 	    }
 
-	    #validate the acme config (check for duplicates)
+	    # validate the acme config (check for duplicates)
 	    PMG::NodeConfig::get_acme_conf($conf);
 
 	    PMG::NodeConfig::write_config($conf);

@@ -1,3 +1,24 @@
+pmg-api (7.0-1) bullseye; urgency=medium
+
+  * re-build for Proxmox Mail Gateway 7 based on Debian 11 Bullseye
+
+  * pmgproxy: allow setting LISTEN_IP parameter
+
+  * clamav: remove deprecated SafeBrowsing
+
+  * api: nodes: drop deprecated 'upgrade' option of termproxy
+
+  * TLSPolicy: drop deprecated 'domain' parameter
+
+  * api: quarantine: drop deprecated b/w-list methods, and drop detail
+    statistic methods (replaced by more flexible endpoints in 6.x)
+
+  * update postgresql dependency to version 13
+
+  * greylisting: drop unneeded Host column form cgreylist table
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 28 Jun 2021 14:20:59 +0200
+
 pmg-api (6.4-4) pmg; urgency=medium
 
   * fix #2228: spam quarantine: automatically deliver on whitelisting and
