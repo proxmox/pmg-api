@@ -35,8 +35,7 @@ Homepage: https://www.proxmox.com
 
 Package: pmg-api
 Architecture: all
-Depends: apt,
-         apt-transport-https,
+Depends: apt (>= 2~),
          clamav-daemon,
          clamav-freshclam,
          clamdscan,
