@@ -41,11 +41,13 @@ sub write_pmg_acme_challenge_config {
     PVE::Tools::safe_print($filename, $fh, $raw);
 }
 
-PVE::INotify::register_file($inotify_file_id, $config_filename,
-			    \&read_pmg_acme_challenge_config,
-			    \&write_pmg_acme_challenge_config,
-			    undef,
-			    always_call_parser => 1);
+PVE::INotify::register_file(
+    $inotify_file_id, $config_filename,
+    \&read_pmg_acme_challenge_config,
+    \&write_pmg_acme_challenge_config,
+    undef,
+    always_call_parser => 1,
+);
 
 sub lock_config {
     my ($code) = @_;

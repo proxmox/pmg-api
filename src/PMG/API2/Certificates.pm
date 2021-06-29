@@ -383,6 +383,7 @@ my $order_certificate = sub {
 		    if !defined($data->{url});
 
 		$acme->request_challenge_validation($data->{url});
+
 		print "Sleeping for 5 seconds\n";
 		sleep 5;
 		while (1) {
