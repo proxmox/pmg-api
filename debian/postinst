@@ -35,6 +35,28 @@ case "$1" in
     ;;
 
     configure)
+	# FIXME: remove in PMG 8.0
+	if test ! -e /proxmox_install_mode && test -n "$2" && dpkg --compare-versions "$2" 'lt' '7.0-2~'; then
+	    # PMG 5 ISOs had a bug and did not generated a unique machine-id. below is a list of
+	    # all machine-ids from all ISOs (released, tests & internal) possibly affected
+	    if grep -q \
+		-e e378bde63ac54872a85af23a8e4dac73 \
+		-e 932b668d1fad4709b4976d54152d223c \
+		-e 931a8410cd034202a26b0e19d56e157a \
+		-e 9a1f3c5284e1423c9b0e0ee5819db6c9 \
+		-e 5472a49c6436426fbebd7881f7b7f13b \
+		/etc/machine-id
+	    then
+		echo "found static machine-id bug from Proxmox Mail Gateway ISO installer <= 5.4, regenerating machine-id"
+		systemd-id128 new | tee /etc/machine-id.new /var/lib/dbus/machine-id.new
+		# atomically replace
+		mv /etc/machine-id.new /etc/machine-id
+		mv /var/lib/dbus/machine-id.new /var/lib/dbus/machine-id
+		echo "new machine-id generated, a reboot is recommended"
+	    else
+		echo "machine-id check OK"
+	    fi
+	fi
 
 	if test ! -e /proxmox_install_mode ; then
 
