@@ -20,6 +20,7 @@ use PMG::RuleDB;
 use PMG::RuleCache;
 use PMG::MailQueue;
 use PMG::Fetchmail;
+use PMG::Ticket;
 
 sub remote_node_ip {
     my ($nodename, $noerr) = @_;
