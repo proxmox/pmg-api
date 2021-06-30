@@ -717,7 +717,7 @@ sub lookup_real_service_name {
 
     if ($alias eq 'postgres') {
 	my $pg_ver = get_pg_server_version();
-	return "postgresl\@${pg_ver}-main";
+	return "postgresql\@${pg_ver}-main";
     }
 
     return $service_aliases->{$alias} // $alias;
@@ -735,7 +735,7 @@ sub get_full_service_state {
 	}
     };
 
-    $service = $service_aliases->{$service} // $service;
+    $service = lookup_real_service_name($service);
     PVE::Tools::run_command(['systemctl', 'show', $service], outfunc => $parser);
 
     return $res;
@@ -790,7 +790,7 @@ sub service_cmd {
 	$cmd = 'restart' if $cmd eq 'start';
     }
 
-    $service = $service_aliases->{$service} // $service;
+    $service = lookup_real_service_name($service);
     PVE::Tools::run_command(['systemctl', $cmd, $service]);
 };
 
