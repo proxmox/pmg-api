@@ -397,7 +397,7 @@ sub properties {
 	scriptedupdates => {
 	    description => "Enables ScriptedUpdates (incremental download of signatures)",
 	    type => 'boolean',
-	    default => 0
+	    default => 1
 	},
     };
 }
