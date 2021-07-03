@@ -1,3 +1,16 @@
+pmg-api (7.0-2) bullseye; urgency=medium
+
+  * d/postinst: handle static machine-id from ISO 5.0 <= x <= 6.0
+
+  * cluster: fix missing import of helper module
+
+  * config: freshclam: default to incremental downloads
+
+  * utils: fix service alias lookup for service commands and status
+    query
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 03 Jul 2021 22:51:12 +0200
+
 pmg-api (7.0-1) bullseye; urgency=medium
 
   * re-build for Proxmox Mail Gateway 7 based on Debian 11 Bullseye
