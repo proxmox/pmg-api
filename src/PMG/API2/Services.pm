@@ -34,7 +34,8 @@ my $service_name_list = [
     'pmg-daily',
     'pmgreport',
     'pmgspamreport',
-    ];
+    'chrony',
+];
 
 my $static_service_list;
 
