@@ -802,7 +802,7 @@ sub run_postmap {
     IO::File->new($filename, 'a', 0644);
 
     my $mtime_src = (CORE::stat($filename))[9] //
-	die "unbale to read mtime of $filename\n";
+	die "unable to read mtime of $filename\n";
 
     my $mtime_dst = (CORE::stat("$filename.db"))[9] // 0;
 
