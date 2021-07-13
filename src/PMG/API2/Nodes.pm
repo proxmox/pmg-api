@@ -393,7 +393,7 @@ __PACKAGE__->register_method ({
 	    cmd => {
 		type => 'string',
 		description => "Run specific command or default to login.",
-		enum => [keys %$shell_cmd_map],
+		enum => [sort keys %$shell_cmd_map],
 		optional => 1,
 		default => 'login',
 	    },
