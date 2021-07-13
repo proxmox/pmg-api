@@ -44,8 +44,7 @@ sub get_service_list {
 
     my $list = {};
     foreach my $name (@$service_name_list) {
-	my $ss;
-	eval { $ss = PMG::Utils::get_full_service_state($name); };
+	my $ss = eval { PMG::Utils::get_full_service_state($name) };
 	warn $@ if $@;
 	next if !$ss;
 	next if !defined($ss->{Description});
