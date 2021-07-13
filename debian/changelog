@@ -1,3 +1,15 @@
+pmg-api (7.0-3) bullseye; urgency=medium
+
+  * acme: handle wildcard dns validation
+
+  * api: apt: add calls for repositories status and basic manegement
+
+  * api: services: return active- and unit-state infos
+
+  * api: services: track chrony service
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 13 Jul 2021 18:42:07 +0200
+
 pmg-api (7.0-2) bullseye; urgency=medium
 
   * d/postinst: handle static machine-id from ISO 5.0 <= x <= 6.0
