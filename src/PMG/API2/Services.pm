@@ -67,19 +67,23 @@ my $service_prop_desc = {
 my $service_state = sub {
     my ($service) = @_;
 
-    my $ss;
-    eval { $ss = PMG::Utils::get_full_service_state($service); };
+    my $res = { state => 'unknown' };
+
+    my $ss = eval { PMG::Utils::get_full_service_state($service); };
     if (my $err = $@) {
-	return 'unknown';
+	return $res;
     }
 
-    my $state = $ss->{SubState} // 'unknown';
+    my $state = $ss->{SubState} || 'unknown';
+    if ($state eq 'dead' && $ss->{Type} && $ss->{Type} eq 'oneshot' && $ss->{Result}) {
+	$res->{state} = $ss->{Result};
+    } else {
+	$res->{state} = $ss->{SubState} || 'unknown';
+    }
+    $res->{'active-state'} = $ss->{ActiveState} || 'unknown';
+    $res->{'unit-state'} = $ss->{UnitFileState} || 'unknown';
 
-    $state = $ss->{Result}
-    if $state eq 'dead' && $ss->{Type} && $ss->{Type} eq 'oneshot' &&
-	$ss->{Result};
-
-    return $state;
+    return $res;
 };
 
 __PACKAGE__->register_method ({
@@ -111,12 +115,13 @@ __PACKAGE__->register_method ({
 
 	my $service_list = get_service_list();
 
-	foreach my $id (keys %{$service_list}) {
+	for my $id (sort keys %{$service_list}) {
+	    my $state = $service_state->($id);
 	    push @$res, {
 		service => $id,
 		name => $service_list->{$id}->{name},
 		desc => $service_list->{$id}->{desc},
-		state => $service_state->($id),
+		%$state,
 	    };
 	}
 
@@ -182,14 +187,18 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $service_list = get_service_list();
+	my $id = $param->{service};
 
-	my $si = $service_list->{$param->{service}};
+	my $service_list = get_service_list();
+	my $si = $service_list->{$id};
+
+	my $state = $service_state->($id);
+
 	return {
 	    service => $param->{service},
 	    name => $si->{name},
 	    desc => $si->{desc},
-	    state => &$service_state($param->{service}),
+	    %$state,
 	};
     }});
 
@@ -224,7 +233,6 @@ __PACKAGE__->register_method ({
 	    syslog('info', "starting service $param->{service}: $upid\n");
 
 	    PMG::Utils::service_cmd($param->{service}, 'start');
-
 	};
 
 	return $restenv->fork_worker('srvstart', $param->{service}, $user, $realcmd);
