@@ -783,7 +783,8 @@ sub service_cmd {
 	if $cmd !~ m/^(start|stop|restart|reload|reload-or-restart)$/;
 
     if ($service eq 'pmgdaemon' || $service eq 'pmgproxy') {
-	die "invalid service cmd '$service $cmd': ERROR" if $cmd eq 'stop';
+	die "invalid service cmd '$service $cmd': refusing to stop essential service!\n"
+	    if $cmd eq 'stop';
     } elsif ($service eq 'fetchmail') {
 	# use restart instead of start - else it does not start 'exited' unit
 	# after setting START_DAEMON=yes in /etc/default/fetchmail
