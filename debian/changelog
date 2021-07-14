@@ -1,3 +1,9 @@
+pmg-api (7.0-4) bullseye; urgency=medium
+
+  * d/control: recommend ifupdown2 and suggest zfsutils-linux
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 14 Jul 2021 10:32:34 +0200
+
 pmg-api (7.0-3) bullseye; urgency=medium
 
   * acme: handle wildcard dns validation
