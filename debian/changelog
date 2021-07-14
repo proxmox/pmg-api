@@ -1,3 +1,9 @@
+pmg-api (7.0-6) bullseye; urgency=medium
+
+  * fix cluster join when large ssh-rsa keys are setup
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 14 Jul 2021 17:54:03 +0200
+
 pmg-api (7.0-5) bullseye; urgency=medium
 
   * d/control: recommend ifupdown2 and suggest zfsutils-linux
