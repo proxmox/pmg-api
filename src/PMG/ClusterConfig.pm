@@ -46,7 +46,7 @@ use warnings;
 use base qw(PMG::ClusterConfig::Base);
 
 sub valid_ssh_pubkey {
-    return'^[A-Za-z0-9\.\/\+]{200,}$';
+    return'^[A-Za-z0-9\.\/\+=]{200,}$';
 }
 
 sub type {
