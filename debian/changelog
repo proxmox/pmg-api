@@ -1,8 +1,10 @@
-pmg-api (7.0-4) bullseye; urgency=medium
+pmg-api (7.0-5) bullseye; urgency=medium
 
   * d/control: recommend ifupdown2 and suggest zfsutils-linux
 
- -- Proxmox Support Team <support@proxmox.com>  Wed, 14 Jul 2021 10:32:34 +0200
+  * switch enterprise repository over to bullseye
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 14 Jul 2021 11:58:48 +0200
 
 pmg-api (7.0-3) bullseye; urgency=medium
 
