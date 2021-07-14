@@ -1,1 +1,1 @@
-deb https://enterprise.proxmox.com/debian/pmg buster pmg-enterprise
+deb https://enterprise.proxmox.com/debian/pmg bullseye pmg-enterprise
