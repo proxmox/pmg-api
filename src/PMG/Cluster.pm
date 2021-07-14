@@ -94,8 +94,9 @@ sub read_local_cluster_info {
     $hostrsapubkey =~ s/^.*ssh-rsa\s+//i;
     $hostrsapubkey =~ s/\s+root\@\S+\s*$//i;
 
+    my $sshpubkeypattern = PMG::ClusterConfig::Node::valid_ssh_pubkey();
     die "unable to parse ${hostrsapubkey_fn}\n"
-	if $hostrsapubkey !~ m/^[A-Za-z0-9\.\/\+]{200,}$/;
+	if $hostrsapubkey !~ m/$sshpubkeypattern/;
 
     my $nodename = PVE::INotify::nodename();
 
@@ -117,7 +118,7 @@ sub read_local_cluster_info {
     $rootrsapubkey =~ s/\s+root\@\S+\s*$//i;
 
     die "unable to parse ${rootrsapubkey_fn}\n"
-	if $rootrsapubkey !~ m/^[A-Za-z0-9\.\/\+]{200,}$/;
+	if $rootrsapubkey !~ m/$sshpubkeypattern/;
 
     $res->{rootrsapubkey} = $rootrsapubkey;
 

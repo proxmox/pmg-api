@@ -45,6 +45,10 @@ use warnings;
 
 use base qw(PMG::ClusterConfig::Base);
 
+sub valid_ssh_pubkey {
+    return'^[A-Za-z0-9\.\/\+]{200,}$';
+}
+
 sub type {
     return 'node';
 }
@@ -61,12 +65,12 @@ sub properties {
 	hostrsapubkey => {
 	    description => "Public SSH RSA key for the host.",
 	    type => 'string',
-	    pattern => '^[A-Za-z0-9\.\/\+]{200,}$',
+	    pattern => valid_ssh_pubkey(),
 	},
 	rootrsapubkey => {
 	    description => "Public SSH RSA key for the root user.",
 	    type => 'string',
-	    pattern => '^[A-Za-z0-9\.\/\+]{200,}$',
+	    pattern => valid_ssh_pubkey(),
 	},
 	fingerprint => {
 	    description => "SSL certificate fingerprint.",
