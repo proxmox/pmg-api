@@ -91,5 +91,7 @@ Depends: apt (>= 2~),
          ucf,
          ${misc:Depends},
          ${perl:Depends}
+Recommends: ifupdown2
+Suggests: zfsutils-linux
 Description: Proxmox Mailgateway API Server Implementation
  This implements a REST API to configure Proxmox Mailgateway.
