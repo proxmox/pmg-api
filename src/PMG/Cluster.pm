@@ -94,7 +94,7 @@ sub read_local_cluster_info {
     $hostrsapubkey =~ s/^.*ssh-rsa\s+//i;
     $hostrsapubkey =~ s/\s+root\@\S+\s*$//i;
 
-    my $sshpubkeypattern = PMG::ClusterConfig::Node::valid_ssh_pubkey();
+    my $sshpubkeypattern = PMG::ClusterConfig::Node::valid_ssh_pubkey_regex();
     die "unable to parse ${hostrsapubkey_fn}\n"
 	if $hostrsapubkey !~ m/$sshpubkeypattern/;
 
