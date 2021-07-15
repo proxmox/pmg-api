@@ -796,6 +796,8 @@ __PACKAGE__->register_method({
 	push @list, sort $byver grep { /^pve-kernel-/ && $cache->{$_}->{CurrentState} eq 'Installed' } keys %$cache;
 
 	my @opt_pack = qw(
+	    ifupdown
+	    ifupdown2
 	    libpve-apiclient-perl
 	    proxmox-mailgateway-container
 	    pve-firmware
@@ -809,9 +811,12 @@ __PACKAGE__->register_method({
 	    libjs-framework7
 	    libpve-common-perl
 	    libpve-http-server-perl
+	    libproxmox-acme-perl
+	    libproxmox-acme-plugins
 	    libxdgmime-perl
 	    lvm2
 	    pmg-docs
+	    pmg-i18n
 	    pmg-log-tracker
 	    postgresql-13
 	    proxmox-mini-journalreader
