@@ -27,6 +27,8 @@ my $print_status = sub {
     my $version = "not correctly installed";
     if ($pkginfo->{OldVersion} && $pkginfo->{CurrentState} eq 'Installed') {
 	$version = $pkginfo->{OldVersion};
+    } elsif ($pkginfo->{CurrentState} eq 'ConfigFiles') {
+	$version = 'residual config';
     }
 
     if ($pkginfo->{RunningKernel} && $pkginfo->{ManagerVersion}) {
