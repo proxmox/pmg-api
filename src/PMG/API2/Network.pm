@@ -410,6 +410,65 @@ __PACKAGE__->register_method({
 	return undef;
     }});
 
+sub ifupdown2_version {
+    my $v;
+    PVE::Tools::run_command(['ifreload', '-V'], outfunc => sub { $v //= shift });
+    return if !defined($v) || $v !~ /^\s*ifupdown2:(\S+)\s*$/;
+    $v = $1;
+    my ($major, $minor, $extra, $pve) = split(/\.|-/, $v);
+    my $is_pve = defined($pve) && $pve =~ /(pve|pmx|proxmox)/;
+
+    return ($major * 100000 + $minor * 1000 + $extra * 10, $is_pve, $v);
+}
+sub assert_ifupdown2_installed {
+    die "you need ifupdown2 to reload network configuration\n" if ! -e '/usr/share/ifupdown2';
+    my ($v, $pve, $v_str) = ifupdown2_version();
+    die "incompatible 'ifupdown2' package version '$v_str'! Did you installed from Proxmox repositories?\n"
+        if $v < (1*100000 + 2*1000 + 8*10) || !$pve;
+}
+
+__PACKAGE__->register_method({
+    name => 'reload_network_config',
+    path => '',
+    method => 'PUT',
+    description => "Reload network configuration",
+    protected => 1,
+    proxyto => 'node',
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    node => get_standard_option('pve-node'),
+	},
+    },
+    returns => { type => 'string' },
+    code => sub {
+
+	my ($param) = @_;
+
+	my $rpcenv = PMG::RESTEnvironment->get();
+	my $authuser = $rpcenv->get_user();
+
+	assert_ifupdown2_installed();
+
+	my $current_config = "/etc/network/interfaces";
+	my $new_config = "$current_config.new";
+
+	my $worker = sub {
+	    if (-e $new_config) {
+		print "found changes, renaming '$new_config' -> '$current_config'\n";
+		rename($new_config, $current_config) or die "could not rename new config file - $!";
+	    }
+
+	    PVE::Tools::run_command(['ifreload', '-a'], errfunc => sub {
+		my $line = shift;
+		if ($line =~ /(warning|error): (\S+):/) {
+		    print "$2 : $line \n";
+		}
+	    });
+	};
+	return $rpcenv->fork_worker('srvreload', 'networking', $authuser, $worker);
+   }});
+
 __PACKAGE__->register_method({
     name => 'update_network',
     path => '{iface}',
