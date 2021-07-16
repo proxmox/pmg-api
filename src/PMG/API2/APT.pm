@@ -749,9 +749,10 @@ __PACKAGE__->register_method({
     code => sub {
 	my ($param) = @_;
 
-	my $options = {
-	    enabled => int($param->{enabled}),
-	};
+	my $options = {};
+
+	my $enabled = $param->{enabled};
+	$options->{enabled} = int($enabled) if defined($enabled);
 
 	PMG::RS::APT::Repositories::change_repository(
 	    $param->{path},
