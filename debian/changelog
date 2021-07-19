@@ -1,3 +1,15 @@
+pmg-api (7.0-7) bullseye; urgency=medium
+
+  * pmgversion: do not show packages with residual config as being in an error
+    installation state
+
+  * api: apt versions: add ifupdown(2), libproxmox-acme-* and pmg-i18n to
+    packages included in the version report.
+
+  * api: implement live network reload with ifupdown2
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 19 Jul 2021 09:04:25 +0200
+
 pmg-api (7.0-6) bullseye; urgency=medium
 
   * fix cluster join when large ssh-rsa keys are setup
