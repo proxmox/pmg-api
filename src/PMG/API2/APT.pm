@@ -477,9 +477,7 @@ __PACKAGE__->register_method({
     method => 'GET',
     proxyto => 'node',
     description => "Get APT repository information.",
-    permissions => {
-	check => ['perm', '/nodes/{node}', [ 'Sys.Audit' ]],
-    },
+    permissions => { check => [ 'admin', 'audit' ] },
     parameters => {
 	additionalProperties => 0,
 	properties => {
@@ -678,9 +676,7 @@ __PACKAGE__->register_method({
     path => 'repositories',
     method => 'PUT',
     description => "Add a standard repository to the configuration",
-    permissions => {
-	check => ['perm', '/nodes/{node}', [ 'Sys.Modify' ]],
-    },
+    permissions => { check => [ 'admin' ] },
     protected => 1,
     proxyto => 'node',
     parameters => {
@@ -713,9 +709,7 @@ __PACKAGE__->register_method({
     path => 'repositories',
     method => 'POST',
     description => "Change the properties of a repository. Currently only allows enabling/disabling.",
-    permissions => {
-	check => ['perm', '/nodes/{node}', [ 'Sys.Modify' ]],
-    },
+    permissions => { check => [ 'admin' ] },
     protected => 1,
     proxyto => 'node',
     parameters => {
