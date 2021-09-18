@@ -37,7 +37,11 @@ sub remote_node_ip {
     }
 
     # fallback: try to get IP by other means
-    return PVE::Network::get_ip_from_hostname($nodename, $noerr);
+    if ($nodename eq 'localhost' || $nodename eq PVE::INotify::nodename()) {
+	return PVE::Network::get_local_ip();
+    } else {
+	return PVE::Network::get_ip_from_hostname($nodename, $noerr);
+    }
 }
 
 sub get_master_node {
@@ -102,7 +106,7 @@ sub read_local_cluster_info {
 
     $res->{name} = $nodename;
 
-    $res->{ip} = PVE::Network::get_ip_from_hostname($nodename);
+    $res->{ip} = PVE::Network::get_local_ip();
 
     $res->{hostrsapubkey} = $hostrsapubkey;
 

@@ -177,7 +177,7 @@ sub read_cluster_conf {
     my $cinfo = PMG::ClusterConfig::Base->parse_config($filename, $raw);
 
     my $localname = PVE::INotify::nodename();
-    my $localip = PVE::Network::get_ip_from_hostname($localname);
+    my $localip = PVE::Network::get_local_ip(); # does gai with fallback to interfaces cfg. & ip-addr
 
     $cinfo->{remnodes} = [];
 
