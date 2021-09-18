@@ -3,47 +3,25 @@
 use strict;
 use warnings;
 
-use PVE::INotify;
-use PVE::Tools;
-use PMG::Cluster;
-
-sub detect_container {
-
-    my $ct;
-    if (-f '/run/systemd/container') {
-	$ct = PVE::Tools::file_read_firstline('/run/systemd/container');
-    }
-    return $ct;
-}
-
-my $nodename = PVE::INotify::nodename();
-my $localip = eval { PMG::Cluster::remote_node_ip($nodename, 1) };
-if (my $err = $@) { # FIXME: HACK: cope better with managed CTs and DHCP
-    my $in_ct = detect_container();
-    die $err if !$in_ct;
-    warn "ignore failure to get local IP of $nodename, we're in a container ($in_ct)\n";
-    $localip = '<unknown>';
-}
+use PVE::Network;
 
 my $xline = '-' x 78;
 
-my $banner = '';
-
-if ($localip) {
-    $banner .= <<__EOBANNER;
+my $banner = <<__EOBANNER;
 
 $xline
 
 Welcome to the Proxmox Mail Gateway. Please use your web browser to 
 configure this server - connect to:
 
-  https://${localip}:8006/
-
-$xline
-
 __EOBANNER
 
-}
+# TODO, pass `all => 1` and print them? May be seen as "leak" for some users of unprotected setups?!
+my $addr = PVE::Network::get_local_ip() // '<unknown>';
+
+$banner .= "  https://${addr}:8006/\n";
+
+$banner .= "\n$xline\n\n";
 
 open(ISSUE, ">/etc/issue");
 
