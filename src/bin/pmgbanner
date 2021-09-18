@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use PVE::Network;
+use Time::HiRes qw(usleep);
 
 my $xline = '-' x 78;
 
@@ -16,8 +17,16 @@ configure this server - connect to:
 
 __EOBANNER
 
-# TODO, pass `all => 1` and print them? May be seen as "leak" for some users of unprotected setups?!
-my $addr = PVE::Network::get_local_ip() // '<unknown>';
+my $addr;
+for (my $try = 1; $try <= 15; $try ++) {
+    # TODO, pass `all => 1` and print them? May be seen as "leak" for some users of unprotected setups?!
+    $addr = PVE::Network::get_local_ip();
+    last if defined($addr);
+
+    usleep($try * 150_000); # gradually increase poll, ensure's we're ready faster in average
+}
+
+$addr //= '<unknown>'; # useless but we must _not_ fail here
 
 $banner .= "  https://${addr}:8006/\n";
 
