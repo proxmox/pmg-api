@@ -32,10 +32,10 @@ $banner .= "  https://${addr}:8006/\n";
 
 $banner .= "\n$xline\n\n";
 
-open(ISSUE, ">/etc/issue");
+open(my $issue_fh, '>', '/etc/issue');
 
-print ISSUE $banner;
+print $issue_fh $banner;
 
-close(ISSUE);
+close($issue_fh);
 
 exit (0);
