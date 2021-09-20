@@ -3,6 +3,7 @@ Description=Proxmox Mail Gateway API Daemon
 ConditionPathExists=/usr/bin/pmgdaemon
 Wants=ssh.service
 Wants=remote-fs.target
+After=network-online.target
 After=ssh.service
 After=remote-fs.target
 
