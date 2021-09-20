@@ -1,12 +1,12 @@
 [Unit]
-Description=Proxmox Mail Gateway API
+Description=Proxmox Mail Gateway's unprivileged API and API-proxy daemon
 Wants=pmgdaemon.service
 Wants=ssh.service
 Wants=remote-fs.target
 After=network-online.target
 After=pmgdaemon.service
-After=ssh.service
 After=remote-fs.target
+After=ssh.service
 
 [Service]
 ExecStart=/usr/bin/pmgproxy start

@@ -1,10 +1,10 @@
 [Unit]
-Description=Proxmox Mail Gateway API Daemon
+Description=Proxmox Mail Gateway's privileged loopback API daemon
 Wants=ssh.service
 Wants=remote-fs.target
 After=network-online.target
-After=ssh.service
 After=remote-fs.target
+After=ssh.service
 
 [Service]
 ExecStart=/usr/bin/pmgdaemon start
