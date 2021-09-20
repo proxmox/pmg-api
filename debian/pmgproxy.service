@@ -1,6 +1,5 @@
 [Unit]
 Description=Proxmox Mail Gateway API
-ConditionPathExists=/usr/bin/pmgproxy
 Wants=pmgdaemon.service
 Wants=ssh.service
 Wants=remote-fs.target
