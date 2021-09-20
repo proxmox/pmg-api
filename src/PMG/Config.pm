@@ -916,7 +916,8 @@ sub read_pmg_conf {
 
     local $/ = undef; # slurp mode
 
-    my $raw = <$fh> if defined($fh);
+    my $raw;
+    $raw = <$fh> if defined($fh);
 
     return  PMG::Config::Base->parse_config($filename, $raw);
 }
@@ -1397,6 +1398,15 @@ sub get_template_vars {
     return $vars;
 }
 
+# reads the $filename and checks if it's equal as the $cmp string passed
+my sub file_content_equals_str {
+    my ($filename, $cmp) = @_;
+
+    return if !-f $filename;
+    my $current = PVE::Tools::file_get_contents($filename, 128*1024);
+    return defined($current) && $current eq $cmp; # no change
+}
+
 # use one global TT cache
 our $tt_include_path = ['/etc/pmg/templates' ,'/var/lib/pmg/templates' ];
 
@@ -1439,12 +1449,9 @@ sub rewrite_config_file {
 
     my $output = '';
 
-    $tt->process($tmplname, $vars, \$output) ||
-	die $tt->error() . "\n";
+    $tt->process($tmplname, $vars, \$output) || die $tt->error() . "\n";
 
-    my $old = PVE::Tools::file_get_contents($dstfn, 128*1024) if -f $dstfn;
-
-    return 0 if defined($old) && ($old eq $output); # no change
+    return 0 if file_content_equals_str($dstfn, $output); # no change -> nothing to do
 
     PVE::Tools::file_set_contents($dstfn, $output, $perm);
 
@@ -1558,10 +1565,7 @@ sub rewrite_dot_forward {
     } else {
 	# empty .forward does not forward mails (see man local)
     }
-
-    my $old = PVE::Tools::file_get_contents($dstfn, 128*1024) if -f $dstfn;
-
-    return 0 if defined($old) && ($old eq $output); # no change
+    return 0 if file_content_equals_str($dstfn, $output); # no change -> nothing to do
 
     PVE::Tools::file_set_contents($dstfn, $output);
 
@@ -1573,15 +1577,11 @@ my $write_smtp_whitelist = sub {
 
     $action = 'OK' if !$action;
 
-    my $old = PVE::Tools::file_get_contents($filename, 1024*1024)
-	if -f $filename;
-
     my $new = '';
     foreach my $k (sort keys %$data) {
 	$new .= "$k $action\n";
     }
-
-    return 0 if defined($old) && ($old eq $new); # no change
+    return 0 if file_content_equals_str($filename, $new); # no change -> nothing to do
 
     PVE::Tools::file_set_contents($filename, $new);
 
