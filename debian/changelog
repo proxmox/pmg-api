@@ -1,3 +1,20 @@
+pmg-api (7.0-8) bullseye; urgency=medium
+
+  * api: apt: repos: avoid creating implicit default for enabled
+
+  * api: apt: use pmg-style permission for endpoint schema to allow access to
+    admins that aren't root@pam
+
+  * prefer more flexible get_local_ip where possible, it still prefers the
+    resolved hostname but falls back to configured or active IPs. Especially
+    useful for evaluation and initial (CT template) setups.
+
+  * pmgbanner: retry getting local IP for a bit in case of failure, this should
+    be only relevant for evaluation and initial setups where the hostname may
+    not yet resolve to the primary IP address.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 20 Sep 2021 08:17:18 +0200
+
 pmg-api (7.0-7) bullseye; urgency=medium
 
   * pmgversion: do not show packages with residual config as being in an error
