@@ -1313,17 +1313,19 @@ sub get_template_vars {
 
     my $mynetworks = [ '127.0.0.0/8', '[::1]/128' ];
 
-    if (my $int_net_cidr = PMG::Utils::find_local_network_for_ip($int_ip, 1)) {
-	if ($int_net_cidr =~ m/^($IPV6RE)\/(\d+)$/) {
-	    push @$mynetworks, "[$1]/$2";
+    if (defined($int_ip)) { # we cannot really do anything and the loopback nets are already added
+	if (my $int_net_cidr = PMG::Utils::find_local_network_for_ip($int_ip, 1)) {
+	    if ($int_net_cidr =~ m/^($IPV6RE)\/(\d+)$/) {
+		push @$mynetworks, "[$1]/$2";
+	    } else {
+		push @$mynetworks, $int_net_cidr;
+	    }
 	} else {
-	    push @$mynetworks, $int_net_cidr;
-	}
-    } else {
-	if ($int_ip =~ m/^$IPV6RE$/) {
-	    push @$mynetworks, "[$int_ip]/128";
-	} else {
-	    push @$mynetworks, "$int_ip/32";
+	    if ($int_ip =~ m/^$IPV6RE$/) {
+		push @$mynetworks, "[$int_ip]/128";
+	    } else {
+		push @$mynetworks, "$int_ip/32";
+	    }
 	}
     }
 
@@ -1364,7 +1366,10 @@ sub get_template_vars {
 	$self->get('mail', 'greylist6') || $self->get('mail', 'spf');
     $vars->{postfix}->{usepolicy} = $usepolicy;
 
-    if ($int_ip =~ m/^$IPV6RE$/) {
+    if (!defined($int_ip)) {
+	warn "could not get node IP, falling back to loopback '127.0.0.1'\n";
+	$vars->{postfix}->{int_ip} = '127.0.0.1';
+    } elsif ($int_ip =~ m/^$IPV6RE$/) {
         $vars->{postfix}->{int_ip} = "[$int_ip]";
     } else {
         $vars->{postfix}->{int_ip} = $int_ip;
