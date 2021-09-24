@@ -1505,4 +1505,21 @@ sub update_local_spamassassin_channels {
     return $fresh_updates
 }
 
+sub get_existing_object_id {
+    my ($dbh, $obj_id, $obj_type, $value) = @_;
+
+    my $sth = $dbh->prepare("SELECT id FROM Object WHERE ".
+	"Objectgroup_ID = ? AND ".
+	"ObjectType = ? AND ".
+	"Value = ?"
+    );
+    $sth->execute($obj_id, $obj_type, $value);
+
+    if (my $ref = $sth->fetchrow_hashref()) {
+	return $ref->{id};
+    }
+
+    return;
+}
+
 1;

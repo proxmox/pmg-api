@@ -83,6 +83,16 @@ sub save {
     } else {
 	# insert
 
+	# check if it exists first
+	if (my $id = PMG::Utils::get_existing_object_id(
+	    $ruledb->{dbh},
+	    $self->{ogroup},
+	    $self->otype(),
+	    $confdata
+	)) {
+	    return $id;
+	}
+
 	my $sth = $ruledb->{dbh}->prepare(
 	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
 	    "VALUES (?, ?, ?);");
