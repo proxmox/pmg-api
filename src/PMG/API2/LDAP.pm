@@ -249,7 +249,7 @@ __PACKAGE__->register_method ({
 		$ids->{$profile}->{$p} = $config->{$p};
 	    }
 
-	    $forced_ldap_sync->($profile, $config)
+	    $forced_ldap_sync->($profile, $ids->{$profile})
 		if !$config->{disable};
 
 	    $cfg->write();
