@@ -1278,6 +1278,8 @@ sub get_host_dns_info {
     my $resolv = PVE::INotify::read_file('resolvconf');
 
     my $domain = $resolv->{search} // 'localdomain';
+    # postfix will not parse a hostname with trailing '.'
+    $domain =~ s/^(.*)\.$/$1/;
     $dnsinfo->{domain} = $domain;
 
     $dnsinfo->{fqdn} = "$nodename.$domain";
