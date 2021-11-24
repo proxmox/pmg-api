@@ -84,12 +84,17 @@ sub save {
     defined($self->{ogroup}) || die "undefined object attribute: ERROR";
     defined($self->{value}) || die "undefined object attribute: ERROR";
 
+    my $value = encode('UTF-8', $self->{value});
+    if ($value =~ /^.{998,}$/m) {
+	die "too long line in disclaimer - breaks RFC 5322!\n";
+    }
+
     if (defined ($self->{id})) {
 	# update
 	
 	$ruledb->{dbh}->do(
 	    "UPDATE Object SET Value = ? WHERE ID = ?", 
-	    undef, encode('UTF-8', $self->{value}), $self->{id});
+	    undef, $value, $self->{id});
 
     } else {
 	# insert
@@ -98,7 +103,7 @@ sub save {
 	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
 	    "VALUES (?, ?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype, encode('UTF-8', $self->{value}));
+	$sth->execute($self->ogroup, $self->otype, $value);
     
 	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
     }
