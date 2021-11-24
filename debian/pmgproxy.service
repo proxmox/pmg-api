@@ -13,6 +13,7 @@ ExecStart=/usr/bin/pmgproxy start
 ExecStop=/usr/bin/pmgproxy stop
 ExecReload=/usr/bin/pmgproxy restart
 PIDFile=/run/pmgproxy/pmgproxy.pid
+Restart=on-failure
 Type=forking
 
 [Install]

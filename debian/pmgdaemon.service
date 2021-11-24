@@ -11,6 +11,7 @@ ExecStart=/usr/bin/pmgdaemon start
 ExecStop=/usr/bin/pmgdaemon stop
 ExecReload=/usr/bin/pmgdaemon restart
 PIDFile=/run/pmgdaemon.pid
+Restart=on-failure
 Type=forking
 
 [Install]
