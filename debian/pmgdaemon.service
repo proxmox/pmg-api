@@ -10,6 +10,7 @@ After=ssh.service
 ExecStart=/usr/bin/pmgdaemon start
 ExecStop=/usr/bin/pmgdaemon stop
 ExecReload=/usr/bin/pmgdaemon restart
+OOMPolicy=continue
 PIDFile=/run/pmgdaemon.pid
 Restart=on-failure
 Type=forking

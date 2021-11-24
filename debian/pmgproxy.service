@@ -12,6 +12,7 @@ After=ssh.service
 ExecStart=/usr/bin/pmgproxy start
 ExecStop=/usr/bin/pmgproxy stop
 ExecReload=/usr/bin/pmgproxy restart
+OOMPolicy=continue
 PIDFile=/run/pmgproxy/pmgproxy.pid
 Restart=on-failure
 Type=forking
