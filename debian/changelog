@@ -1,3 +1,21 @@
+pmg-api (7.0-9) bullseye; urgency=medium
+
+  * fix #2071: RuleDB: ignore duplicate entries for Who objects
+
+  * api: ldap config: sync with the complete config
+
+  * fix #3712: strip any trailing dot from the search-domain when passing it to
+    postifx
+
+  * api: journal: stream the journal data to the client
+
+  * api-daemons: make systemd restart them on-failure
+
+  * api-dameons: set oom-policy to `continue` so that a single (replacable)
+    worker getting OOM-killed does not bring down the whole service
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Nov 2021 19:13:29 +0100
+
 pmg-api (7.0-8) bullseye; urgency=medium
 
   * api: apt: repos: avoid creating implicit default for enabled
