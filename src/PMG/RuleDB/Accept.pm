@@ -122,7 +122,7 @@ sub execute {
 	} else {
 	    my ($qid, $code, $mess) = PMG::Utils::reinject_mail(
 		$entity, $msginfo->{sender}, $tg,
-		$msginfo->{xforward}, $msginfo->{fqdn});
+		$msginfo->{xforward}, $msginfo->{fqdn}, $msginfo->{param});
 	    if ($qid) {
 		foreach (@$tg) {
 		    syslog('info', "%s: accept mail to <%s> (%s) (rule: %s)", $queue->{logid}, encode('UTF-8', $_), $qid, $rulename);

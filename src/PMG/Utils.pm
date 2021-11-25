@@ -203,7 +203,7 @@ sub subst_values {
 }
 
 sub reinject_mail {
-    my ($entity, $sender, $targets, $xforward, $me, $nodsn) = @_;
+    my ($entity, $sender, $targets, $xforward, $me, $params) = @_;
 
     my $smtp;
     my $resid;
@@ -244,15 +244,28 @@ sub reinject_mail {
 	    $mail_opts .= " SMTPUTF8" if $has_utf8_targets;
 	}
 
+	if (defined($params->{mail})) {
+	    my $mailparams = $params->{mail};
+	    for my $p (keys %$mailparams) {
+		$mail_opts .= " $p=$mailparams->{$p}";
+	    }
+	}
+
 	if (!$smtp->_MAIL("FROM:" . $sender_addr . $mail_opts)) {
 	    syslog('err', "smtp error - got: %s %s", $smtp->code, scalar ($smtp->message));
 	    die "smtp from: ERROR";
 	}
 
-	my $rcpt_opts = $nodsn ? " NOTIFY=NEVER" : "";
-
 	foreach my $target (@$targets) {
 	    my $rcpt_addr;
+	    my $rcpt_opts = '';
+	    if (defined($params->{rcpt}->{$target})) {
+		my $rcptparams = $params->{rcpt}->{$target};
+		for my $p (keys %$rcptparams) {
+		    $rcpt_opts .= " $p=$rcptparams->{$p}";
+		}
+	    }
+
 	    if (utf8::is_utf8($target)) {
 		$rcpt_addr = encode('UTF-8', $smtp->_addr($target));
 	    } else {

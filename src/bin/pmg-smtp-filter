@@ -640,6 +640,7 @@ sub handle_smtp {
 	$msginfo->{sender} = $smtp->{from};
 	$msginfo->{xforward} = $smtp->{xforward};
 	$msginfo->{targets} = $smtp->{to};
+	$msginfo->{param} = $smtp->{param};
 
 	my $dkim_sign = $msginfo->{trusted} && $pmg_cfg->get('admin', 'dkim_sign');
 	if ($dkim_sign) {

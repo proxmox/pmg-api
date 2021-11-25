@@ -38,6 +38,7 @@ sub reset {
     delete $self->{smtputf8};
     delete $self->{xforward};
     delete $self->{status};
+    delete $self->{param};
 }
 
 sub abort {
@@ -77,6 +78,7 @@ sub loop {
 	    $self->reply ("250-ENHANCEDSTATUSCODES");
 	    $self->reply ("250-8BITMIME");
 	    $self->reply ("250-SMTPUTF8");
+	    $self->reply ("250-DSN");
 	    $self->reply ("250-XFORWARD NAME ADDR PROTO HELO");
 	    $self->reply ("250 OK.");
 	    $self->{lmtp} = 1 if ($cmd eq 'lhlo');
@@ -103,9 +105,16 @@ sub loop {
 	    if ($args =~ m/^from:\s*<([^\s\>]*?)>( .*)?$/i) {
 		delete $self->{to};
 		my ($from, $opts) = ($1, $2 // '');
-		if ($opts =~ m/\sSMTPUTF8/) {
-		    $self->{smtputf8} = 1;
-		    $from = decode('UTF-8', $from);
+
+		for my $opt (split(' ', $opts)) {
+		    if ($opt =~ /(ret|envid)=([^ =]+)/i ) {
+			$self->{param}->{mail}->{$1} = $2;
+		    } elsif ($opt =~ m/smtputf8/i) {
+			$self->{smtputf8} = 1;
+			$from = decode('UTF-8', $from);
+		    } else {
+			#ignore everything else
+		    }
 		}
 		$self->{from} = $from;
 		$self->reply ('250 2.5.0 OK');
@@ -117,7 +126,15 @@ sub loop {
 	} elsif ($cmd eq 'rcpt') {
 	    if ($args =~ m/^to:\s*<([^\s\>]+?)>( .*)?$/i) {
 		my $to = $self->{smtputf8} ? decode('UTF-8', $1) : $1;
+		my $opts = $2 // '';
 		push @{$self->{to}} , $to;
+		for my $opt (split(' ', $opts)) {
+		    if ($opt =~ /(notify|orcpt)=([^ =]+)/i ) {
+			$self->{param}->{rcpt}->{$to}->{$1} = $2;
+		    } else {
+			#ignore everything else
+		    }
+		}
 		$self->reply ('250 2.5.0 OK');
 		next;
 	    } else {

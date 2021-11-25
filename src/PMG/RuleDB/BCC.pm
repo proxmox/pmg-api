@@ -156,9 +156,13 @@ sub execute {
 	    $entity->print ($fh);
 	    print $fh "bcc end\n";
 	} else {
+	    my $param = {};
+	    for my $bcc (@bcc_targets) {
+		$param->{rcpt}->{$bcc}->{notify} = "never";
+	    }
 	    my $qid = PMG::Utils::reinject_mail(
 		$entity, $msginfo->{sender}, \@bcc_targets,
-		$msginfo->{xforward}, $msginfo->{fqdn}, 1);
+		$msginfo->{xforward}, $msginfo->{fqdn}, $param);
 	    foreach (@bcc_targets) {
 		if ($qid) {
 		    syslog('info', "%s: bcc to <%s> (rule: %s, %s)", $queue->{logid}, $_, $rulename, $qid);
