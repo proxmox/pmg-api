@@ -40,49 +40,42 @@ sub dump_html {
 
     my @html = ();
 
-    my($tag, $node, $start, $depth);
+    $tree->traverse(sub {
+	my ($node, $start, $depth) = @_;
+	if (ref $node) {
+	    my $tag = $node->{'_tag'};
 
-    $tree->traverse(
-	sub {
-	    ($node, $start) = @_;
-	    if(ref $node) {
-		$tag = $node->{'_tag'};
+	    # try to open a new window when user activates a anchor
+	    $node->{target} = '_blank' if $tag eq 'a';
 
-		# try to open a new window when user activates a anchor
-		$node->{target} = '_blank' if $tag eq 'a';
-
-		if ($tag eq 'img' && $view_images) {
-		    if ($node->{src} && $node->{src} =~ m/^cid:(\S+)$/) {
-			if (my $datauri = $cid_hash->{$1}) {
-			    $node->{src} = $datauri;
-			}
+	    if ($tag eq 'img' && $view_images) {
+		if ($node->{src} && $node->{src} =~ m/^cid:(\S+)$/) {
+		    if (my $datauri = $cid_hash->{$1}) {
+			$node->{src} = $datauri;
 		    }
 		}
-
-		if ($tag eq 'style' && !$view_images) {
-		    remove_urls($_) for grep { !ref $$_ } $node->content_refs_list();
-		}
-
-		if($start) { # on the way in
-		    push(@html, $node->starttag);
-		} else {
-		    # on the way out
-		    push(@html, $node->endtag);
-		}
-	    } else {
-		# simple text content
-		$node = encode_entities($node)
-		    # That does magic things if $entities is undef.
-		    unless $HTML::Tagset::isCDATA_Parent{ $_[3]{'_tag'} };
-		# To keep from amp-escaping children of script et al.
-		# That doesn't deal with descendants; but then, CDATA
-		#  parents shouldn't /have/ descendants other than a
-		#  text children (or comments?)
-		push(@html, $node);
 	    }
-	    1; # keep traversing
+
+	    if ($tag eq 'style' && !$view_images) {
+		remove_urls($_) for grep { !ref $$_ } $node->content_refs_list();
+	    }
+
+	    if ($start) { # on the way in
+		push(@html, $node->starttag);
+	    } else { # on the way out
+		push(@html, $node->endtag);
+	    }
+	} else { # simple text content
+	    # To keep from amp-escaping children of script et al. That doesn't deal with descendants;
+	    # but then, CDATA parents shouldn't /have/ descendants other than a text children (or comments?)
+	    if (!$HTML::Tagset::isCDATA_Parent{ $_[3]{'_tag'} }) {
+		# That does magic things if $entities is undef.
+		$node = encode_entities($node);
+	    }
+	    push(@html, $node);
 	}
-    );
+	return 1; # keep traversing
+    });
 
     return join('', @html, "\n");
 }
