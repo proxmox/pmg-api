@@ -15,8 +15,26 @@ use HTML::Scrubber;
 use PMG::Utils;
 use PMG::MIMEUtils;
 
+# $value is a ref to a string scalar
+my sub remove_urls {
+    my ($value) = @_;
+    # convert 'url([..])' to '___([..])' so the browser does not load it
+    $$value =~ s|url\(|___(|gi;
+
+    # similar for all protocols
+    $$value =~ s|[a-z0-9]+://|_|gi;
+}
+
+my sub remove_urls_from_attr {
+    my ($obj, $tag_name, $attr_name, $value) = @_;
+
+    remove_urls(\$value);
+
+    return $value;
+}
+
 sub dump_html {
-    my ($tree, $cid_hash) = @_;
+    my ($tree, $cid_hash, $view_images) = @_;
 
     my @html = ();
 
@@ -31,12 +49,16 @@ sub dump_html {
 		# try to open a new window when user activates a anchor
 		$node->{target} = '_blank' if $tag eq 'a';
 
-		if ($tag eq 'img') {
+		if ($tag eq 'img' && $view_images) {
 		    if ($node->{src} && $node->{src} =~ m/^cid:(\S+)$/) {
 			if (my $datauri = $cid_hash->{$1}) {
 			    $node->{src} = $datauri;
 			}
 		    }
+		}
+
+		if ($tag eq 'style' && !$view_images) {
+		    remove_urls($_) for grep { !ref $$_ } $node->content_refs_list();
 		}
 
 		if($start) { # on the way in
@@ -137,7 +159,7 @@ sub getscrubber {
 	    span => 1,
 	    src => $viewimages ? qr{^(?!(?:java)?script)}i : 0,
 	    start => 1,
-	    style => 1,
+	    style => $viewimages ? 1 : \remove_urls_from_attr,
 	    summary => 1,
 	    tabindex => 1,
 	    target => 1,
@@ -267,7 +289,8 @@ sub entity_to_html {
 	$tree->parse($raw);
 	$tree->eof();
 
-	my $whtml = dump_html($tree, $viewimages ? $cid_hash : {});
+	# normalizes html, replaces CID references with data uris and scrubs style tags
+	my $whtml = dump_html($tree, $cid_hash, $viewimages);
 	$tree->delete;
 
 	# remove dangerous/unneeded elements
