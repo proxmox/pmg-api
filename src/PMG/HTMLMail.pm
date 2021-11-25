@@ -18,6 +18,8 @@ use PMG::MIMEUtils;
 # $value is a ref to a string scalar
 my sub remove_urls {
     my ($value) = @_;
+    return if !defined $$value;
+
     # convert 'url([..])' to '___([..])' so the browser does not load it
     $$value =~ s|url\(|___(|gi;
 
