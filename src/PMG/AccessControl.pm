@@ -26,8 +26,10 @@ sub normalize_path {
 
 # password should be utf8 encoded
 # Note: some plugins delay/sleep if auth fails
-sub authenticate_user {
-    my ($username, $password, $otp) = @_;
+#
+# returns ($username, $tfa_challenge)
+sub authenticate_user : prototype($$$) {
+    my ($username, $password, $skip_tfa) = @_;
 
     die "no username specified\n" if !$username;
 
@@ -38,24 +40,35 @@ sub authenticate_user {
     if ($realm eq 'pam') {
 	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 	authenticate_pam_user($ruid, $password);
-	return $username;
     } elsif ($realm eq 'pmg') {
 	my $usercfg = PMG::UserConfig->new();
 	$usercfg->authenticate_user($username, $password);
-	return $username;
     } elsif ($realm eq 'quarantine') {
 	my $ldap_cfg = PMG::LDAPConfig->new();
 	my $ldap = PMG::LDAPSet->new_from_ldap_cfg($ldap_cfg, 1);
 
 	if (my $ldapinfo = $ldap->account_info($ruid, $password)) {
 	    my $pmail = $ldapinfo->{pmail};
-	    return $pmail . '@quarantine';
-	} else {
-	    die "ldap login failed\n";
+	    return ($pmail . '@quarantine', undef);
 	}
+	die "ldap login failed\n";
+    } else {
+	die "no such realm '$realm'\n";
     }
 
-    die "no such realm '$realm'\n";
+    return ($username, undef) if $skip_tfa;
+
+    my $tfa = PMG::TFAConfig->new();
+
+    my $origin = undef;
+    if (!$tfa->has_webauthn_origin()) {
+	my $rpcenv = PMG::RESTEnvironment->get();
+	$origin = 'https://'.$rpcenv->get_request_host(1);
+    }
+
+    my $tfa_challenge = $tfa->authentication_challenge($username, $origin);
+
+    return ($username, $tfa_challenge);
 }
 
 sub set_user_password {

@@ -63,11 +63,11 @@ __PACKAGE__->register_method ({
 	return $res;
     }});
 
-
-my $create_or_verify_ticket = sub {
-    my ($rpcenv, $username, $pw_or_ticket, $otp, $path) = @_;
+my sub create_or_verify_ticket : prototype($$$$$$) {
+    my ($rpcenv, $username, $pw_or_ticket, $path, $otp, $tfa_challenge) = @_;
 
     my $ticketuser;
+    my $aad;
 
     if ($pw_or_ticket =~ m/^PMGQUAR:/) {
 	my $ticketuser = PMG::Ticket::verify_quarantine_ticket($pw_or_ticket);
@@ -85,13 +85,22 @@ my $create_or_verify_ticket = sub {
 
     my $role = PMG::AccessControl::check_user_enabled($rpcenv->{usercfg}, $username);
 
-    if (($ticketuser = PMG::Ticket::verify_ticket($pw_or_ticket, 1)) &&
-	($ticketuser eq 'root@pam' || $ticketuser eq $username)) {
-	# valid ticket. Note: root@pam can create tickets for other users
-    } elsif ($path && PMG::Ticket::verify_vnc_ticket($pw_or_ticket, $username, $path, 1)) {
-	# valid vnc ticket for $path
-    } else {
-	$username = PMG::AccessControl::authenticate_user($username, $pw_or_ticket, $otp);
+    my $tfa_challenge_is_ticket = 1;
+
+    if (!$tfa_challenge) {
+	$tfa_challenge_is_ticket = 0;
+	($ticketuser, undef, $tfa_challenge) = PMG::Ticket::verify_ticket($pw_or_ticket, undef, 1);
+	die "No ticket\n" if $tfa_challenge;
+
+	if ($ticketuser && ($ticketuser eq 'root@pam' || $ticketuser eq $username)) {
+	    # valid ticket. Note: root@pam can create tickets for other users
+	} elsif ($path && PMG::Ticket::verify_vnc_ticket($pw_or_ticket, $username, $path, 1)) {
+	    # valid vnc ticket for $path
+	} else {
+	    ($username, $tfa_challenge) =
+		PMG::AccessControl::authenticate_user($username, $pw_or_ticket, 0);
+	    $pw_or_ticket = $otp;
+	}
     }
 
     if (defined($path)) {
@@ -99,7 +108,42 @@ my $create_or_verify_ticket = sub {
 	return { username => $username };
     }
 
-    my $ticket = PMG::Ticket::assemble_ticket($username);
+    if ($tfa_challenge && $pw_or_ticket) {
+	if ($tfa_challenge_is_ticket) {
+	    (undef, undef, $tfa_challenge) = PMG::Ticket::verify_ticket($tfa_challenge, $username, 0);
+	}
+	PMG::TFAConfig::lock_config(sub {
+	    my $tfa_cfg = PMG::TFAConfig->new();
+
+	    my $origin = undef;
+	    if (!$tfa_cfg->has_webauthn_origin()) {
+		my $rpcenv = PMG::RESTEnvironment->get();
+		$origin = 'https://'.$rpcenv->get_request_host(1);
+	    }
+	    my $must_save = $tfa_cfg->authentication_verify(
+		$username,
+		$tfa_challenge,
+		$pw_or_ticket,
+		$origin,
+	    );
+
+	    $tfa_cfg->write() if $must_save;
+	});
+
+	$tfa_challenge = undef;
+    }
+
+    my $ticket_data;
+    my %extra;
+    if ($tfa_challenge) {
+	$ticket_data = '!tfa!' . $tfa_challenge;
+	$aad = $username;
+	$extra{NeedTFA} = 1;
+    } else {
+	$ticket_data = $username;
+    }
+
+    my $ticket = PMG::Ticket::assemble_ticket($ticket_data, $aad);
     my $csrftoken = PMG::Ticket::assemble_csrf_prevention_token($username);
 
     return {
@@ -107,6 +151,7 @@ my $create_or_verify_ticket = sub {
 	ticket => $ticket,
 	username => $username,
 	CSRFPreventionToken => $csrftoken,
+	%extra,
     };
 };
 
@@ -160,6 +205,11 @@ __PACKAGE__->register_method ({
 		optional => 1,
 		maxLength => 64,
 	    },
+	    'tfa-challenge' => {
+		type => 'string',
+		description => "The signed TFA challenge string the user wants to respond to.",
+		optional => 1,
+	    },
 	}
     },
     returns => {
@@ -187,8 +237,8 @@ __PACKAGE__->register_method ({
 
 	my $res;
 	eval {
-	    $res = &$create_or_verify_ticket($rpcenv, $username,
-		    $param->{password}, $param->{otp}, $param->{path});
+	    $res = create_or_verify_ticket($rpcenv, $username,
+		    $param->{password}, $param->{path}, $param->{otp}, $param->{'tfa-challenge'});
 	};
 	if (my $err = $@) {
 	    my $clientip = $rpcenv->get_client_ip() || '';

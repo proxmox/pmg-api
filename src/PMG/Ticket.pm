@@ -164,22 +164,38 @@ sub assemble_csrf_prevention_token {
     return PVE::Ticket::assemble_csrf_prevention_token ($secret, $username);
 }
 
-sub assemble_ticket {
-    my ($username) = @_;
+sub assemble_ticket : prototype($;$) {
+    my ($data, $aad) = @_;
 
     my $rsa_priv = PVE::INotify::read_file('auth_priv_key');
 
-    return PVE::Ticket::assemble_rsa_ticket($rsa_priv, 'PMG', $username);
+    return PVE::Ticket::assemble_rsa_ticket($rsa_priv, 'PMG', $data, $aad);
 }
 
-sub verify_ticket {
-    my ($ticket, $noerr) = @_;
+# Returns (username, age, tfa-challenge) or just the username in scalar context.
+# Note that in scalar context, tfa tickets return `undef`.
+sub verify_ticket : prototype($$$) {
+    my ($ticket, $aad, $noerr) = @_;
 
     my $rsa_pub = PVE::INotify::read_file('auth_pub_key');
 
-    return PVE::Ticket::verify_rsa_ticket(
-	$rsa_pub, 'PMG', $ticket, undef,
+    my $tfa_challenge;
+    my ($data, $age) = PVE::Ticket::verify_rsa_ticket(
+	$rsa_pub, 'PMG', $ticket, $aad,
 	$min_ticket_lifetime, $max_ticket_lifetime, $noerr);
+
+    if ($noerr && !$data) {
+	# if $noerr was set $data can be undef:
+	return wantarray ? (undef, undef, undef) : undef;
+    }
+
+
+    if ($data =~ /^!tfa!(.*)$/) {
+	return (undef, $age, $1) if wantarray;
+	return undef if $noerr;
+	die "second factor required\n";
+    }
+    return wantarray ? ($data, $age, undef) : $data;
 }
 
 # VNC tickets

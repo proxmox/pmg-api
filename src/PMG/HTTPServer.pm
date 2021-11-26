@@ -76,7 +76,10 @@ sub auth_handler {
 	    $rpcenv->set_user($username);
 	    $rpcenv->set_role('quser');
 	} else {
-	    ($username, $age) = PMG::Ticket::verify_ticket($ticket);
+	    ($username, $age, my $tfa) = PMG::Ticket::verify_ticket($ticket, undef, 0);
+	    # TFA tickets don't return a username, and return a tfa challenge, either is enough to
+	    # fail here:
+	    die "No ticket\n" if !$username || $tfa;
 	    my $role = PMG::AccessControl::check_user_enabled($self->{usercfg}, $username);
 	    $rpcenv->set_user($username);
 	    $rpcenv->set_role($role);

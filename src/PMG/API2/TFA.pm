@@ -132,7 +132,7 @@ my sub check_permission_password : prototype($$$$) {
 	raise_param_exc({ 'password' => 'password is required to modify TFA data' })
 	    if !defined($password);
 
-	PMG::AccessControl::authenticate_user($userid, $password);
+	PMG::AccessControl::authenticate_user($userid, $password, 1);
     }
 
     return wantarray ? ($userid, $realm) : $userid;
@@ -381,7 +381,7 @@ __PACKAGE__->register_method ({
 	    set_user_tfa_enabled($userid, $realm, $tfa_cfg);
 	    my $origin = undef;
 	    if (!$tfa_cfg->has_webauthn_origin()) {
-		$origin = $rpcenv->get_request_host(1);
+		$origin = 'https://'.$rpcenv->get_request_host(1);
 	    }
 
 	    my $response = $tfa_cfg->api_add_tfa_entry(

@@ -199,7 +199,7 @@ sub get_index {
 	if ($ticket =~ m/^PMGQUAR:/) {
 	    $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
 	} else {
-	    $username = PMG::Ticket::verify_ticket($ticket, 1);
+	    $username = PMG::Ticket::verify_ticket($ticket, undef, 1);
 	}
     } else {
 	if (defined($args->{ticket})) {
