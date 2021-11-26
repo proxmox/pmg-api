@@ -27,6 +27,7 @@ use PMG::API2::DKIMSign;
 use PMG::API2::SACustom;
 use PMG::API2::PBS::Remote;
 use PMG::API2::ACME;
+use PMG::API2::TFAConfig;
 
 use base qw(PVE::RESTHandler);
 
@@ -103,6 +104,11 @@ __PACKAGE__->register_method ({
 __PACKAGE__->register_method ({
     subclass => "PMG::API2::ACME",
     path => 'acme',
+});
+
+__PACKAGE__->register_method ({
+    subclass => "PMG::API2::TFAConfig",
+    path => 'tfa',
 });
 
 __PACKAGE__->register_method ({
