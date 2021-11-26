@@ -13,6 +13,7 @@ use PMG::Utils;
 use PMG::UserConfig;
 use PMG::AccessControl;
 use PMG::API2::Users;
+use PMG::API2::TFA;
 
 use Data::Dumper;
 
@@ -21,6 +22,11 @@ use base qw(PVE::RESTHandler);
 __PACKAGE__->register_method ({
     subclass => "PMG::API2::Users",
     path => 'users',
+});
+
+__PACKAGE__->register_method ({
+    subclass => "PMG::API2::TFA",
+    path => 'tfa',
 });
 
 __PACKAGE__->register_method ({
