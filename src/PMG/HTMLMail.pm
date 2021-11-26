@@ -154,7 +154,7 @@ sub getscrubber {
 	    span => 1,
 	    src => $viewimages ? qr{^(?!(?:java)?script)}i : 0,
 	    start => 1,
-	    style => $viewimages ? 1 : \remove_urls_from_attr,
+	    style => $viewimages ? 1 : \&remove_urls_from_attr,
 	    summary => 1,
 	    tabindex => 1,
 	    target => 1,
