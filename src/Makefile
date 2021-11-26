@@ -82,6 +82,7 @@ LIBSOURCES =				\
 	PMG/Quarantine.pm		\
 	PMG/Report.pm			\
 	PMG/SACustom.pm			\
+	PMG/TFAConfig.pm		\
 	PMG/RuleDB/Group.pm		\
 	PMG/RuleDB/Rule.pm		\
 	PMG/RuleDB/Object.pm		\
