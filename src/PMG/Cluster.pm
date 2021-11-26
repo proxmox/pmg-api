@@ -459,6 +459,7 @@ sub sync_config_from_master {
 	'pmg-csrf.key',
 	'ldap.conf',
 	'user.conf',
+	'tfa.json',
 	'domains',
 	'mynetworks',
 	'transport',
