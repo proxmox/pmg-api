@@ -118,6 +118,9 @@ sub init {
 	    '/proxmoxlib.js' => {
 		file => '/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js',
 	    },
+	    '/qrcode.min.js' => {
+		file => '/usr/share/javascript/qrcodejs/qrcode.min.js',
+	    },
 	},
 	dirs => $dirs,
     };
