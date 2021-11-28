@@ -1,3 +1,17 @@
+pmg-api (7.1-1) bullseye; urgency=medium
+
+  * rulesystem: limit linelength of disclaimer to 998 bytes
+
+  * fix #3734: scrub CSS 'url' from style tags/attributes if view-images is
+    disabled for the quarantine
+
+  * fix #2795: add support for Delivery Status Notification (DSN)
+
+  * add support for two factor authentication with TOTP, recovery codes and
+    WebAuthn to the admin interface
+
+ -- Proxmox Support Team <support@proxmox.com>  Sun, 28 Nov 2021 21:04:58 +0100
+
 pmg-api (7.0-9) bullseye; urgency=medium
 
   * fix #2071: RuleDB: ignore duplicate entries for Who objects
