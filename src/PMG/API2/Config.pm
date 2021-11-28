@@ -117,7 +117,7 @@ __PACKAGE__->register_method ({
     method => 'GET',
     description => "Directory index.",
     parameters => {
-    	additionalProperties => 0,
+	additionalProperties => 0,
 	properties => {},
     },
     returns => {
@@ -131,26 +131,23 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $res = [];
-	foreach my $section (@$section_type_enum) {
-	    push @$res, { section => $section };
-	}
+	my $res = [ map { { section => $_ } } $section_type_enum->@* ];
 
-	push @$res, { section => 'ldap' };
-	push @$res, { section => 'mynetworks' };
-	push @$res, { section => 'mimetypes' };
-	push @$res, { section => 'users' };
+	push @$res, { section => 'acme' };
+	push @$res, { section => 'cluster' };
+	push @$res, { section => 'dkim' };
 	push @$res, { section => 'domains' };
 	push @$res, { section => 'fetchmail' };
-	push @$res, { section => 'cluster' };
-	push @$res, { section => 'ruledb' };
-	push @$res, { section => 'transport' };
-	push @$res, { section => 'whitelist' };
-	push @$res, { section => 'regextest' };
-	push @$res, { section => 'tlspolicy' };
-	push @$res, { section => 'dkim' };
+	push @$res, { section => 'ldap' };
+	push @$res, { section => 'mimetypes' };
+	push @$res, { section => 'mynetworks' };
 	push @$res, { section => 'pbs' };
-	push @$res, { section => 'acme' };
+	push @$res, { section => 'regextest' };
+	push @$res, { section => 'ruledb' };
+	push @$res, { section => 'tlspolicy' };
+	push @$res, { section => 'transport' };
+	push @$res, { section => 'users' };
+	push @$res, { section => 'whitelist' };
 
 	return $res;
     }});
