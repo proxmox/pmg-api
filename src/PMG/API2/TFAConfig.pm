@@ -51,6 +51,35 @@ my $wa_config_return_schema = {
     properties => \%return_properties,
 };
 
+__PACKAGE__->register_method ({
+    name => 'index',
+    path => '',
+    method => 'GET',
+    description => "Directory index.",
+    parameters => {
+	additionalProperties => 0,
+	properties => {},
+    },
+    returns => {
+	type => 'array',
+	items => {
+	    type => "object",
+	    properties => {
+		section => { type => 'string'},
+	    },
+	},
+	links => [ { rel => 'child', href => "{section}" } ],
+    },
+    code => sub {
+	my ($param) = @_;
+
+	my $res = [
+	    { section => 'webauthn' },
+	];
+
+	return $res;
+    }});
+
 __PACKAGE__->register_method({
     name => 'get_webauthn_config',
     path => 'webauthn',
