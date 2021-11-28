@@ -164,8 +164,7 @@ __PACKAGE__->register_method ({
     method => 'GET',
     proxyto => 'master',
     permissions => {
-	description => 
-	    'Each user is allowed to view their own TFA entries.'
+	description => 'Each user is allowed to view their own TFA entries.'
 	    .' Only root can view entries of another user.',
 	user => 'all',
     },
@@ -199,8 +198,7 @@ __PACKAGE__->register_method ({
     method => 'GET',
     proxyto => 'master',
     permissions => {
-	description => 
-	    'Each user is allowed to view their own TFA entries.'
+	description => 'Each user is allowed to view their own TFA entries.'
 	    .' Only root can view entries of another user.',
 	user => 'all',
     },
@@ -234,8 +232,7 @@ __PACKAGE__->register_method ({
     method => 'DELETE',
     proxyto => 'master',
     permissions => {
-	description => 
-	    'Each user is allowed to modify their own TFA entries.'
+	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
 	user => 'all',
     },
@@ -323,8 +320,7 @@ __PACKAGE__->register_method ({
     method => 'POST',
     proxyto => 'master',
     permissions => {
-	description => 
-	    'Each user is allowed to modify their own TFA entries.'
+	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
 	user => 'all',
     },
@@ -406,8 +402,7 @@ __PACKAGE__->register_method ({
     method => 'PUT',
     proxyto => 'master',
     permissions => {
-	description => 
-	    'Each user is allowed to modify their own TFA entries.'
+	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
 	user => 'all',
     },
