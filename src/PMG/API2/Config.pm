@@ -144,6 +144,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'pbs' };
 	push @$res, { section => 'regextest' };
 	push @$res, { section => 'ruledb' };
+	push @$res, { section => 'tfa' };
 	push @$res, { section => 'tlspolicy' };
 	push @$res, { section => 'transport' };
 	push @$res, { section => 'users' };
