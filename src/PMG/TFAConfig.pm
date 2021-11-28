@@ -68,13 +68,15 @@ my sub write_tfa_conf : prototype($$$) {
     PVE::Tools::safe_print($filename, $fh, $cfg->SUPER::write());
 }
 
-PVE::INotify::register_file($inotify_file_id, $config_filename,
-			    \&read_tfa_conf,
-			    \&write_tfa_conf,
-			    undef,
-			    always_call_parser => 1,
-			    # the parser produces a rust TfaConfig object,
-			    # Clone::clone would break this
-			    noclone => 1);
+PVE::INotify::register_file(
+    $inotify_file_id,
+    $config_filename,
+    \&read_tfa_conf,
+    \&write_tfa_conf,
+    undef,
+    always_call_parser => 1,
+    # the parser produces a rust TfaConfig object, Clone::clone would break this
+    noclone => 1,
+);
 
 1;
