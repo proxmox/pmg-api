@@ -234,7 +234,8 @@ __PACKAGE__->register_method ({
     permissions => {
 	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
-	user => 'all',
+	#user => 'all', # we do not support TFA for quarantine users currently
+	check => [ 'admin', 'qmanager', 'audit' ],
     },
     protected => 1, # else we can't access shadow files
     allowtoken => 0, # we don't want tokens to change the regular user's TFA settings
@@ -322,7 +323,8 @@ __PACKAGE__->register_method ({
     permissions => {
 	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
-	user => 'all',
+	#user => 'all', # we do not support TFA for quarantine users currently
+	check => [ 'admin', 'qmanager', 'audit' ],
     },
     protected => 1, # else we can't access shadow files
     allowtoken => 0, # we don't want tokens to change the regular user's TFA settings
@@ -404,7 +406,8 @@ __PACKAGE__->register_method ({
     permissions => {
 	description => 'Each user is allowed to modify their own TFA entries.'
 	    .' Only root can modify entries of another user.',
-	user => 'all',
+	#user => 'all', # we do not support TFA for quarantine users currently
+	check => [ 'admin', 'qmanager', 'audit' ],
     },
     protected => 1, # else we can't access shadow files
     allowtoken => 0, # we don't want tokens to change the regular user's TFA settings
