@@ -171,13 +171,14 @@ my $run_pmg_log_tracker = sub {
 		$entry->{client} = $1;
 	    } elsif ($line =~ m/^CTIME:\s+([0-9A-F]+)$/) {
 		# ignore ?
-	    } elsif ($line =~ m/^TO:([0-9A-F]+):(T[0-9A-F]+L[0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]+)>$/) {
+	    } elsif ($line =~ m/^TO:([0-9A-F]+):(T[0-9A-F]+L[0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]*)>$/) {
 		my $e = {};
 		$e->{client} = $entry->{client} if defined($entry->{client});
 		$e->{time} = hex($1) - $timezone;
 		$e->{id} = $2;
 		$e->{dstatus} = $3;
 		$e->{from} = $4;
+		die "empty to address only allowed in NOQUEUE case\n" if !$5 && $e->{dstatus} ne 'N';
 		$e->{to} = $5;
 		push @$list, $e;
 	    } elsif ($line =~ m/^LOGS:$/) {
