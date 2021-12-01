@@ -2,6 +2,7 @@ package PMG::Utils;
 
 use strict;
 use warnings;
+use Cwd;
 use DBI;
 use Net::Cmd;
 use Net::SMTP;
@@ -1383,6 +1384,10 @@ sub postgres_admin_cmd {
     my $save_uid = POSIX::getuid();
     my $pg_uid = getpwnam('postgres') || die "getpwnam postgres failed\n";
 
+    #cd to / to prevent warnings on EPERM (e.g. when running in /root)
+    my $cwd = getcwd() || die "getcwd failed\n";
+    ($cwd) = ($cwd =~ m|^(/.*)$|); #untaint
+    chdir('/') || die "could not chdir to '/'\n";
     PVE::Tools::setresuid(-1, $pg_uid, -1) ||
 	die "setresuid postgres ($pg_uid) failed - $!\n";
 
@@ -1390,6 +1395,8 @@ sub postgres_admin_cmd {
 
     PVE::Tools::setresuid(-1, $save_uid, -1) ||
 	die "setresuid back failed - $!\n";
+
+    chdir("$cwd") || die "could not chdir back to $cwd\n";
 }
 
 sub get_pg_server_version {
