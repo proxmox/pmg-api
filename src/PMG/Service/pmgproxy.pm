@@ -129,6 +129,12 @@ sub init {
     if (defined($proxyconf->{DHPARAMS})) {
 	$self->{server_config}->{ssl}->{dh_file} = $proxyconf->{DHPARAMS};
     }
+    if (defined($proxyconf->{DISABLE_TLS_1_2})) {
+	$self->{server_config}->{ssl}->{tlsv1_2} = !$proxyconf->{DISABLE_TLS_1_2};
+    }
+    if (defined($proxyconf->{DISABLE_TLS_1_3})) {
+	$self->{server_config}->{ssl}->{tlsv1_3} = !$proxyconf->{DISABLE_TLS_1_3};
+    }
 }
 
 sub run {
