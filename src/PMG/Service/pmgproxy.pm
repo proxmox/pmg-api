@@ -104,6 +104,7 @@ sub init {
 	    cert_file => '/etc/pmg/pmg-api.pem',
 	    dh => 'skip2048',
 	    cipher_list => $proxyconf->{CIPHERS},
+	    ciphersuites => $proxyconf->{CIPHERSUITES},
 	    honor_cipher_order => $proxyconf->{HONOR_CIPHER_ORDER},
 	},
 	compression => $proxyconf->{COMPRESSION},
