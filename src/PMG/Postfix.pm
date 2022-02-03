@@ -5,6 +5,7 @@ use warnings;
 use Data::Dumper;
 use File::Find;
 use JSON;
+use MIME::WordDecoder qw(mime_to_perl_string);
 
 use PVE::Tools;
 
@@ -162,7 +163,7 @@ sub mailq {
 }
 
 sub postcat {
-    my ($queue_id, $header, $body) = @_;
+    my ($queue_id, $header, $body, $decode) = @_;
 
     die "no option specified (select header or body or both)"
 	if !($header || $body);
@@ -178,6 +179,9 @@ sub postcat {
 
     my $res = '';
     while (defined(my $line = <$fh>)) {
+	if ($decode) {
+	    $line = mime_to_perl_string($line);
+	}
 	$res .= $line;
     }
 

@@ -239,6 +239,12 @@ __PACKAGE__->register_method ({
 		default => 0,
 		optional => 1,
 	    },
+	    'decode-header' => {
+		description => "Decodes the header fields.",
+		type => 'boolean',
+		default => 0,
+		optional => 1,
+	    },
 	},
     },
     returns => { type => 'string' },
@@ -247,7 +253,7 @@ __PACKAGE__->register_method ({
 
 	$param->{header} //= 1;
 
-	return PMG::Postfix::postcat($param->{queue_id}, $param->{header}, $param->{body});
+	return PMG::Postfix::postcat($param->{queue_id}, $param->{header}, $param->{body}, $param->{'decode-header'});
     }});
 
 __PACKAGE__->register_method ({
