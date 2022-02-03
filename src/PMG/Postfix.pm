@@ -180,9 +180,10 @@ sub postcat {
     my $res = '';
     while (defined(my $line = <$fh>)) {
 	if ($decode) {
-	    $line = mime_to_perl_string($line);
+	    $res .= mime_to_perl_string($line);
+	} else {
+	    $res .= $line;
 	}
-	$res .= $line;
     }
 
     return $res;

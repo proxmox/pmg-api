@@ -253,7 +253,7 @@ __PACKAGE__->register_method ({
 
 	$param->{header} //= 1;
 
-	return PMG::Postfix::postcat($param->{queue_id}, $param->{header}, $param->{body}, $param->{'decode-header'});
+	return PMG::Postfix::postcat($param->@{qw(queue_id header body decode-header)});
     }});
 
 __PACKAGE__->register_method ({
