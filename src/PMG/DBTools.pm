@@ -674,8 +674,6 @@ sub init_ruledb {
     $ruledb->group_add_object($exe_content, $obj);
     $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-executable');
     $ruledb->group_add_object($exe_content, $obj);
-    $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-ms-dos-executable');
-    $ruledb->group_add_object($exe_content, $obj);
     $obj = PMG::RuleDB::ContentTypeFilter->new('message/partial');
     $ruledb->group_add_object($exe_content, $obj);
     $obj = PMG::RuleDB::MatchFilename->new('.*\.(vbs|pif|lnk|shs|shb)');

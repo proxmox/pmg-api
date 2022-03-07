@@ -2,35 +2,34 @@ Found RULE 4: Blacklist
   FOUND FROM GROUP 1: Blacklist
     OBJECT 1: nomail@fromthisdomain.com
   FOUND ACTION GROUP 17: Block
-    OBJECT 31: block message
+    OBJECT 30: block message
 Found RULE 2: Block Viruses
   FOUND WHAT GROUP 8: Virus
-    OBJECT 22: active
+    OBJECT 21: active
   FOUND ACTION GROUP 17: Block
-    OBJECT 31: block message
+    OBJECT 30: block message
   FOUND ACTION GROUP 19: Notify Admin
-    OBJECT 33: notify __ADMIN__
+    OBJECT 32: notify __ADMIN__
 Found RULE 3: Virus Alert
   FOUND WHAT GROUP 8: Virus
-    OBJECT 22: active
+    OBJECT 21: active
   FOUND ACTION GROUP 17: Block
-    OBJECT 31: block message
+    OBJECT 30: block message
   FOUND ACTION GROUP 19: Notify Admin
-    OBJECT 33: notify __ADMIN__
+    OBJECT 32: notify __ADMIN__
   FOUND ACTION GROUP 20: Notify Sender
-    OBJECT 34: notify __SENDER__
+    OBJECT 33: notify __SENDER__
 Found RULE 1: Block Dangerous Files
   FOUND WHAT GROUP 7: Dangerous Content
     OBJECT 16: content-type=application/javascript
     OBJECT 17: content-type=application/x-executable
     OBJECT 15: content-type=application/x-java
     OBJECT 14: content-type=application/x-ms-dos-executable
-    OBJECT 18: content-type=application/x-ms-dos-executable
-    OBJECT 19: content-type=message/partial
-    OBJECT 20: filename=.*\.(vbs|pif|lnk|shs|shb)
-    OBJECT 21: filename=.*\.\{.+\}
+    OBJECT 18: content-type=message/partial
+    OBJECT 19: filename=.*\.(vbs|pif|lnk|shs|shb)
+    OBJECT 20: filename=.*\.\{.+\}
   FOUND ACTION GROUP 14: Remove attachments
-    OBJECT 28: remove matching attachments
+    OBJECT 27: remove matching attachments
 Found RULE 12: Quarantine Office Files
   FOUND WHAT GROUP 6: Office Files
     OBJECT 9: content-type=application/msword
@@ -41,46 +40,46 @@ Found RULE 12: Quarantine Office Files
     OBJECT 12: content-type=application/vnd\.stardivision\..*
     OBJECT 13: content-type=application/vnd\.sun\.xml\..*
   FOUND ACTION GROUP 22: Attachment Quarantine (remove matching)
-    OBJECT 36: remove matching attachments
+    OBJECT 35: remove matching attachments
 Found RULE 11: Block Multimedia Files
   FOUND WHAT GROUP 5: Multimedia
     OBJECT 5: content-type=audio/.*
     OBJECT 6: content-type=video/.*
   FOUND ACTION GROUP 14: Remove attachments
-    OBJECT 28: remove matching attachments
+    OBJECT 27: remove matching attachments
 Found RULE 5: Whitelist
   FOUND FROM GROUP 2: Whitelist
     OBJECT 2: mail@fromthisdomain.com
   FOUND ACTION GROUP 16: Accept
-    OBJECT 30: accept message
+    OBJECT 29: accept message
 Found RULE 8: Block Spam (Level 10)
   FOUND WHAT GROUP 11: Spam (Level 10)
-    OBJECT 25: Level 10
+    OBJECT 24: Level 10
   FOUND ACTION GROUP 17: Block
-    OBJECT 31: block message
+    OBJECT 30: block message
 Found RULE 7: Quarantine/Mark Spam (Level 5)
   FOUND WHAT GROUP 10: Spam (Level 5)
-    OBJECT 24: Level 5
+    OBJECT 23: Level 5
   FOUND ACTION GROUP 13: Modify Spam Subject
-    OBJECT 27: modify field: subject:SPAM: __SUBJECT__
+    OBJECT 26: modify field: subject:SPAM: __SUBJECT__
   FOUND ACTION GROUP 18: Quarantine
-    OBJECT 32: Move to quarantine.
+    OBJECT 31: Move to quarantine.
 Found RULE 6: Mark Spam
   FOUND WHAT GROUP 11: Spam (Level 10)
-    OBJECT 25: Level 10
+    OBJECT 24: Level 10
   FOUND ACTION GROUP 12: Modify Spam Level
-    OBJECT 26: modify field: X-SPAM-LEVEL:__SPAM_INFO__
+    OBJECT 25: modify field: X-SPAM-LEVEL:__SPAM_INFO__
   FOUND ACTION GROUP 13: Modify Spam Subject
-    OBJECT 27: modify field: subject:SPAM: __SUBJECT__
+    OBJECT 26: modify field: subject:SPAM: __SUBJECT__
 Found RULE 9: Block outgoing Spam
   FOUND WHAT GROUP 9: Spam (Level 3)
-    OBJECT 23: Level 3
+    OBJECT 22: Level 3
   FOUND ACTION GROUP 17: Block
-    OBJECT 31: block message
+    OBJECT 30: block message
   FOUND ACTION GROUP 19: Notify Admin
-    OBJECT 33: notify __ADMIN__
+    OBJECT 32: notify __ADMIN__
   FOUND ACTION GROUP 20: Notify Sender
-    OBJECT 34: notify __SENDER__
+    OBJECT 33: notify __SENDER__
 Found RULE 10: Add Disclaimer
   FOUND ACTION GROUP 21: Disclaimer
-    OBJECT 35: disclaimer
+    OBJECT 34: disclaimer
