@@ -160,11 +160,11 @@ sub queryusers {
 	    foreach my $mail (@{$user->{attributes}->{$attr}}) {
 		$mail = lc($mail);
 		# Test if the Line starts with one of the following lines:
-		# proxyAddresses: [smtp|SMTP]:
+		# proxyAddresses: [smtp]:
 		# and also discard this starting string, so that $mail is only the
 		# address without any other characters...
 
-		$mail =~ s/^(smtp|SMTP)[\:\$]//gs;
+		$mail =~ s/^smtp[\:\$]//gs;
 
 		if ($mail !~ m/[\{\}\\\/]/ && $mail =~ m/^\S+\@\S+$/) {
 		    $umails->{$mail} = 1;
