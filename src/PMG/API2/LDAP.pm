@@ -408,10 +408,9 @@ __PACKAGE__->register_method ({
 		description => "Profile ID.",
 		type => 'string', format => 'pve-configid',
 	    },
-	    email => {
+	    email => get_standard_option('pmg-email-address', {
 		description => "Email address.",
-		type => 'string', format => 'email',
-	    },
+	    }),
 	},
     },
     returns => {
