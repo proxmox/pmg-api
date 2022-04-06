@@ -161,18 +161,14 @@ sub queryusers {
 		$mail = lc($mail);
 		# Test if the Line starts with `proxyAddresses: [smtp]:`, discard this starting
 		# string, so that $mail is only the plain address without any extra characters
-
 		$mail =~ s/^smtp[\:\$]//gs;
 
+		next if $mail =~ m/[\{\}\\\/]/ || $mail !~ m/^\S+\@\S+$/;
 		# exclude sip and x500 addresses in proxyAddresses http://archive.today/XIerB
-		if (
-		    $mail !~ m/[\{\}\\\/]/ &&
-		    $mail =~ m/^\S+\@\S+$/ &&
-		    $mail !~  m/^(sip|x500)[\:\$]/
-		) {
-		    $umails->{$mail} = 1;
-		    $pmail = $mail if !$pmail;
-		}
+		next if $mail =~ m/^(sip|x500)[\:\$]/;
+
+		$umails->{$mail} = 1;
+		$pmail = $mail if !$pmail; # use first one as primary mail
 	    }
 	}
 	my $addresses = [ keys %$umails ];
