@@ -169,8 +169,8 @@ sub queryusers {
 		# exclude sip and x500 addresses in proxyAddresses
 		# https://docs.microsoft.com/en-us/troubleshoot/azure/active-directory/proxyaddresses-attribute-populate
 		if (
-		    $mail !~ m/[\{\}\\\/]/ && 
-		    $mail =~ m/^\S+\@\S+$/ && 
+		    $mail !~ m/[\{\}\\\/]/ &&
+		    $mail =~ m/^\S+\@\S+$/ &&
 		    $mail !~  m/^(sip|x500)[\:\$]/
 		) {
 		    $umails->{$mail} = 1;
