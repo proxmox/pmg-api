@@ -159,15 +159,12 @@ sub queryusers {
 	    next if !$user->{attributes}->{$attr};
 	    foreach my $mail (@{$user->{attributes}->{$attr}}) {
 		$mail = lc($mail);
-		# Test if the Line starts with one of the following lines:
-		# proxyAddresses: [smtp]:
-		# and also discard this starting string, so that $mail is only the
-		# address without any other characters...
+		# Test if the Line starts with `proxyAddresses: [smtp]:`, discard this starting
+		# string, so that $mail is only the plain address without any extra characters
 
 		$mail =~ s/^smtp[\:\$]//gs;
 
-		# exclude sip and x500 addresses in proxyAddresses
-		# https://docs.microsoft.com/en-us/troubleshoot/azure/active-directory/proxyaddresses-attribute-populate
+		# exclude sip and x500 addresses in proxyAddresses http://archive.today/XIerB
 		if (
 		    $mail !~ m/[\{\}\\\/]/ &&
 		    $mail =~ m/^\S+\@\S+$/ &&
