@@ -64,11 +64,21 @@ my $defaultData = {
     },
 };
 
+my $SAFE_ID_RE = '(?:[A-Za-z0-9_][A-Za-z0-9._\-]*)';
+my $NS_RE = "(?:${SAFE_ID_RE}/){0,7}(?:${SAFE_ID_RE})?";
+
 sub properties {
     return {
 	datastore => {
 	    description => "Proxmox Backup Server datastore name.",
+	    pattern => $SAFE_ID_RE,
 	    type => 'string',
+	},
+	namespace => {
+	    type => 'string',
+	    description => "Proxmox Backup Server namespace in the datastore, defaults to the root NS.",
+	    pattern => $NS_RE,
+	    maxLength => 256,
 	},
 	server => {
 	    description => "Proxmox Backup Server address.",
@@ -109,6 +119,7 @@ sub options {
     return {
 	server => {},
 	datastore => {},
+	namespace => { optional => 1 },
 	disable => { optional => 1 },
 	username => { optional => 1 },
 	password => { optional => 1 },

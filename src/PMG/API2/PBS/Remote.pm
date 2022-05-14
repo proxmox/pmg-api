@@ -40,13 +40,15 @@ __PACKAGE__->register_method ({
 
 	for my $remote (sort keys %{$conf->{ids}}) {
 	    my $d = $conf->{ids}->{$remote};
-	    push @$res, {
+	    my $remote = {
 		remote => $remote,
 		server => $d->{server},
 		datastore => $d->{datastore},
 		username => $d->{username},
 		disable => $d->{disable},
 	    };
+	    $remote->{namespace} = $d->{namespace} if $d->{namespace} && length($d->{namespace});
+	    push @$res, $remote;
 	}
 
 	return $res;
