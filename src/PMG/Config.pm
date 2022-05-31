@@ -1297,63 +1297,65 @@ sub get_template_vars {
     my $int_ip = PMG::Cluster::remote_node_ip($dnsinfo->{hostname});
     $vars->{ipconfig}->{int_ip} = $int_ip;
 
-    my $transportnets = [];
+    my $transportnets = {};
+    my $mynetworks = {
+	'127.0.0.0/8' => 1,
+	'[::1]/128', => 1,
+    };
 
     if (my $tmap = PVE::INotify::read_file('transport')) {
-	foreach my $domain (sort keys %$tmap) {
+	foreach my $domain (keys %$tmap) {
 	    my $data = $tmap->{$domain};
 	    my $host = $data->{host};
 	    if ($host =~ m/^$IPV4RE$/) {
-		push @$transportnets, "$host/32";
+		$transportnets->{"$host/32"} = 1;
+		$mynetworks->{"$host/32"} = 1;
 	    } elsif ($host =~ m/^(?:ipv6:)?($IPV6RE)$/i) {
-		push @$transportnets, "[$1]/128";
+		$transportnets->{"[$1]/128"} = 1;
+		$mynetworks->{"[$1]/128"} = 1;
 	    }
 	}
     }
 
-    $vars->{postfix}->{transportnets} = join(' ', @$transportnets);
-
-    my $mynetworks = [ '127.0.0.0/8', '[::1]/128' ];
+    $vars->{postfix}->{transportnets} = join(' ', sort keys %$transportnets);
 
     if (defined($int_ip)) { # we cannot really do anything and the loopback nets are already added
 	if (my $int_net_cidr = PMG::Utils::find_local_network_for_ip($int_ip, 1)) {
 	    if ($int_net_cidr =~ m/^($IPV6RE)\/(\d+)$/) {
-		push @$mynetworks, "[$1]/$2";
+		$mynetworks->{"[$1]/$2"} = 1;
 	    } else {
-		push @$mynetworks, $int_net_cidr;
+		$mynetworks->{$int_net_cidr} = 1;
 	    }
 	} else {
 	    if ($int_ip =~ m/^$IPV6RE$/) {
-		push @$mynetworks, "[$int_ip]/128";
+		$mynetworks->{"[$int_ip]/128"} = 1;
 	    } else {
-		push @$mynetworks, "$int_ip/32";
+		$mynetworks->{"$int_ip/32"} = 1;
 	    }
 	}
     }
 
     my $netlist = PVE::INotify::read_file('mynetworks');
-    foreach my $cidr (sort keys %$netlist) {
+    foreach my $cidr (keys %$netlist) {
 	if ($cidr =~ m/^($IPV6RE)\/(\d+)$/) {
-	    push @$mynetworks, "[$1]/$2";
+	    $mynetworks->{"[$1]/$2"} = 1;
 	} else {
-	    push @$mynetworks, $cidr;
+	    $mynetworks->{$cidr} = 1;
 	}
     }
-
-    push @$mynetworks, @$transportnets;
 
     # add default relay to mynetworks
     if (my $relay = $self->get('mail', 'relay')) {
 	if ($relay =~ m/^$IPV4RE$/) {
-	    push @$mynetworks, "$relay/32";
+	    $mynetworks->{"$relay/32"} = 1;
 	} elsif ($relay =~ m/^$IPV6RE$/) {
-	    push @$mynetworks, "[$relay]/128";
+	    $mynetworks->{"[$relay]/128"} = 1;
 	} else {
 	    # DNS name - do nothing ?
 	}
     }
 
-    $vars->{postfix}->{mynetworks} = join(' ', @$mynetworks);
+    $vars->{postfix}->{mynetworks} = join(' ', sort keys %$mynetworks);
 
     # normalize dnsbl_sites
     my @dnsbl_sites = PVE::Tools::split_list($vars->{pmg}->{mail}->{dnsbl_sites});
