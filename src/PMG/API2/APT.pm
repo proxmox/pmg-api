@@ -20,7 +20,8 @@ use PVE::JSONSchema qw(get_standard_option);
 use PMG::RESTEnvironment;
 use PMG::pmgcfg;
 use PMG::Config;
-use PMG::RS::APT::Repositories;
+
+use Proxmox::RS::APT::Repositories;
 
 use AptPkg::Cache;
 use AptPkg::Version;
@@ -668,7 +669,7 @@ __PACKAGE__->register_method({
     code => sub {
 	my ($param) = @_;
 
-	return PMG::RS::APT::Repositories::repositories();
+	return Proxmox::RS::APT::Repositories::repositories("pmg");
     }});
 
 __PACKAGE__->register_method({
@@ -701,7 +702,7 @@ __PACKAGE__->register_method({
     code => sub {
 	my ($param) = @_;
 
-	PMG::RS::APT::Repositories::add_repository($param->{handle}, $param->{digest});
+	Proxmox::RS::APT::Repositories::add_repository($param->{handle}, "pmg", $param->{digest});
     }});
 
 __PACKAGE__->register_method({
@@ -748,7 +749,7 @@ __PACKAGE__->register_method({
 	my $enabled = $param->{enabled};
 	$options->{enabled} = int($enabled) if defined($enabled);
 
-	PMG::RS::APT::Repositories::change_repository(
+	Proxmox::RS::APT::Repositories::change_repository(
 	    $param->{path},
 	    int($param->{index}),
 	    $options,
