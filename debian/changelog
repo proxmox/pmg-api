@@ -1,3 +1,19 @@
+pmg-api (7.1-4) bullseye; urgency=medium
+
+  * rulesystem: matchfield: match all headers not only the first
+
+  * config: avoid adding a specific IPs or networks multiple times to
+    the template variables
+
+  * api: quarantine: load custom rules description so that they show up
+    in the GUI too
+
+  * pmg-daily: avoid short-circuting update of local channels
+
+  * api: apt: switch to common Proxmox::RS::APT::Repositories package
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 13 Jul 2022 11:15:00 +0200
+
 pmg-api (7.1-3) bullseye; urgency=medium
 
   * fix duplicate 'x-ms-dos-executable' in default 'Dangerous Content' object
