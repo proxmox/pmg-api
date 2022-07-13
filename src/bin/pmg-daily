@@ -85,7 +85,7 @@ if (system('sa-update') == 0) {
 }
 
 eval {
-    $restart_filter ||= PMG::Utils::update_local_spamassassin_channels(0);
+    $restart_filter = 1 if PMG::Utils::update_local_spamassassin_channels(0);
 };
 syslog('err', "$@") if $@;
 
