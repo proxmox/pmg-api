@@ -19,14 +19,6 @@ use PMG::PBSSchedule;
 
 use base qw(PVE::RESTHandler);
 
-my sub get_namespace : prototype($) {
-    my ($remote_config) = @_;
-    if (my $ns = $remote_config->{namespace}) {
-	return $ns if length($ns); # don't pass root namespace
-    }
-    return undef;
-}
-
 __PACKAGE__->register_method ({
     name => 'list',
     path => '',
@@ -111,10 +103,9 @@ my sub get_snapshots {
     my $res = [];
     return $res if $remote_config->{disable};
 
-    my $namespace = get_namespace($remote_config);
     my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
 
-    my $snapshots = $pbs->get_snapshots([$namespace, $group]);
+    my $snapshots = $pbs->get_snapshots($group);
     foreach my $item (@$snapshots) {
 	my ($type, $id, $time) = $item->@{qw(backup-type backup-id backup-time)};
 	next if $type ne 'host';
@@ -252,9 +243,8 @@ __PACKAGE__->register_method ({
 	die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
 
 	my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
-	my $namespace = get_namespace($remote_config);
 
-	eval { $pbs->forget_snapshot([$namespace, "host/$id/$time"]) };
+	eval { $pbs->forget_snapshot("host/$id/$time") };
 	die "Forgetting backup failed: $@" if $@;
 
 	return;
@@ -324,13 +314,11 @@ __PACKAGE__->register_method ({
 
 	    $log->("starting update of current backup state");
 
-	    my $namespace = get_namespace($remote_config);
-
 	    eval {
 		-d $backup_dir || mkdir $backup_dir;
 		PMG::Backup::pmg_backup($backup_dir, $param->{statistic});
 
-		$pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup', undef, $namespace);
+		$pbs->backup_fs_tree($backup_dir, $node, 'pmgbackup');
 
 		rmtree $backup_dir;
 	    };
@@ -345,7 +333,7 @@ __PACKAGE__->register_method ({
 	    my $group = "host/$node";
 	    if (defined(my $prune_opts = $conf->prune_options($remote))) {
 		$log->("starting prune of $group");
-		my $res = eval { $pbs->prune_group(undef, $prune_opts, [$namespace, $group]) };
+		my $res = eval { $pbs->prune_group(undef, $prune_opts, $group) };
 		if (my $err = $@) {
 		    $log->($err);
 		    PMG::Backup::send_backup_notification($notify, $remote, $full_log, $err);
