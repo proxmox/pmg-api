@@ -209,7 +209,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	return get_snapshots($param->{remote}, "host/$param->{node}");
+	return get_snapshots($param->{remote}, "host/$param->{'backup-id'}");
     }});
 
 __PACKAGE__->register_method ({
