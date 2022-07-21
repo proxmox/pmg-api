@@ -61,8 +61,8 @@ if (my $statlifetime = $cfg->get ('admin', 'statlifetime')) {
 # check for available updates
 # We assume that users with subscriptions want information
 # about new packages.
-my $info = PVE::INotify::read_file('subscription');
-my $notify = ($info && $info->{status} eq 'Active') ? 1 : 0;
+my $info = eval { PMG::API2::Subscription::read_etc_subscription() };
+my $notify = ($info && $info->{status} eq 'active') ? 1 : 0;
 eval { PMG::API2::APT->update_database({ node => $nodename, notify => $notify, quiet => 1 }); };
 if (my $err = $@) {
     syslog ('err', "update apt database failed: $err");

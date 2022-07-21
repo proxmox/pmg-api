@@ -3,6 +3,8 @@ package PMG::API2::Subscription;
 use strict;
 use warnings;
 
+use Proxmox::RS::Subscription;
+
 use PVE::Tools;
 use PVE::SafeSyslog;
 use PVE::INotify;
@@ -10,18 +12,14 @@ use PVE::Exception qw(raise_param_exc);
 use PVE::RESTHandler;
 use PMG::RESTEnvironment;
 use PVE::JSONSchema qw(get_standard_option);
-use PVE::Subscription;
 
 use PMG::Utils;
 use PMG::Config;
 
 use base qw(PVE::RESTHandler);
 
-PVE::INotify::register_file('subscription', "/etc/pmg/subscription",
-			    \&read_etc_pmg_subscription,
-			    \&write_etc_pmg_subscription);
-
 my $subscription_pattern = 'pmg([cbsp])-[0-9a-f]{10}';
+my $filename = "/etc/pmg/subscription";
 
 sub parse_key {
     my ($key, $noerr) = @_;
@@ -34,27 +32,26 @@ sub parse_key {
     die "Wrong subscription key format\n";
 }
 
-sub read_etc_pmg_subscription {
-    my ($filename, $fh) = @_;
-
+sub read_etc_subscription {
     my $server_id = PMG::Utils::get_hwaddress();
 
-    my $info = PVE::Subscription::read_subscription($server_id, $filename, $fh);
+    my $info = Proxmox::RS::Subscription::read_subscription($filename);
+
     my $level = parse_key($info->{key});
 
-    if ($info->{status} eq 'Active') {
+    if ($info->{status} eq 'active') {
 	$info->{level} = $level;
     }
 
     return $info;
 };
 
-sub write_etc_pmg_subscription {
-    my ($filename, $fh, $info) = @_;
+sub write_etc_subscription {
+    my ($info) = @_;
 
     my $server_id = PMG::Utils::get_hwaddress();
 
-    PVE::Subscription::write_subscription($server_id, $filename, $fh, $info);
+    Proxmox::RS::Subscription::write_subscription($filename, "/etc/apt/auth.conf.d/pmg.conf", "enterprise.proxmox.com/debian/pmg", $info);
 }
 
 __PACKAGE__->register_method ({
@@ -76,10 +73,10 @@ __PACKAGE__->register_method ({
 
 	my $server_id = PMG::Utils::get_hwaddress();
 	my $url = "https://www.proxmox.com/proxmox-mail-gateway/pricing";
-	my $info = PVE::INotify::read_file('subscription');
+	my $info = read_etc_subscription();
 	if (!$info) {
 	    return {
-		status => "NotFound",
+		status => "notfound",
 		message => "There is no subscription key",
 		serverid => $server_id,
 		url => $url,
@@ -116,27 +113,24 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $info = PVE::INotify::read_file('subscription');
+	my $info = read_etc_subscription();
 	return undef if !$info;
 
 	my $server_id = PMG::Utils::get_hwaddress();
 	my $key = $info->{key};
 
-	if ($key) {
-	    PVE::Subscription::update_apt_auth($key, $server_id);
-	}
-
-	if (!$param->{force} && $info->{status} eq 'Active') {
-	    my $age = time() -  $info->{checktime};
-	    return undef if $age < $PVE::Subscription::localkeydays*60*60*24;
-	}
+	# key has been recently checked
+	return undef
+	    if !$param->{force}
+		&& $info->{status} eq 'active'
+		&& Proxmox::RS::Subscription::check_age($info, 1)->{status} eq 'active';
 
 	my $pmg_cfg = PMG::Config->new();
 	my $proxy = $pmg_cfg->get('admin', 'http_proxy');
 
-	$info = PVE::Subscription::check_subscription($key, $server_id, $proxy);
+	$info = Proxmox::RS::Subscription::check_subscription($key, $server_id, "", "Proxmox Mail Gateway", $proxy);
 
-	PVE::INotify::write_file('subscription', $info);
+	write_etc_subscription($info);
 
 	return undef;
     }});
@@ -169,21 +163,21 @@ __PACKAGE__->register_method ({
 	my $level = parse_key($key);
 
 	my $info = {
-	    status => 'New',
+	    status => 'new',
 	    key => $key,
 	    checktime => time(),
 	};
 
 	my $server_id = PMG::Utils::get_hwaddress();
 
-	PVE::INotify::write_file('subscription', $info);
+	write_etc_subscription($info);
 
 	my $pmg_cfg = PMG::Config->new();
 	my $proxy = $pmg_cfg->get('admin', 'http_proxy');
 
-	$info = PVE::Subscription::check_subscription($key, $server_id, $proxy);
+	$info = Proxmox::RS::Subscription::check_subscription($key, $server_id, "", "Proxmox Mail Gateway", $proxy);
 
-	PVE::INotify::write_file('subscription', $info);
+	write_etc_subscription($info);
 
 	return undef;
     }});
@@ -203,9 +197,8 @@ __PACKAGE__->register_method ({
     },
     returns => { type => 'null'},
     code => sub {
-	my $subscription_file = '/etc/pmg/subscription';
-	return if ! -e $subscription_file;
-	unlink($subscription_file) or die "cannot delete subscription key: $!";
+	return if ! -e $filename;
+	unlink($filename) or die "cannot delete subscription key: $!";
 	return undef;
     }});
 

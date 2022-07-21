@@ -772,7 +772,7 @@ __PACKAGE__->register_method({
 	    free => $dinfo->{blocks} - $dinfo->{used},
 	};
 
-	if (my $subinfo = PVE::INotify::read_file('subscription')) {
+	if (my $subinfo = eval { PMG::API2::Subscription::read_etc_subscription() } ) {
 	    if (my $level = $subinfo->{level}) {
 		$res->{level} = $level;
 	    }
