@@ -40,6 +40,13 @@ my $wa_config_schema = {
 		"Relying part ID. Must be the domain name without protocol, port or location.\n"
 		.'Changing this *will* break existing credentials.',
 	},
+	'allow-subdomains' => {
+	    type => 'boolean',
+	    description =>
+		'Whether to allow the origin to be a subdomain, rather than the exact URL.',
+	    optional => 1,
+	    default => 1,
+	},
     },
 };
 
