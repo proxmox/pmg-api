@@ -548,28 +548,25 @@ my $quarantine_api = sub {
     my $start = $param->{starttime} // (time - 86400);
     my $end = $param->{endtime} // ($start + 86400);
 
-    my $select;
-    my $pmail;
-    if ($check_pmail || $role eq 'quser') {
-	$pmail = $verify_optional_pmail->($authuser, $role, $param->{pmail});
-	$select = "SELECT * " .
-		  "FROM CMailStore, CMSReceivers WHERE " .
-		  "pmail = ? AND time >= $start AND time < $end AND " .
-		  "QType = '$quartype' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
-		  "AND Status = 'N' ORDER BY pmail, time, receiver";
-    } else {
-	$select = "SELECT * " .
-		  "FROM CMailStore, CMSReceivers WHERE " .
-		  "time >= $start AND time < $end AND " .
-		  "QType = '$quartype' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
-		  "AND Status = 'N' ORDER BY time, receiver";
-    }
-
-    my $res = [];
 
     my $dbh = PMG::DBTools::open_ruledb();
 
-    my $sth = $dbh->prepare($select);
+    my $sth;
+    my $pmail;
+    if ($check_pmail || $role eq 'quser') {
+	$pmail = $verify_optional_pmail->($authuser, $role, $param->{pmail});
+	$sth = $dbh->prepare(
+	    "SELECT * FROM CMailStore, CMSReceivers WHERE pmail = ?"
+	    ." AND time >= $start AND time < $end AND QType = '$quartype' AND CID = CMailStore_CID"
+	    ." AND RID = CMailStore_RID AND Status = 'N' ORDER BY pmail, time, receiver"
+	);
+    } else {
+	$sth = $dbh->prepare(
+	    "SELECT * FROM CMailStore, CMSReceivers WHERE time >= $start AND time < $end"
+	    ." AND QType = '$quartype' AND CID = CMailStore_CID AND RID = CMailStore_RID"
+	    ." AND Status = 'N' ORDER BY time, receiver"
+	);
+    }
 
     if ($check_pmail || $role eq 'quser') {
 	$sth->execute($pmail);
@@ -577,9 +574,9 @@ my $quarantine_api = sub {
 	$sth->execute();
     }
 
+    my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $data = $parse_header_info->($ref);
-	push @$res, $data;
+	push @$res, $parse_header_info->($ref);
     }
 
     return $res;
