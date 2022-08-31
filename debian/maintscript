@@ -1,0 +1,3 @@
+# FIXME: remove in 8.0
+rm_conffile /etc/apt/apt.conf.d/75pmgconf 7.1-5~ pmg-api
+
