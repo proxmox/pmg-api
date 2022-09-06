@@ -1,3 +1,11 @@
+pmg-api (7.1-5) bullseye; urgency=medium
+
+  * add 'allow-subdomains' to webauthn schema
+
+  * subscription: switch to rust, add offline key support
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 6 Sep 2022 10:35:09 +0200
+
 pmg-api (7.1-4) bullseye; urgency=medium
 
   * rulesystem: matchfield: match all headers not only the first
