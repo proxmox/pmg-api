@@ -36,6 +36,7 @@ sub read_etc_subscription {
     my $server_id = PMG::Utils::get_hwaddress();
 
     my $info = Proxmox::RS::Subscription::read_subscription($filename);
+    return $info if !$info;
 
     my $level = parse_key($info->{key});
 
