@@ -1,3 +1,11 @@
+pmg-api (7.1-6) bullseye; urgency=medium
+
+  * subscription: handle missing subscription info
+
+  * fix #3915: remove obsolete /etc/apt/apt.conf.d/75pmgconf
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 08 Sep 2022 15:04:49 +0200
+
 pmg-api (7.1-5) bullseye; urgency=medium
 
   * add 'allow-subdomains' to webauthn schema
