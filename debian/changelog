@@ -1,3 +1,11 @@
+pmg-api (7.1-7) bullseye; urgency=medium
+
+  * d/control: recommend proxmox-offline-mirror-helper
+
+  * d/postinst: migrate/update APT auth config
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 14 Sep 2022 13:17:58 +0200
+
 pmg-api (7.1-6) bullseye; urgency=medium
 
   * subscription: handle missing subscription info
