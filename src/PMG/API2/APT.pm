@@ -796,6 +796,7 @@ __PACKAGE__->register_method({
 	    ifupdown2
 	    libpve-apiclient-perl
 	    proxmox-mailgateway-container
+	    proxmox-offline-mirror-helper
 	    pve-firmware
 	    zfsutils-linux
 	);
