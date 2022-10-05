@@ -9,6 +9,7 @@ use Time::HiRes qw (usleep gettimeofday tv_interval);
 use POSIX qw(:sys_wait_h errno_h signal_h);
 
 use MIME::Parser;
+use MIME::WordDecoder qw(mime_to_perl_string);
 use File::Path;
 use Net::Server::PreFork;
 use Net::Server::SIG qw(register_sig check_sigs);
@@ -152,7 +153,7 @@ sub get_prox_vars {
     } if !$spaminfo;
 
     my $vars = {
-	'SUBJECT' => $entity->head->get ('subject', 0) || 'No Subject',
+	'SUBJECT' => mime_to_perl_string($entity->head->get ('subject', 0) || 'No Subject'),
 	'RULE' => $rule->{name},
 	'RULE_INFO' => $msginfo->{rule_info},
 	'SENDER' => $msginfo->{sender},

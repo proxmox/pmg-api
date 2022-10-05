@@ -6,6 +6,7 @@ use DBI;
 use MIME::Body;
 use MIME::Head;
 use MIME::Entity;
+use MIME::Words qw(encode_mimewords);
 use Encode qw(decode encode);
 
 use PVE::SafeSyslog;
@@ -228,7 +229,7 @@ sub execute {
 	Charset => 'UTF-8',
 	From    => $from,
 	To      => $to,
-	Subject => encode('UTF-8', $subject),
+	Subject => encode_mimewords(encode('UTF-8', $subject), "Charset" => "UTF-8"),
 	Data => encode('UTF-8', $body));
 
     if ($self->{attach} eq 'O') {
