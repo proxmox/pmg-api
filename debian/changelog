@@ -1,3 +1,15 @@
+pmg-api (7.1-8) bullseye; urgency=medium
+
+  * api: apt versions: track proxmox-offline-mirror-helper
+
+  * fix #4269: rule cache: from match: cope with undefined IP
+
+  * rule database: notify: properly en-/decode the mail subject to avoid issues
+    with non-ascii characters, like for example, the reported chinese
+    characters.
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 28 Oct 2022 11:42:15 +0200
+
 pmg-api (7.1-7) bullseye; urgency=medium
 
   * d/control: recommend proxmox-offline-mirror-helper
