@@ -1005,7 +1005,7 @@ __PACKAGE__->register_method ({
     name => 'listattachments',
     path => 'listattachments',
     method => 'GET',
-    permissions => { check => [ 'admin', 'qmanager', 'audit'] },
+    permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
     description => "Get Attachments for E-Mail in Quarantine.",
     parameters => {
 	additionalProperties => 0,
