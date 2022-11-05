@@ -826,7 +826,7 @@ my $get_and_check_mail = sub {
     if ($role eq 'quser') {
 	my $quar_username = $ref->{pmail} . '@quarantine';
 	raise_perm_exc("mail does not belong to user '$authuser' ($ref->{pmail})")
-	if $authuser ne $quar_username;
+	    if $authuser ne $quar_username;
     }
 
     return $ref;
