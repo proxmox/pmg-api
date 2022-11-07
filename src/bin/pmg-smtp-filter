@@ -82,7 +82,6 @@ my $max_spare_servers = 0;
 my $max_requests = 1;
 
 if (!$opt_testmode) {
-
     my $pmg_cfg = PMG::Config->new();
 
     my $demo = $pmg_cfg->get('admin', 'demo');
@@ -204,11 +203,9 @@ sub get_prox_vars {
 
 	foreach my $s (@$sscores) {
 	    if ($opt_testmode) {
-		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule},
-				     1, $s->{desc} || '-');
+		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule}, 1, $s->{desc} || '-');
 	    } else {
-		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule},
-				     $s->{score}, $s->{desc} || '-');
+		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule}, $s->{score}, $s->{desc} || '-');
 	    }
 	}
 	$vars->{'SPAM_INFO'} = $sa_text;
@@ -327,23 +324,21 @@ sub apply_rules {
 	    }
 	}
 
-	my $vars = $self->get_prox_vars ($queue, $entity, $msginfo, $rule,
-					 $rule_targets{$rule->{id}}, $spaminfo);
+	my $vars = $self->get_prox_vars (
+	    $queue, $entity, $msginfo, $rule, $rule_targets{$rule->{id}}, $spaminfo);
 
-
-	my @sorted_actions =
-	    sort {$a->priority <=> $b->priority} @{$rule_actions{$rule->{id}}};
+	my @sorted_actions = sort {$a->priority <=> $b->priority} @{$rule_actions{$rule->{id}}};
 
 	foreach my $action (@sorted_actions) {
-	    $action->execute ($queue, $self->{ruledb}, $mod_group,
-			      $rule_targets{$rule->{id}},
-			      $msginfo, $vars, $rule_marks{$rule->{id}}->{marks}, $ldap);
+	    $action->execute(
+		$queue, $self->{ruledb}, $mod_group, $rule_targets{$rule->{id}}, $msginfo, $vars,
+		$rule_marks{$rule->{id}}->{marks}, $ldap
+	    );
 	    last if $action->final;
 	}
     }
 
-    # we deliver all mail not matched by any rule
-    # (default action = accept)
+    # we deliver all mail not matched by any rule (default action = accept)
     my $unmatched;
     foreach my $target (@{$msginfo->{targets}}) {
 	next if $final->{$target};
@@ -507,12 +502,9 @@ sub run_dequeue {
 
     my $err;
 
-    # do database maintenance here
+    # do database maintenance here, this is called every 30 secends
 
-    # this is called every 30 secends
-    eval {
-	PMG::Utils::update_node_status_rrd();
-    };
+    eval { PMG::Utils::update_node_status_rrd() };
     if ($err = $@) {
 	$self->log(0, "ERROR: $err");
 	# continue
@@ -523,7 +515,6 @@ sub run_dequeue {
 
     # return if tdiff less than 2 minutes
     return if $tdiff < 2*60;
-
     $last_dequeue_time = $ctime;
 
     $self->log (2, "starting database maintenance");
@@ -532,27 +523,20 @@ sub run_dequeue {
 
     my $cinfo = PVE::INotify::read_file("cluster.conf");
 
-    my $dbh;
-
-    eval {
-	$dbh = PMG::DBTools::open_ruledb($database);
-    };
+    my $dbh = eval { PMG::DBTools::open_ruledb($database) };
     if ($err = $@) {
 	$self->log (0, "ERROR: $err");
 	return;
     }
 
-    eval {
-	PMG::Statistic::update_stats($dbh, $cinfo);
-    };
+    eval { PMG::Statistic::update_stats($dbh, $cinfo) };
     $err = $@;
-
-    my ($csec_end, $usec_end) = gettimeofday ();
-    my $ptime = int (($csec_end-$csec)*1000 + ($usec_end - $usec)/1000);
 
     if ($err) {
 	$self->log (0, $err);
     } else {
+	my ($csec_end, $usec_end) = gettimeofday ();
+	my $ptime = int (($csec_end - $csec) * 1000 + ($usec_end - $usec) / 1000);
 	$self->log (2, "end database maintenance ($ptime ms)");
     }
 
@@ -563,12 +547,9 @@ sub run_dequeue {
 sub unpack_entity {
     my ($self, $unpack, $entity, $msginfo, $queue) = @_;
 
-    my $magic;
-    my $path;
+    my ($magic, $path) = $entity->@{'PMX_magic_ct', 'PMX_decoded_path'};
 
-    if (($magic = $entity->{PMX_magic_ct}) &&
-	($path = $entity->{PMX_decoded_path})) {
-
+    if ($magic && $path) {
 	my $filename = basename ($path);
 
 	if (PMG::Unpack::is_archive ($magic)) {
@@ -578,10 +559,7 @@ sub unpack_entity {
 
 	    $unpack->{mime} = {};
 
-	    eval {
-		$unpack->unpack_archive ($path, $magic);
-	    };
-
+	    eval { $unpack->unpack_archive ($path, $magic) };
 	    $self->log (3, "$queue->{logid}: unpack failed - $@") if $@;
 
 	    $entity->{PMX_content_types} = $unpack->{mime};
@@ -594,13 +572,12 @@ sub unpack_entity {
 		print $fh "Types:$filename: $types\n" if $types;
 	    }
 
-	    my $elapsed = int(tv_interval ($start) * 1000);
-
+	    my $elapsed = int(tv_interval($start) * 1000);
 	    $self->log (3, "$queue->{logid}: unpack archive '$filename' done ($elapsed ms)");
 	}
     }
 
-    foreach my $part ($entity->parts)  {
+    for my $part ($entity->parts)  {
 	$self->unpack_entity ($unpack, $part, $msginfo, $queue);
     }
 
@@ -618,8 +595,7 @@ sub handle_smtp {
     my $cinfo = $self->{cinfo};
     my $lcid = $cinfo->{local}->{cid};
 
-    $msginfo->{test_fh} = PMG::AtomicFile->new("testresult.out", "w")
-	if $opt_testmode;
+    $msginfo->{test_fh} = PMG::AtomicFile->new("testresult.out", "w")  if $opt_testmode;
 
     $msginfo->{trusted} = $self->{trusted};
 
