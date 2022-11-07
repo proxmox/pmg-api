@@ -369,64 +369,68 @@ sub create_ruledb {
 
     $dbh->do (
 <<EOD
-	      CREATE TABLE Attribut
-	      (Object_ID INTEGER NOT NULL,
-	       Name VARCHAR(20) NOT NULL,
-	       Value BYTEA NULL,
-	       PRIMARY KEY (Object_ID, Name));
+        CREATE TABLE Attribut (
+          Object_ID INTEGER NOT NULL,
+          Name VARCHAR(20) NOT NULL,
+          Value BYTEA NULL,
+          PRIMARY KEY (Object_ID, Name)
+        );
 
-	      CREATE INDEX Attribut_Object_ID_Index ON Attribut(Object_ID);
+        CREATE INDEX Attribut_Object_ID_Index ON Attribut(Object_ID);
 
-	      CREATE TABLE Object
-	      (ID SERIAL UNIQUE,
-	       ObjectType INTEGER NOT NULL,
-	       Objectgroup_ID INTEGER NOT NULL,
-	       Value BYTEA NULL,
-	       PRIMARY KEY (ID));
+        CREATE TABLE Object (
+          ID SERIAL UNIQUE,
+          ObjectType INTEGER NOT NULL,
+          Objectgroup_ID INTEGER NOT NULL,
+          Value BYTEA NULL,
+          PRIMARY KEY (ID)
+        );
 
-	      CREATE TABLE Objectgroup
-	      (ID SERIAL UNIQUE,
-	       Name VARCHAR(255) NOT NULL,
-	       Info VARCHAR(255) NULL,
-	       Class  VARCHAR(10) NOT NULL,
-	       PRIMARY KEY (ID));
+        CREATE TABLE Objectgroup
+          (ID SERIAL UNIQUE,
+          Name VARCHAR(255) NOT NULL,
+          Info VARCHAR(255) NULL,
+          Class  VARCHAR(10) NOT NULL,
+          PRIMARY KEY (ID));
 
-	      CREATE TABLE Rule
-	      (ID SERIAL UNIQUE,
-	       Name VARCHAR(255) NULL,
-	       Priority INTEGER NOT NULL,
-	       Active INTEGER NOT NULL DEFAULT 0,
-	       Direction INTEGER NOT NULL DEFAULT 2,
-	       Count INTEGER NOT NULL DEFAULT 0,
-	       PRIMARY KEY (ID));
+        CREATE TABLE Rule (
+          ID SERIAL UNIQUE,
+          Name VARCHAR(255) NULL,
+          Priority INTEGER NOT NULL,
+          Active INTEGER NOT NULL DEFAULT 0,
+          Direction INTEGER NOT NULL DEFAULT 2,
+          Count INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (ID)
+        );
 
-	      CREATE TABLE RuleGroup
-	      (Objectgroup_ID INTEGER NOT NULL,
-	       Rule_ID INTEGER NOT NULL,
-	       Grouptype INTEGER NOT NULL,
-	       PRIMARY KEY (Objectgroup_ID, Rule_ID, Grouptype));
+        CREATE TABLE RuleGroup (
+          Objectgroup_ID INTEGER NOT NULL,
+          Rule_ID INTEGER NOT NULL,
+          Grouptype INTEGER NOT NULL,
+          PRIMARY KEY (Objectgroup_ID, Rule_ID, Grouptype)
+        );
 
-	      $cgreylist_ctablecmd;
+        $cgreylist_ctablecmd;
 
-	      $clusterinfo_ctablecmd;
+        $clusterinfo_ctablecmd;
 
-	      $local_stat_ctablecmd;
+        $local_stat_ctablecmd;
 
-	      $daily_stat_ctablecmd;
+        $daily_stat_ctablecmd;
 
-	      $domain_stat_ctablecmd;
+        $domain_stat_ctablecmd;
 
-	      $statinfo_ctablecmd;
+        $statinfo_ctablecmd;
 
-	      $cmailstore_ctablecmd;
+        $cmailstore_ctablecmd;
 
-	      $cstatistic_ctablecmd;
+        $cstatistic_ctablecmd;
 
-	      $userprefs_ctablecmd;
+        $userprefs_ctablecmd;
 
-	      $virusinfo_stat_ctablecmd;
+        $virusinfo_stat_ctablecmd;
 EOD
-	      );
+    );
 
     return $dbh;
 }
