@@ -810,13 +810,9 @@ my $get_and_check_mail = sub {
     my ($id, $rpcenv, $dbh) = @_;
 
     my ($cid, $rid, $tid) = $id =~ m/^C(\d+)R(\d+)T(\d+)$/;
-    $cid = int($cid);
-    $rid = int($rid);
-    $tid = int($tid);
+    ($cid, $rid, $tid) = (int($cid), int($rid), int($tid));
 
-    if (!$dbh) {
-	$dbh = PMG::DBTools::open_ruledb();
-    }
+    $dbh = PMG::DBTools::open_ruledb() if !$dbh;
 
     my $ref = PMG::DBTools::load_mail_data($dbh, $cid, $rid, $tid);
 
