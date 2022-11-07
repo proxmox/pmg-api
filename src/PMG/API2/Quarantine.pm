@@ -987,6 +987,7 @@ my $get_attachments = sub {
 	    id => $id,
 	    name => $name,
 	    size => $size,
+	    'content-disposition' => $part->head->mime_attr('content-disposition'),
 	    'content-type' => $part->head->mime_attr('content-type'),
 	};
 	$entry->{path} = $attachment_path if $with_path;
