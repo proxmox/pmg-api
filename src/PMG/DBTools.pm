@@ -442,16 +442,15 @@ sub cond_create_action_quarantine {
 
     eval {
 	my $sth = $dbh->prepare(
-	    "SELECT * FROM Objectgroup, Object " .
-	    "WHERE Object.ObjectType = ? AND Objectgroup.Class = ? " .
-	    "AND Object.objectgroup_id = Objectgroup.id");
+	    "SELECT * FROM Objectgroup, Object WHERE Object.ObjectType = ? AND Objectgroup.Class = ?"
+	    ." AND Object.objectgroup_id = Objectgroup.id"
+	);
 
 	my $otype = PMG::RuleDB::Quarantine::otype();
 	if ($sth->execute($otype, 'action') <= 0) {
 	    my $obj = PMG::RuleDB::Quarantine->new ();
 	    my $txt = decode_entities(PMG::RuleDB::Quarantine->otype_text);
-	    my $quarantine = $ruledb->create_group_with_obj
-		($obj, $txt, 'Move to quarantine.');
+	    my $quarantine = $ruledb->create_group_with_obj($obj, $txt, 'Move to quarantine.');
 	}
     };
 }
@@ -495,24 +494,22 @@ sub upgradedb {
 
     # upgrade tables here if necessary
     if (!database_column_exists($dbh, 'LocalStat', 'PregreetCount')) {
-	$dbh->do("ALTER TABLE LocalStat ADD COLUMN " .
-		 "PregreetCount INTEGER DEFAULT 0 NOT NULL");
+	$dbh->do("ALTER TABLE LocalStat ADD COLUMN PregreetCount INTEGER DEFAULT 0 NOT NULL");
     }
 
     eval { $dbh->do("ALTER TABLE LocalStat DROP CONSTRAINT localstat_time_key"); };
     # ignore errors here
-
 
     # add missing TicketID to CMSReceivers
     if (!database_column_exists($dbh, 'CMSReceivers', 'TicketID')) {
 	eval {
 	    $dbh->begin_work;
 	    $dbh->do("CREATE SEQUENCE cmsreceivers_ticketid_seq");
-	    $dbh->do("ALTER TABLE CMSReceivers ADD COLUMN " .
-		     "TicketID INTEGER NOT NULL " .
-		     "DEFAULT nextval('cmsreceivers_ticketid_seq')");
-	    $dbh->do("ALTER TABLE CMSReceivers ALTER COLUMN " .
-		     "TicketID DROP DEFAULT");
+	    $dbh->do(
+	        "ALTER TABLE CMSReceivers ADD COLUMN TicketID INTEGER NOT NULL"
+	        ." DEFAULT nextval('cmsreceivers_ticketid_seq')"
+	    );
+	    $dbh->do("ALTER TABLE CMSReceivers ALTER COLUMN TicketID DROP DEFAULT");
 	    $dbh->do("DROP SEQUENCE cmsreceivers_ticketid_seq");
 	    $dbh->commit;
 	};
@@ -524,29 +521,31 @@ sub upgradedb {
 
     # update obsolete content type names
     eval {
-	$dbh->do("UPDATE Object " .
-		 "SET value = 'content-type:application/java-vm' ".
-		 "WHERE objecttype = 3003 " .
-		 "AND value = 'content-type:application/x-java-vm';");
+	$dbh->do(
+	    "UPDATE Object SET value = 'content-type:application/java-vm' WHERE objecttype = 3003"
+	    ." AND value = 'content-type:application/x-java-vm';"
+	);
     };
 
     # increase column size of cgreylist.ipnet for ipv6 support and transfer data
     eval {
-	my $sth = $dbh->prepare("SELECT character_maximum_length ".
-	    "FROM information_schema.columns ".
-	    "WHERE table_name = 'cgreylist' AND column_name = 'ipnet'");
+	my $sth = $dbh->prepare(
+	    "SELECT character_maximum_length FROM information_schema.columns"
+	    ." WHERE table_name = 'cgreylist' AND column_name = 'ipnet'"
+	);
 	$sth->execute();
 	my $res = $sth->fetchrow_hashref();
 	if ($res->{character_maximum_length} == 16) {
 	    $dbh->begin_work;
-	    $dbh->do("ALTER TABLE CGreylist ALTER COLUMN " .
-		     "IPNet TYPE varchar(49)");
+	    $dbh->do("ALTER TABLE CGreylist ALTER COLUMN IPNet TYPE varchar(49)");
 	    eval {
-		$dbh->do("UPDATE CGreylist cg1 SET IPNet = IPNet || '.0/24' ".
-			"WHERE position('/' in IPNet) = 0 AND ".
-			"NOT EXISTS (SELECT 1 FROM CGreylist cg2 WHERE ".
-			"cg2.IPNet = cg1.IPNet || '.0/24' AND ".
-			"cg1.Receiver = cg2.Receiver AND cg1.Sender = cg2.Sender)");
+		$dbh->do(
+		    "UPDATE CGreylist cg1 SET IPNet = IPNet || '.0/24' ".
+		    "WHERE position('/' in IPNet) = 0 AND ".
+		    "NOT EXISTS (SELECT 1 FROM CGreylist cg2 WHERE ".
+		    "cg2.IPNet = cg1.IPNet || '.0/24' AND ".
+		    "cg1.Receiver = cg2.Receiver AND cg1.Sender = cg2.Sender)"
+		);
 	    };
 	    #ignore errors here - legacy rows will eventually expire
 	    $dbh->commit;
@@ -585,8 +584,7 @@ sub init_ruledb {
 
     if (!$reset) {
 	# Greylist Objectgroup
-	my $greylistgroup = PMG::RuleDB::Group->new
-	    ("GreyExclusion", "-", "greylist");
+	my $greylistgroup = PMG::RuleDB::Group->new("GreyExclusion", "-", "greylist");
 	$ruledb->save_group ($greylistgroup);
 
     } else {
@@ -594,11 +592,13 @@ sub init_ruledb {
 	my $glids = "SELECT object.ID FROM Object, Objectgroup WHERE " .
 	    "objectgroup_id = objectgroup.id and class = 'greylist'";
 
-	$dbh->do ("DELETE FROM Rule; " .
-		  "DELETE FROM RuleGroup; " .
-		  "DELETE FROM Attribut WHERE Object_ID NOT IN ($glids); " .
-		  "DELETE FROM Object WHERE ID NOT IN ($glids); " .
-		  "DELETE FROM Objectgroup WHERE class != 'greylist';");
+	$dbh->do(
+	    "DELETE FROM Rule;"
+	    ." DELETE FROM RuleGroup;"
+	    ." DELETE FROM Attribut WHERE Object_ID NOT IN ($glids);"
+	    ." DELETE FROM Object WHERE ID NOT IN ($glids);"
+	    ." DELETE FROM Objectgroup WHERE class != 'greylist';"
+	);
     }
 
     # WHO Objects
@@ -610,38 +610,32 @@ sub init_ruledb {
 
     # Whitelist
     $obj = PMG::RuleDB::EMail->new('mail@fromthisdomain.com');
-    my $whitelist = $ruledb->create_group_with_obj(
-	$obj, 'Whitelist', 'Global whitelist');
+    my $whitelist = $ruledb->create_group_with_obj($obj, 'Whitelist', 'Global whitelist');
 
     # WHEN Objects
 
     # Working hours
     $obj = PMG::RuleDB::TimeFrame->new(8*60, 16*60);
-    my $working_hours =$ruledb->create_group_with_obj($obj, 'Office Hours' ,
-						      'Usual office hours');
+    my $working_hours =$ruledb->create_group_with_obj($obj, 'Office Hours', 'Usual office hours');
 
     # WHAT Objects
 
     # Images
     $obj = PMG::RuleDB::ContentTypeFilter->new('image/.*');
-    my $img_content = $ruledb->create_group_with_obj(
-	$obj, 'Images', 'All kinds of graphic files');
+    my $img_content = $ruledb->create_group_with_obj($obj, 'Images', 'All kinds of graphic files');
 
     # Multimedia
     $obj = PMG::RuleDB::ContentTypeFilter->new('audio/.*');
-    my $mm_content = $ruledb->create_group_with_obj(
-	$obj, 'Multimedia', 'Audio and Video');
+    my $mm_content = $ruledb->create_group_with_obj($obj, 'Multimedia', 'Audio and Video');
 
     $obj = PMG::RuleDB::ContentTypeFilter->new('video/.*');
     $ruledb->group_add_object($mm_content, $obj);
 
     # Office Files
     $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.ms-excel');
-    my $office_content = $ruledb->create_group_with_obj(
-	$obj, 'Office Files', 'Common Office Files');
+    my $office_content = $ruledb->create_group_with_obj($obj, 'Office Files', 'Common Office Files');
 
-    $obj = PMG::RuleDB::ContentTypeFilter->new(
-	'application/vnd\.ms-powerpoint');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.ms-powerpoint');
 
     $ruledb->group_add_object($office_content, $obj);
 
@@ -652,23 +646,19 @@ sub init_ruledb {
 	'application/vnd\.openxmlformats-officedocument\..*');
     $ruledb->group_add_object($office_content, $obj);
 
-    $obj = PMG::RuleDB::ContentTypeFilter->new(
-	'application/vnd\.oasis\.opendocument\..*');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.oasis\.opendocument\..*');
     $ruledb->group_add_object($office_content, $obj);
 
-    $obj = PMG::RuleDB::ContentTypeFilter->new(
-	'application/vnd\.stardivision\..*');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.stardivision\..*');
     $ruledb->group_add_object($office_content, $obj);
 
-    $obj = PMG::RuleDB::ContentTypeFilter->new(
-	'application/vnd\.sun\.xml\..*');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.sun\.xml\..*');
     $ruledb->group_add_object($office_content, $obj);
 
     # Dangerous Content
-    $obj = PMG::RuleDB::ContentTypeFilter->new(
-	'application/x-ms-dos-executable');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-ms-dos-executable');
     my $exe_content = $ruledb->create_group_with_obj(
-	$obj, 'Dangerous Content', 'executable files and partial messages');
+        $obj, 'Dangerous Content', 'executable files and partial messages');
 
     $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-java');
     $ruledb->group_add_object($exe_content, $obj);
@@ -685,37 +675,33 @@ sub init_ruledb {
 
     # Virus
     $obj = PMG::RuleDB::Virus->new();
-    my $virus = $ruledb->create_group_with_obj(
-	$obj, 'Virus', 'Matches virus infected mail');
+    my $virus = $ruledb->create_group_with_obj($obj, 'Virus', 'Matches virus infected mail');
 
     # WHAT Objects
 
     # Spam
     $obj = PMG::RuleDB::Spam->new(3);
-    my $spam3 = $ruledb->create_group_with_obj(
-	$obj, 'Spam (Level 3)', 'Matches possible spam mail');
+    my $spam3 = $ruledb->create_group_with_obj($obj, 'Spam (Level 3)', 'Matches possible spam mail');
 
     $obj = PMG::RuleDB::Spam->new(5);
-    my $spam5 = $ruledb->create_group_with_obj(
-	$obj, 'Spam (Level 5)', 'Matches possible spam mail');
+    my $spam5 = $ruledb->create_group_with_obj($obj, 'Spam (Level 5)', 'Matches possible spam mail');
 
     $obj = PMG::RuleDB::Spam->new(10);
-    my $spam10 = $ruledb->create_group_with_obj(
-	$obj, 'Spam (Level 10)', 'Matches possible spam mail');
+    my $spam10 = $ruledb->create_group_with_obj($obj, 'Spam (Level 10)', 'Matches possible spam mail');
 
     # ACTIONS
 
     # Mark Spam
     $obj = PMG::RuleDB::ModField->new('X-SPAM-LEVEL', '__SPAM_INFO__');
     my $mod_spam_level = $ruledb->create_group_with_obj(
-	$obj, 'Modify Spam Level',
-	'Mark mail as spam by adding a header tag.');
+	$obj, 'Modify Spam Level', 'Mark mail as spam by adding a header tag.');
 
     # Mark Spam
     $obj = PMG::RuleDB::ModField->new('subject', 'SPAM: __SUBJECT__');
     my $mod_spam_subject = $ruledb->create_group_with_obj(
 	$obj, 'Modify Spam Subject',
-	'Mark mail as spam by modifying the subject.');
+	'Mark mail as spam by modifying the subject.'
+    );
 
     # Remove matching attachments
     $obj = PMG::RuleDB::Remove->new(0);
@@ -729,8 +715,7 @@ sub init_ruledb {
 
     # Accept
     $obj = PMG::RuleDB::Accept->new();
-    my $accept = $ruledb->create_group_with_obj(
-	$obj, 'Accept', 'Accept mail for Delivery');
+    my $accept = $ruledb->create_group_with_obj($obj, 'Accept', 'Accept mail for Delivery');
 
     # Block
     $obj = PMG::RuleDB::Block->new ();
@@ -738,23 +723,19 @@ sub init_ruledb {
 
     # Quarantine
     $obj = PMG::RuleDB::Quarantine->new();
-    my $quarantine = $ruledb->create_group_with_obj(
-	$obj, 'Quarantine', 'Move mail to quarantine');
+    my $quarantine = $ruledb->create_group_with_obj($obj, 'Quarantine', 'Move mail to quarantine');
 
     # Notify Admin
     $obj = PMG::RuleDB::Notify->new('__ADMIN__');
-    my $notify_admin = $ruledb->create_group_with_obj(
-	$obj, 'Notify Admin', 'Send notification');
+    my $notify_admin = $ruledb->create_group_with_obj($obj, 'Notify Admin', 'Send notification');
 
     # Notify Sender
     $obj = PMG::RuleDB::Notify->new('__SENDER__');
-    my $notify_sender = $ruledb->create_group_with_obj(
-	$obj, 'Notify Sender', 'Send notification');
+    my $notify_sender = $ruledb->create_group_with_obj($obj, 'Notify Sender', 'Send notification');
 
     # Add Disclaimer
     $obj = PMG::RuleDB::Disclaimer->new ();
-    my $add_discl = $ruledb->create_group_with_obj(
-	$obj, 'Disclaimer', 'Add Disclaimer');
+    my $add_discl = $ruledb->create_group_with_obj($obj, 'Disclaimer', 'Add Disclaimer');
 
     # Move to attachment quarantine
     $obj = PMG::RuleDB::Remove->new(0, undef, undef, 1);
@@ -923,18 +904,18 @@ sub init_masterdb {
 	$dbh->begin_work;
 
 	print STDERR "update quarantine database\n";
-	$dbh->do ("UPDATE CMailStore SET CID = $lcid WHERE CID = 0;" .
+	$dbh->do("UPDATE CMailStore SET CID = $lcid WHERE CID = 0;" .
 		  "UPDATE CMSReceivers SET CMailStore_CID = $lcid WHERE CMailStore_CID = 0;");
 
 	print STDERR "update statistic database\n";
-	$dbh->do ("UPDATE CStatistic SET CID = $lcid WHERE CID = 0;" .
+	$dbh->do("UPDATE CStatistic SET CID = $lcid WHERE CID = 0;" .
 		  "UPDATE CReceivers SET CStatistic_CID = $lcid WHERE CStatistic_CID = 0;");
 
 	print STDERR "update greylist database\n";
-	$dbh->do ("UPDATE CGreylist SET CID = $lcid WHERE CID = 0;");
+	$dbh->do("UPDATE CGreylist SET CID = $lcid WHERE CID = 0;");
 
 	print STDERR "update localstat database\n";
-	$dbh->do ("UPDATE LocalStat SET CID = $lcid WHERE CID = 0;");
+	$dbh->do("UPDATE LocalStat SET CID = $lcid WHERE CID = 0;");
 
 	$dbh->commit;
     };
@@ -1118,14 +1099,14 @@ sub update_client_clusterinfo {
 
     my $dbh = open_ruledb();
 
-    $dbh->do ("DELETE FROM StatInfo"); # not needed at node
+    $dbh->do("DELETE FROM StatInfo"); # not needed at node
 
-    $dbh->do ("DELETE FROM ClusterInfo WHERE CID = $mastercid");
+    $dbh->do("DELETE FROM ClusterInfo WHERE CID = $mastercid");
 
-    $dbh->do ("INSERT INTO ClusterInfo (cid, name, ivalue) select $mastercid, 'lastid_CMailStore', " .
+    $dbh->do("INSERT INTO ClusterInfo (cid, name, ivalue) select $mastercid, 'lastid_CMailStore', " .
 	      "COALESCE (max (rid), -1) FROM CMailStore WHERE cid = $mastercid");
 
-    $dbh->do ("INSERT INTO ClusterInfo (cid, name, ivalue) select $mastercid, 'lastid_CStatistic', " .
+    $dbh->do("INSERT INTO ClusterInfo (cid, name, ivalue) select $mastercid, 'lastid_CStatistic', " .
 	      "COALESCE (max (rid), -1) FROM CStatistic WHERE cid = $mastercid");
 
     my @mt = ('CMSReceivers', 'CGreylist', 'UserPrefs', 'DomainStat', 'DailyStat', 'LocalStat', 'VirusInfo');
@@ -1142,9 +1123,8 @@ sub create_clusterinfo_default {
     my $sth = $dbh->prepare("SELECT * FROM ClusterInfo WHERE CID = ? AND Name = ?");
     $sth->execute($rcid, $name);
     if (!$sth->fetchrow_hashref()) {
-	$dbh->do("INSERT INTO ClusterInfo (CID, Name, IValue, SValue) " .
-		 "VALUES (?, ?, ?, ?)", undef,
-		 $rcid, $name, $ivalue, $svalue);
+	$dbh->do("INSERT INTO ClusterInfo (CID, Name, IValue, SValue) VALUES (?, ?, ?, ?)", undef,
+	     $rcid, $name, $ivalue, $svalue);
     }
     $sth->finish();
 }
@@ -1153,8 +1133,7 @@ sub read_int_clusterinfo {
     my ($dbh, $rcid, $name) = @_;
 
     my $sth = $dbh->prepare(
-	"SELECT ivalue as value FROM ClusterInfo " .
-	"WHERE cid = ? AND NAME = ?");
+        "SELECT ivalue as value FROM ClusterInfo WHERE cid = ? AND NAME = ?");
     $sth->execute($rcid, $name);
     my $cinfo = $sth->fetchrow_hashref();
     $sth->finish();
@@ -1165,9 +1144,10 @@ sub read_int_clusterinfo {
 sub write_maxint_clusterinfo {
     my ($dbh, $rcid, $name, $value) = @_;
 
-    $dbh->do("UPDATE ClusterInfo SET ivalue = GREATEST(ivalue, ?) " .
-	     "WHERE cid = ? AND name = ?", undef,
-	     $value, $rcid, $name);
+    $dbh->do(
+        "UPDATE ClusterInfo SET ivalue = GREATEST(ivalue, ?) WHERE cid = ? AND name = ?", undef,
+        $value, $rcid, $name
+    );
 }
 
 sub init_nodedb {
@@ -1191,10 +1171,10 @@ sub init_nodedb {
 
 	open (my $fh, ">", $fn) || die "open '$fn' failed - $!\n";
 
-	my $cmd = ['/usr/bin/ssh', '-o', 'BatchMode=yes',
-		   '-o', "HostKeyAlias=${master_name}", $master_ip,
-		   'pg_dump', $dbname, '-F', 'c' ];
-
+	my $cmd = [
+	    '/usr/bin/ssh', '-o', 'BatchMode=yes', '-o', "HostKeyAlias=${master_name}", $master_ip,
+	    '--', 'pg_dump', $dbname, '-F', 'c'
+	];
 	PVE::Tools::run_command($cmd, output => '>&' . fileno($fh));
 
 	close($fh);
@@ -1204,11 +1184,9 @@ sub init_nodedb {
 	print STDERR "copying master database finished (got $size bytes)\n";
 
 	print STDERR "delete local database\n";
-
 	postgres_admin_cmd('dropdb', undef, $dbname , '--if-exists');
 
 	print STDERR "create new local database\n";
-
 	$createdb->($dbname);
 
 	print STDERR "insert received data into local database\n";
@@ -1230,27 +1208,20 @@ sub init_nodedb {
 	    errfunc => $parser,
 	    errmsg => "pg_restore failed"
 	};
-
 	postgres_admin_cmd('pg_restore', $opts, '-d', $dbname, '-v', $fn);
 
 	print STDERR "run analyze to speed up database queries\n";
-
 	postgres_admin_cmd('psql', { input => 'analyze;' }, $dbname);
 
 	update_client_clusterinfo($master_cid);
     };
-
     my $err = $@;
-
     unlink $fn;
-
     die $err if $err;
 }
 
 sub cluster_sync_status {
     my ($cinfo) = @_;
-
-    my $dbh;
 
     my $minmtime;
 
@@ -1259,13 +1230,14 @@ sub cluster_sync_status {
 	$minmtime->{$ni->{cid}} = 0;
     }
 
+    my $dbh;
     eval {
 	$dbh = open_ruledb();
 
 	my $sth = $dbh->prepare(
-	    "SELECT cid, MIN (ivalue) as minmtime FROM ClusterInfo " .
-	    "WHERE name = 'lastsync' AND ivalue > 0 " .
-	    "GROUP BY cid");
+	    "SELECT cid, MIN (ivalue) as minmtime FROM ClusterInfo WHERE name = 'lastsync' AND"
+	    ." ivalue > 0 GROUP BY cid"
+	);
 
 	$sth->execute();
 
@@ -1293,9 +1265,9 @@ sub load_mail_data {
     my ($dbh, $cid, $rid, $ticketid) = @_;
 
     my $sth = $dbh->prepare(
-	"SELECT * FROM CMailStore, CMSReceivers WHERE " .
-	"CID = ? AND RID = ? AND TicketID = ? AND " .
-	"CID = CMailStore_CID AND RID = CMailStore_RID");
+        "SELECT * FROM CMailStore, CMSReceivers WHERE CID = ? AND RID = ? AND TicketID = ? AND"
+        ." CID = CMailStore_CID AND RID = CMailStore_RID"
+    );
     $sth->execute($cid, $rid, $ticketid);
 
     my $res = $sth->fetchrow_hashref();
@@ -1316,9 +1288,7 @@ sub reload_ruledb {
 	    my $rulecache = PMG::RuleCache->new($ruledb);
 	    PMG::Config::rewrite_postfix_whitelist($rulecache);
 	};
-	if (my $err = $@) {
-	    warn "problems updating SMTP whitelist - $err";
-	}
+	warn "problems updating SMTP whitelist - $@" if $@;
     }
 
     PMG::Utils::reload_smtp_filter();
