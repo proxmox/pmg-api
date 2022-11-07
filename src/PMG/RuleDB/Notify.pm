@@ -40,15 +40,15 @@ sub priority {
 
 sub new {
     my ($type, $to, $subject, $body, $attach, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
 
     $to //= '__ADMIN__';
     $attach //= 'N';
     $subject //= 'Notification: __SUBJECT__';
-    
+
     if (!defined($body)) {
 	$body = <<EOB;
 Proxmox Notification:
@@ -77,11 +77,11 @@ EOB
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-   
+
     my $class = ref($type) || $type;
 
     defined($value) || die "undefined object attribute: ERROR";
-    
+
     my ($raw_subject, $raw_body, $attach);
 
     my $sth = $ruledb->{dbh}->prepare(
@@ -94,7 +94,7 @@ sub load_attr {
 	$raw_body = $ref->{value} if $ref->{name} eq 'body';
 	$attach = $ref->{value} if $ref->{name} eq 'attach';
     }
-	
+
     $sth->finish();
 
     # Note: db stores binary (ascii) data, so we need to convert to UTF-8 manually
@@ -125,29 +125,29 @@ sub save {
 
     if (defined ($self->{id})) {
 	# update
-	
+
 	eval {
 	    $ruledb->{dbh}->begin_work if !$no_trans;
 
 	    $ruledb->{dbh}->do(
-		"UPDATE Object SET Value = ? WHERE ID = ?", 
+		"UPDATE Object SET Value = ? WHERE ID = ?",
 		undef, $self->{to}, $self->{id});
 
 	    $ruledb->{dbh}->do(
 		"UPDATE Attribut SET Value = ? " .
-		"WHERE Name = ? and Object_ID = ?", 
+		"WHERE Name = ? and Object_ID = ?",
 		undef, encode('UTF-8', $self->{subject}), 'subject',  $self->{id});
 
 	    $ruledb->{dbh}->do(
 		"UPDATE Attribut SET Value = ? " .
-		"WHERE Name = ? and Object_ID = ?", 
+		"WHERE Name = ? and Object_ID = ?",
 		undef, encode('UTF-8', $self->{body}), 'body',  $self->{id});
 
 	    $ruledb->{dbh}->do(
 		"UPDATE Attribut SET Value = ? " .
-		"WHERE Name = ? and Object_ID = ?", 
+		"WHERE Name = ? and Object_ID = ?",
 		undef, $self->{attach}, 'attach',  $self->{id});
-	    
+
 	    $ruledb->{dbh}->commit if !$no_trans;
 	};
 	if (my $err = $@) {
@@ -170,19 +170,19 @@ sub save {
 
 	    $sth->execute($self->ogroup, $self->otype, $self->{to});
 
-	    $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
-    	
+	    $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+
 	    $sth->finish();
 
-	    $ruledb->{dbh}->do("INSERT INTO Attribut " . 
+	    $ruledb->{dbh}->do("INSERT INTO Attribut " .
 			       "(Object_ID, Name, Value) " .
 			       "VALUES (?, ?, ?)", undef,
 			       $self->{id}, 'subject',  encode('UTF-8', $self->{subject}));
-	    $ruledb->{dbh}->do("INSERT INTO Attribut " . 
+	    $ruledb->{dbh}->do("INSERT INTO Attribut " .
 			       "(Object_ID, Name, Value) " .
 			       "VALUES (?, ?, ?)", undef,
 			       $self->{id}, 'body',  encode('UTF-8', $self->{body}));
-	    $ruledb->{dbh}->do("INSERT INTO Attribut " . 
+	    $ruledb->{dbh}->do("INSERT INTO Attribut " .
 			       "(Object_ID, Name, Value) " .
 			       "VALUES (?, ?, ?)", undef,
 			       $self->{id}, 'attach', $self->{attach});
@@ -196,12 +196,12 @@ sub save {
 	    return undef;
 	}
     }
-	
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
+    my ($self, $queue, $ruledb, $mod_group, $targets,
 	$msginfo, $vars, $marks) = @_;
 
     my $original;
@@ -246,10 +246,10 @@ sub execute {
 	my $fh = $msginfo->{test_fh};
 	print $fh "notify: $self->{to}\n";
 	print $fh "notify content:\n";
-	
+
 	if ($self->{attach} eq 'O') {
 	    # make result reproducible for regression testing
-	    $top->head->replace('content-type', 
+	    $top->head->replace('content-type',
 				'multipart/mixed; boundary="---=_1234567"');
 	}
 	$top->print ($fh);
