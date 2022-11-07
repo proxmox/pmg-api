@@ -63,8 +63,7 @@ sub open_ruledb {
 
 	eval {
 	    alarm($timeout);
-	    $rdb = DBI->connect($dsn, 'root', undef,
-				{ PrintError => 0, RaiseError => 1 });
+	    $rdb = DBI->connect($dsn, 'root', undef, { PrintError => 0, RaiseError => 1 });
 	    alarm(0);
 	};
 	alarm(0);
@@ -75,9 +74,8 @@ sub open_ruledb {
 	return $rdb;
     } else {
 	my $dsn = "DBI:Pg:dbname=$database;host=/var/run/postgresql;port=$port";
-
-	my $dbh = DBI->connect($dsn, $> == 0 ? 'root' : 'www-data', undef,
-			       { PrintError => 0, RaiseError => 1 });
+	my $user = $> == 0 ? 'root' : 'www-data';
+	my $dbh = DBI->connect($dsn, $user, undef, { PrintError => 0, RaiseError => 1 });
 
 	return $dbh;
     }
