@@ -289,7 +289,14 @@ sub load_objectgroups {
 sub get_object {
     my ($self, $otype) = @_;
 
-     my $obj;
+    my $obj;
+
+    # FIXME: remove deprecated types and files with PMG 8.0
+    my $deprecated_types = {
+	4004 => "Attach",
+	4008 => "ReportSpam",
+	4999 => "Counter",
+    };
 
     # WHO OBJECTS
     if ($otype == PMG::RuleDB::Domain::otype()) {
@@ -386,9 +393,14 @@ sub get_object {
 	    die "proxmox: unknown object type: ERROR";
     }
 
+    if ( grep( $_ == $otype, keys %$deprecated_types)) {
+	syslog('warning', "proxmox: deprecated object of type %s found!",
+	    $deprecated_types->{$otype});
+    }
     return $obj;
 }
 
+# FIXME: remove with PMG 8.0
 sub load_counters_data {
     my ($self) = @_;
 

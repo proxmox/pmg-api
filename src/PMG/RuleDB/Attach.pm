@@ -1,9 +1,13 @@
 package PMG::RuleDB::Attach;
 
+# FIXME: remove with PMG 8.0
+
 use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+
+use PVE::SafeSyslog;
 
 use PMG::Utils;
 use PMG::ModGroup;
@@ -83,6 +87,9 @@ sub save {
 sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets,
 	$msginfo, $vars, $marks) = @_;
+
+    syslog('warning', "%s: deprecated action 'Attach' will be removed with PMG 8.0.",
+	   $queue->{logid},);
 
     my $subgroups = $mod_group->subgroups($targets);
 

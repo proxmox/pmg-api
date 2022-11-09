@@ -1,5 +1,7 @@
 package PMG::RuleDB::Counter;
 
+# FIXME: remove with PMG 8.0
+
 use strict;
 use warnings;
 use DBI;
@@ -86,6 +88,9 @@ sub save {
 sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
+
+    syslog('warning', "%s: deprecated action 'Counter' will be removed with PMG 8.0.",
+	   $queue->{logid},);
 
     eval {
 	$ruledb->{dbh}->begin_work;
