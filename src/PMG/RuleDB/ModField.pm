@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode decode);
+use MIME::Words qw(encode_mimewords);
 
 use PMG::Utils;
 use PMG::ModGroup;
@@ -107,7 +109,7 @@ sub execute {
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $e) = (@$ta[0], @$ta[1]);
-	$e->head->replace($self->{field}, $fvalue);
+	$e->head->replace($self->{field}, encode_mimewords(encode('UTF-8', $fvalue), "Charset" => "UTF-8"));
     }
 }
 
