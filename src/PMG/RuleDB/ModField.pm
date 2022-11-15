@@ -98,10 +98,15 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
 
-    my $fvalue = PMG::Utils::subst_values ($self->{field_value}, $vars);
+    my $fvalue = '';
+
+    foreach my $line (split('\r?\n\s*',PMG::Utils::subst_values ($self->{field_value}, $vars))) {
+	$fvalue .= "\n" if $fvalue;
+	$fvalue .= encode_mimewords(encode('UTF-8', $line), 'Charset' => 'UTF-8');
+    }
 
     # support for multiline values (i.e. __SPAM_INFO__)
-    $fvalue =~ s/\r?\n/\n\t/sg; # indent content
+    $fvalue =~ s/\n/\n\t/sg; # indent content
     $fvalue =~ s/\n\s*\n//sg;   # remove empty line
     $fvalue =~ s/\n?\s*$//s;    # remove trailing spaces
 
@@ -109,7 +114,7 @@ sub execute {
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $e) = (@$ta[0], @$ta[1]);
-	$e->head->replace($self->{field}, encode_mimewords(encode('UTF-8', $fvalue), "Charset" => "UTF-8"));
+	$e->head->replace($self->{field}, $fvalue);
     }
 }
 
