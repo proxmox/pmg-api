@@ -46,8 +46,7 @@ sub get_item_data {
     $item->{subject} = PMG::Utils::rfc1522_to_html(
 	PVE::Tools::trim($head->get('subject')) || 'No Subject');
 
-    my @fromarray = split('\s*,\s*', $head->get('from') || $ref->{sender});
-    my $from = PMG::Utils::rfc1522_to_html(PVE::Tools::trim($fromarray[0]));
+    my $from = PMG::Utils::rfc1522_to_html(PVE::Tools::trim($head->get('from') // $ref->{sender}));
     my $sender = PMG::Utils::rfc1522_to_html(PVE::Tools::trim($head->get('sender')));
 
     if ($sender) {
