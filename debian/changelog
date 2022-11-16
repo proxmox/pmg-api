@@ -1,3 +1,14 @@
+pmg-api (7.1-10) bullseye; urgency=medium
+
+  * fix #4006: do not split from header on ', ' for spamreport mails
+
+  * ruledb: modfield: properly handle fields spanning multiple lines
+
+  * ruledb: add deprecation warnings for unused `ReportSpam`, `Attach` and
+    `Counter` actions
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 16 Nov 2022 09:03:52 +0100
+
 pmg-api (7.1-9) bullseye; urgency=medium
 
   * api: quarantine: allow 'list attachments' endpoint for quarantine users,
