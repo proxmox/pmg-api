@@ -389,6 +389,12 @@ __PACKAGE__->register_method ({
     }});
 
 
+my $quar_type_map = {
+    spam => 'S',
+    attachment => 'A',
+    virus => 'V',
+};
+
 __PACKAGE__->register_method ({
     name => 'spamusers',
     path => 'spamusers',
@@ -400,6 +406,13 @@ __PACKAGE__->register_method ({
 	properties => {
 	    starttime => get_standard_option('pmg-starttime'),
 	    endtime => get_standard_option('pmg-endtime'),
+	    'quarantine-type' => {
+		description => 'Query this type of quarantine for users.',
+		type => 'string',
+		default => 'spam',
+		optional => 1,
+		enum => [keys $quar_type_map->%*],
+	    },
 	},
     },
     returns => {
@@ -427,14 +440,16 @@ __PACKAGE__->register_method ({
 	my $start = $param->{starttime} // (time - 86400);
 	my $end = $param->{endtime} // ($start + 86400);
 
+	my $quar_type = $param->{'quarantine-type'} // 'spam';
+
 	my $sth = $dbh->prepare(
 	    "SELECT DISTINCT pmail " .
 	    "FROM CMailStore, CMSReceivers WHERE " .
 	    "time >= $start AND time < $end AND " .
-	    "QType = 'S' AND CID = CMailStore_CID AND RID = CMailStore_RID " .
+	    "QType = ? AND CID = CMailStore_CID AND RID = CMailStore_RID " .
 	    "AND Status = 'N' ORDER BY pmail");
 
-	$sth->execute();
+	$sth->execute($quar_type_map->{$quar_type});
 
 	while (my $ref = $sth->fetchrow_hashref()) {
 	    push @$res, { mail => $ref->{pmail} };
@@ -657,6 +672,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    starttime => get_standard_option('pmg-starttime'),
 	    endtime => get_standard_option('pmg-endtime'),
+	    pmail => $pmail_param_type,
 	},
     },
     returns => {
@@ -706,7 +722,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-	return $quarantine_api->($param, 'V');
+	return $quarantine_api->($param, 'V', defined($param->{pmail}));
     }});
 
 __PACKAGE__->register_method ({
@@ -720,6 +736,7 @@ __PACKAGE__->register_method ({
 	properties => {
 	    starttime => get_standard_option('pmg-starttime'),
 	    endtime => get_standard_option('pmg-endtime'),
+	    pmail => $pmail_param_type,
 	},
     },
     returns => {
@@ -765,7 +782,7 @@ __PACKAGE__->register_method ({
     },
     code => sub {
 	my ($param) = @_;
-	return $quarantine_api->($param, 'A');
+	return $quarantine_api->($param, 'A', defined($param->{pmail}));
     }});
 
 __PACKAGE__->register_method ({
