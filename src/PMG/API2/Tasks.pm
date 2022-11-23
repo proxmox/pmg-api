@@ -238,12 +238,19 @@ __PACKAGE__->register_method({
 		type => 'integer',
 		minimum => 0,
 		optional => 1,
+		description => "Start at this line when reading the tasklog",
 	    },
 	    limit => {
 		type => 'integer',
 		minimum => 0,
 		optional => 1,
+		description => "The amount of lines to read from the tasklog.",
 	    },
+	    download => {
+		type => 'boolean',
+		optional => 1,
+		description => "Whether the tasklog file should be downloaded. This parameter can't be used in conjunction with other parameters",
+	    }
 	},
     },
     returns => {
@@ -268,37 +275,42 @@ __PACKAGE__->register_method({
 	my ($task, $filename) = PVE::Tools::upid_decode($param->{upid}, 1);
 	raise_param_exc({ upid => "unable to parse worker upid" }) if !$task;
 
-	my $lines = [];
+	my $download = $param->{download} // 0;
 
-	my $restenv = PMG::RESTEnvironment->get();
+	if ($download) {
+	    die "Parameter 'download' can't be used with other parameters\n"
+		if (defined($param->{start}) || defined($param->{limit}));
 
-	my $fh = IO::File->new($filename, "r");
-	raise_param_exc({ upid => "no such task - unable to open file - $!" }) if !$fh;
+	    my $fh;
+	    my $use_compression = ( -s $filename ) > 1024;
 
-	my $start = $param->{start} || 0;
-	my $limit = $param->{limit} || 50;
-	my $count = 0;
-	my $line;
-	while (defined ($line = <$fh>)) {
-	    next if $count++ < $start;
-	    next if $limit <= 0;
-	    chomp $line;
-	    push @$lines, { n => $count, t => $line};
-	    $limit--;
+	    # 1024 is a practical cutoff for the size distribution of our log files.
+	    if ($use_compression) {
+		open($fh, "-|", "/usr/bin/gzip", "-c", "$filename")
+		    or die "Could not create compressed file stream for file '$filename' - $!\n";
+	    } else {
+		open($fh, '<', $filename) or die "Could not open file '$filename' - $!\n";
+	    }
+
+	    return {
+		download => {
+		    fh => $fh,
+		    stream => 1,
+		    'content-encoding' => $use_compression ? 'gzip' : undef,
+		    'content-type' => "text/plain",
+		    'content-disposition' => "attachment; filename=\"".$param->{upid}."\"",
+		},
+	    },
+	} else {
+	    my $start = $param->{start} // 0;
+	    my $limit = $param->{limit} // 50;
+
+	    my ($count, $lines) = PVE::Tools::dump_logfile($filename, $start, $limit);
+
+	    PMG::RESTEnvironment->get()->set_result_attrib('total', $count);
+
+	    return $lines;
 	}
-
-	close($fh);
-
-	# HACK: ExtJS store.guaranteeRange() does not like empty array
-	# so we add a line
-	if (!$count) {
-	    $count++;
-	    push @$lines, { n => $count, t => "no content"};
-	}
-
-	$restenv->set_result_attrib('total', $count);
-
-	return $lines;
     }});
 
 
