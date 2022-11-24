@@ -235,7 +235,13 @@ sub execute {
 		}
 
 		foreach (@$tg) {
-		    syslog ('info', "$queue->{logid}: moved mail for <%s> to attachment quarantine - %s (rule: %s)", $_, $qid, $rulename);
+		    syslog (
+			'info',
+			"$queue->{logid}: moved mail for <%s> to attachment quarantine - %s (rule: %s)",
+			encode('UTF-8',$_),
+			$qid,
+			$rulename,
+		    );
 		}
 	    }
 	}

@@ -3,6 +3,7 @@ package PMG::RuleDB::BCC;
 use strict;
 use warnings;
 use DBI;
+use Encode qw(encode);
 
 use PVE::SafeSyslog;
 
@@ -164,10 +165,24 @@ sub execute {
 		$entity, $msginfo->{sender}, \@bcc_targets,
 		$msginfo->{xforward}, $msginfo->{fqdn}, $param);
 	    foreach (@bcc_targets) {
+		my $target = encode('UTF-8', $_);
 		if ($qid) {
-		    syslog('info', "%s: bcc to <%s> (rule: %s, %s)", $queue->{logid}, $_, $rulename, $qid);
+		    syslog(
+			'info',
+			"%s: bcc to <%s> (rule: %s, %s)",
+			$queue->{logid},
+			$target,
+			$rulename,
+			$qid,
+		    );
 		} else {
-		    syslog('err', "%s: bcc to <%s> (rule: %s) failed", $queue->{logid}, $_, $rulename);
+		    syslog(
+			'err',
+			"%s: bcc to <%s> (rule: %s) failed",
+			$queue->{logid},
+			$target,
+			$rulename,
+		    );
 		}
 	    }
 	}

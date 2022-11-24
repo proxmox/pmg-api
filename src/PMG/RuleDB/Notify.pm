@@ -259,10 +259,24 @@ sub execute {
 	my $qid = PMG::Utils::reinject_mail(
 	    $top, $from, \@targets, undef, $msginfo->{fqdn});
 	foreach (@targets) {
+	    my $target = encode('UTF-8', $_);
 	    if ($qid) {
-		syslog('info', "%s: notify <%s> (rule: %s, %s)", $queue->{logid}, $_, $rulename, $qid);
+		syslog(
+		    'info',
+		    "%s: notify <%s> (rule: %s, %s)",
+		    $queue->{logid},
+		    $target,
+		    $rulename,
+		    $qid,
+		);
 	    } else {
-		syslog ('err', "%s: notify <%s> (rule: %s) failed", $queue->{logid}, $_, $rulename);
+		syslog (
+		    'err',
+		    "%s: notify <%s> (rule: %s) failed",
+		    $queue->{logid},
+		    $target,
+		    $rulename,
+		);
 	    }
 	}
     }
