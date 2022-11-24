@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Encode qw(encode);
 use Getopt::Long;
 use Time::HiRes qw (usleep gettimeofday tv_interval);
 use POSIX qw(:sys_wait_h errno_h signal_h);
@@ -791,10 +792,10 @@ sub handle_smtp {
 	$insert_cmds .= ($queue->{sa_score} || 0) . ',';
 	$insert_cmds .= $dbh->quote($queue->{vinfo}) . ',';
 	$insert_cmds .= $time_total . ',';
-	$insert_cmds .= $dbh->quote($msginfo->{sender}) . ');';
+	$insert_cmds .= $dbh->quote(encode('UTF-8', $msginfo->{sender})) . ');';
 
 	foreach my $r (@{$msginfo->{targets}}) {
-	    my $tmp = $dbh->quote($r);
+	    my $tmp = $dbh->quote(encode('UTF-8',$r));
 	    my $blocked = $queue->{status}->{$r} eq 'blocked' ? 1 : 0;
 	    $insert_cmds .= "INSERT INTO CReceivers (CStatistic_CID, CStatistic_RID, Receiver, Blocked) " .
 		"VALUES ($lcid, currval ('cstatistic_id_seq'), $tmp, '$blocked'); ";

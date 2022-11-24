@@ -6,6 +6,7 @@ use warnings;
 use PVE::SafeSyslog;
 use MIME::Parser;
 use IO::File;
+use Encode;
 use File::Sync;
 use File::Basename;
 use File::Path;
@@ -141,6 +142,7 @@ sub quarantinedb_insert {
     my ($self, $ruledb, $lcid, $ldap, $qtype, $header, $sender, $file, $targets, $vars) = @_;
 
     eval {
+	$sender = encode('UTF-8', $sender);
 	my $dbh = $ruledb->{dbh};
 
 	my $insert_cmds = "SELECT nextval ('cmailstore_id_seq'); INSERT INTO CMailStore " .
@@ -188,11 +190,11 @@ sub quarantinedb_insert {
 	    if ($pmail eq lc ($r)) {
 		$receiver = "NULL";
 	    } else {
-		$receiver = $dbh->quote ($r);
+		$receiver = $dbh->quote (encode('UTF-8', $r));
 	    }
 
 
-	    $pmail = $dbh->quote ($pmail);
+	    $pmail = $dbh->quote (encode('UTF-8', $pmail));
 	    $insert_cmds .= "INSERT INTO CMSReceivers " .
 		"(CMailStore_CID, CMailStore_RID, PMail, Receiver, TicketID, Status, MTime) " .
 		"VALUES ($lcid, currval ('cmailstore_id_seq'), $pmail, $receiver, $tid, 'N', $now); ";
@@ -294,8 +296,8 @@ sub quarantine_mail {
 	$entity->head->delete ('Return-Path');
 
 	# prepend Delivered-To and Return-Path (like QMAIL MAILDIR FORMAT)
-	$entity->head->add ('Return-Path', join (',', $sender), 0);
-	$entity->head->add ('Delivered-To', join (',', @$tg), 0);
+	$entity->head->add ('Return-Path', encode('UTF-8', join (',', $sender)), 0);
+	$entity->head->add ('Delivered-To', encode('UTF-8', join (',', @$tg)), 0);
 
 	$entity->print ($fh);
 

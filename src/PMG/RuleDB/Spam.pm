@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 use Time::HiRes qw (gettimeofday);
 
 use PVE::SafeSyslog;
@@ -135,8 +136,8 @@ sub get_blackwhite {
     my $cond = '';
     foreach my $r (@$targets) {
 	my $pmail = $msginfo->{pmail}->{$r} || lc ($r);
-	my $qr = $dbh->quote ($pmail);
-	$cond .= " OR " if $cond;  
+	my $qr = $dbh->quote (encode('UTF-8', $pmail));
+	$cond .= " OR " if $cond;
 	$cond .= "pmail = $qr";
     }	 
 
