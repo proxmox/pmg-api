@@ -1088,6 +1088,7 @@ sub decode_to_html {
     return $res;
 }
 
+# assume enc contains utf-8 and mime-encoded data returns a perl-string (with wide characters)
 sub decode_rfc1522 {
     my ($enc) = @_;
 
@@ -1102,7 +1103,7 @@ sub decode_rfc1522 {
 		if ($cs) {
 		    $res .= decode($cs, $d);
 		} else {
-		    $res .= $d;
+		    $res .= try_decode_utf8($d);
 		}
 	    }
 	}
@@ -1540,6 +1541,11 @@ sub get_existing_object_id {
     }
 
     return;
+}
+
+sub try_decode_utf8 {
+    my ($data) = @_;
+    return eval { decode('UTF-8', $data, 1) } // $data;
 }
 
 1;
