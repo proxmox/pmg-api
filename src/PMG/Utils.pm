@@ -1135,25 +1135,8 @@ sub decode_rfc1522 {
 sub rfc1522_to_html {
     my ($enc) = @_;
 
-    my $res = '';
-
-    return '' if !$enc;
-
-    eval {
-	foreach my $r (MIME::Words::decode_mimewords($enc)) {
-	    my ($d, $cs) = @$r;
-	    if ($d) {
-		if ($cs) {
-		    $res .= encode('UTF-8', decode($cs, $d));
-		} else {
-		    $res .= $d;
-		}
-	    }
-	}
-	$res = encode_entities(decode('UTF-8', $res));
-    };
-
-    $res = $enc if $@;
+    my $res = eval { encode_entities(decode_rfc1522($enc)) };
+    return $enc if $@;
 
     return $res;
 }
