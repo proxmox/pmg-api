@@ -208,7 +208,7 @@ sub execute {
 
     my $from = 'postmaster';
 
-    my $rulename = $vars->{RULE} // 'unknown';
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     my $body = PMG::Utils::subst_values($self->{body}, $vars);
     my $subject = PMG::Utils::subst_values_for_header($self->{subject}, $vars);

@@ -63,12 +63,14 @@ sub load_attr {
 
     defined ($value) || die "undefined value: ERROR";
 
-    my $obj;
+    my ($obj, $text);
 
     if ($value =~ m/^([01])\,([01])(\:(.*))?$/s) {
-	$obj = $class->new($1, $4, $ogroup, $2);
+	$text = PMG::Utils::try_decode_utf8($4);
+	$obj = $class->new($1, $text, $ogroup, $2);
     } elsif ($value =~ m/^([01])(\:(.*))?$/s) {
-	$obj = $class->new($1, $3, $ogroup);
+	$text = PMG::Utils::try_decode_utf8($3);
+	$obj = $class->new($1, $text, $ogroup);
     } else {
 	$obj = $class->new(0, undef, $ogroup);
     }
@@ -89,7 +91,7 @@ sub save {
     $value .= ','. ($self->{quarantine} ? '1' : '0');
 
     if ($self->{text}) {
-	$value .= ":$self->{text}";
+	$value .= encode('UTF-8', ":$self->{text}");
     }
 
     if (defined ($self->{id})) {
@@ -194,7 +196,7 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets,
 	$msginfo, $vars, $marks, $ldap) = @_;
 
-    my $rulename = $vars->{RULE} // 'unknown';
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     if (!$self->{all} && ($#$marks == -1)) {
 	# no marks

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 
 use PVE::SafeSyslog;
 
@@ -89,7 +90,7 @@ sub execute {
     
     my $subgroups = $mod_group->subgroups($targets, 1);
 
-    my $rulename = $vars->{RULE} // 'unknown';
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);

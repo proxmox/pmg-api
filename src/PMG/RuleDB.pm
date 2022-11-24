@@ -5,6 +5,7 @@ use warnings;
 use DBI;
 use HTML::Entities;
 use Data::Dumper;
+use Encode qw(encode);
 
 use PVE::SafeSyslog;
 
@@ -70,8 +71,8 @@ sub create_group_with_obj {
 
     defined($obj) || die "proxmox: undefined object";
 
-    $name //= '';
-    $info //= '';
+    $name = encode('UTF-8', $name // '');
+    $info = encode('UTF-8', $info // '');
 
     eval {
 
@@ -174,7 +175,9 @@ sub save_group {
 	$self->{dbh}->do("UPDATE Objectgroup " .
 			 "SET Name = ?, Info = ? " .
 			 "WHERE ID = ?", undef,
-			 $og->{name}, $og->{info}, $og->{id});
+			 encode('UTF-8', $og->{name}),
+			 encode('UTF-8', $og->{info}),
+			 $og->{id});
 
 	return $og->{id};
 
@@ -183,7 +186,7 @@ sub save_group {
 	    "INSERT INTO Objectgroup (Name, Info, Class) " .
 	    "VALUES (?, ?, ?);");
 
-	$sth->execute($og->name, $og->info, $og->class);
+	$sth->execute(encode('UTF-8', $og->name), encode('UTF-8', $og->info), $og->class);
 
 	return $og->{id} = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
     }
@@ -212,7 +215,9 @@ sub delete_group {
 	$sth->execute($groupid);
 
 	if (my $ref = $sth->fetchrow_hashref()) {
-	    die "Group '$ref->{groupname}' is used by rule '$ref->{rulename}' - unable to delete\n";
+	    my $groupname = PMG::Utils::try_decode_utf8($ref->{groupname});
+	    my $rulename = PMG::Utils::try_decode_utf8($ref->{rulename});
+	    die "Group '$groupname' is used by rule '$rulename' - unable to delete\n";
 	}
 
         $sth->finish();
@@ -474,6 +479,7 @@ sub load_object_full {
 sub load_group_by_name {
     my ($self, $name) = @_;
 
+    $name = encode('UTF-8', $name);
     my $sth = $self->{dbh}->prepare("SELECT * FROM Objectgroup " .
 				    "WHERE name = ?");
 
@@ -598,13 +604,14 @@ sub save_rule {
     defined($rule->{direction}) ||
 	die "undefined rule attribute - direction: ERROR";
 
+    my $rulename = encode('UTF-8', $rule->{name});
     if (defined($rule->{id})) {
 
 	$self->{dbh}->do(
 	    "UPDATE Rule " .
 	    "SET Name = ?, Priority = ?, Active = ?, Direction = ? " .
 	    "WHERE ID = ?", undef,
-	    $rule->{name}, $rule->{priority}, $rule->{active},
+	    $rulename, $rule->{priority}, $rule->{active},
 	    $rule->{direction}, $rule->{id});
 
 	return $rule->{id};
@@ -614,7 +621,7 @@ sub save_rule {
 	    "INSERT INTO Rule (Name, Priority, Active, Direction) " .
 	    "VALUES (?, ?, ?, ?);");
 
-	$sth->execute($rule->name, $rule->priority, $rule->active,
+	$sth->execute($rulename, $rule->priority, $rule->active,
 		      $rule->direction);
 
 	return $rule->{id} = PMG::Utils::lastid($self->{dbh}, 'rule_id_seq');
@@ -779,7 +786,8 @@ sub load_rules {
     $sth->execute();
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $rule = PMG::RuleDB::Rule->new($ref->{name}, $ref->{priority},
+	my $rulename = PMG::Utils::try_decode_utf8($ref->{name});
+	my $rule = PMG::RuleDB::Rule->new($rulename, $ref->{priority},
 					  $ref->{active}, $ref->{direction});
 	$rule->{id} = $ref->{id};
 	push @$rules, $rule;

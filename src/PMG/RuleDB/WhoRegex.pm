@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 
 use PMG::Utils;
 use PMG::RuleDB::Object;
@@ -43,7 +44,8 @@ sub load_attr {
 
     defined($value) || die "undefined value: ERROR";
 
-    my $obj = $class->new ($value, $ogroup);
+    my $decoded_value = PMG::Utils::try_decode_utf8($value);
+    my $obj = $class->new ($decoded_value, $ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $value, $ogroup);
@@ -59,6 +61,7 @@ sub save {
 
     my $adr = $self->{address};
     $adr =~ s/\\/\\\\/g;
+    $adr = encode('UTF-8', $adr);
 
     if (defined ($self->{id})) {
 	# update

@@ -56,7 +56,9 @@ sub load_attr {
 
     (defined($field) && defined($field_value)) || return undef;
 
-    my $obj = $class->new($field, $field_value, $ogroup);
+    my $dec_field_value = PMG::Utils::try_decode_utf8($field_value);
+
+    my $obj = $class->new($field, $dec_field_value, $ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $field, $field_value, $ogroup);
@@ -69,7 +71,7 @@ sub save {
 
     defined($self->{ogroup}) || return undef;
 
-    my $new_value = "$self->{field}:$self->{field_value}";
+    my $new_value = encode('UTF-8', "$self->{field}:$self->{field_value}");
 
     if (defined ($self->{id})) {
 	# update

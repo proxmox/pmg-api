@@ -89,7 +89,7 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
 
-    my $rulename = $vars->{RULE} // 'unknown';
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     if ($msginfo->{testmode}) {
 	my $fh = $msginfo->{test_fh};

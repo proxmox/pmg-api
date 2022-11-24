@@ -93,7 +93,7 @@ sub execute {
     my $dkim = $msginfo->{dkim} // {};
     my $subgroups = $mod_group->subgroups($targets, !$dkim->{sign});
 
-    my $rulename = $vars->{RULE} // 'unknown';
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);

@@ -12,7 +12,7 @@ sub new {
     my ($type, $name, $priority, $active, $direction) = @_;
 
     my $self = { 
-	name => $name // '',
+	name => PMG::Utils::try_decode_utf8($name) // '',
 	priority => $priority // 0,
 	active => $active // 0,
     }; 

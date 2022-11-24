@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 use MIME::Words;
 
 use PMG::Utils;
@@ -41,8 +42,9 @@ sub load_attr {
     my $class = ref($type) || $type;
 
     defined($value) || die "undefined value: ERROR";;
+    my $decvalue = PMG::Utils::try_decode_utf8($value);
 
-    my $obj = $class->new($value, $ogroup);
+    my $obj = $class->new($decvalue, $ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $value, $ogroup);
@@ -57,6 +59,7 @@ sub save {
 
     my $new_value = $self->{fname};
     $new_value =~ s/\\/\\\\/g;
+    $new_value = encode('UTF-8', $new_value);
 
     if (defined($self->{id})) {
 	# update

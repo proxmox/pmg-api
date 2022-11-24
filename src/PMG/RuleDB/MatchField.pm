@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 use MIME::Words;
 
 use PVE::SafeSyslog;
@@ -50,9 +51,10 @@ sub load_attr {
     defined($field) || die "undefined object attribute: ERROR";
     defined($field_value) || die "undefined object attribute: ERROR";
 
+    my $decoded_field_value = PMG::Utils::try_decode_utf8($field_value);
     # use known constructor, bless afterwards (because sub class can have constructor
     # with other parameter signature).
-    my $obj =  PMG::RuleDB::MatchField->new($field, $field_value, $ogroup);
+    my $obj =  PMG::RuleDB::MatchField->new($field, $decoded_field_value, $ogroup);
     bless $obj, $class;
 
     $obj->{id} = $id;
@@ -69,6 +71,7 @@ sub save {
 
     my $new_value = "$self->{field}:$self->{field_value}";
     $new_value =~ s/\\/\\\\/g;
+    $new_value = encode('UTF-8', $new_value);
 
     if (defined ($self->{id})) {
 	# update
@@ -105,7 +108,8 @@ sub parse_entity {
 	for my $value ($entity->head->get_all($self->{field})) {
 	    chomp $value;
 
-	    my $decvalue = MIME::Words::decode_mimewords($value);
+	    my $decvalue = PMG::Utils::decode_rfc1522($value);
+	    $decvalue = PMG::Utils::try_decode_utf8($decvalue);
 
 	    if ($decvalue =~ m|$self->{field_value}|i) {
 		push @$res, $id;

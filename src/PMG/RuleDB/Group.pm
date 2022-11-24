@@ -12,8 +12,8 @@ sub new {
     my ($type, $name, $info, $class) = @_;
 
     my $self = {
-	name => $name,
-	info => $info,
+	name => PMG::Utils::try_decode_utf8($name),
+	info => PMG::Utils::try_decode_utf8($info),
 	class => $class,
     };
 
