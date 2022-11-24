@@ -6,6 +6,7 @@ use File::Path;
 use LockFile::Simple;
 use Data::Dumper;
 use DB_File;
+use Encode qw(encode decode);
 
 use PVE::SafeSyslog;
 use PVE::Tools qw(split_list);
@@ -491,7 +492,7 @@ sub get_groups {
     my $status = $dbh->seq($key, $value, R_FIRST());
 
     while ($status == 0) {
-	$res->{$value} = $key;
+	$res->{$value} = PMG::Utils::try_decode_utf8($key);
         $status = $dbh->seq($key, $value, R_NEXT());
     }
 
@@ -515,9 +516,9 @@ sub get_users {
     while ($status == 0) {
 	my ($pmail, $account, $dn) = unpack('n/a* n/a* n/a*', $value);
 	$res->{$key} = {
-	    pmail => $pmail,
-	    account => $account,
-	    dn => $dn,
+	    pmail => PMG::Utils::try_decode_utf8($pmail),
+	    account => PMG::Utils::try_decode_utf8($account),
+	    dn => PMG::Utils::try_decode_utf8($dn),
 	};
         $status = $dbh->seq($key, $value, R_NEXT());
     }
@@ -595,7 +596,7 @@ sub list_addresses {
 
     return undef if !$dbhmails || !$dbhusers;
 
-    $mail = lc($mail);
+    $mail = encode('UTF-8', lc($mail));
 
     my $res = [];
 
@@ -609,7 +610,7 @@ sub list_addresses {
 
     my ($pmail, $account, $dn) = unpack('n/a* n/a* n/a*', $rdata);
 
-    push @$res, { primary => 1, email => $pmail };
+    push @$res, { primary => 1, email => PMG::Utils::try_decode_utf8($pmail) };
 
     my $key = 0 ;
     my $value = "" ;
@@ -617,7 +618,7 @@ sub list_addresses {
 
     while ($status == 0) {
 	if ($value == $cuid && $key ne $pmail) {
-	    push @$res, { primary => 0, email => $key };
+	    push @$res, { primary => 0, email => PMG::Utils::try_decode_utf8($key) };
 	}
 	$status = $dbhmails->seq($key, $value, R_NEXT());
     }
@@ -631,7 +632,7 @@ sub mail_exists {
     my $dbh = $self->{dbstat}->{mails}->{dbh};
     return 0 if !$dbh;
 
-    $mail = lc($mail);
+    $mail = encode('UTF-8', lc($mail));
 
     my $res;
     $dbh->get($mail, $res);
@@ -644,7 +645,7 @@ sub account_exists {
     my $dbh = $self->{dbstat}->{accounts}->{dbh};
     return 0 if !$dbh;
 
-    $account = lc($account);
+    $account = encode('UTF-8', lc($account));
 
     my $res;
     $dbh->get($account, $res);
@@ -656,6 +657,8 @@ sub group_exists {
 
     my $dbh = $self->{dbstat}->{groups}->{dbh};
     return 0 if !$dbh;
+
+    $group = encode('UTF-8', $group);
 
     my $res;
     $dbh->get($group, $res);
@@ -669,8 +672,8 @@ sub account_has_address {
     my $dbhaccounts = $self->{dbstat}->{accounts}->{dbh};
     return 0 if !$dbhmails || !$dbhaccounts;
 
-    $account = lc($account);
-    $mail = lc($mail);
+    $account = encode('UTF-8', lc($account));
+    $mail = encode('UTF-8', lc($mail));
 
     my $accid;
     $dbhaccounts->get($account, $accid);
@@ -692,11 +695,13 @@ sub user_in_group {
 
     return 0 if !$dbhmails || !$dbhgroups || !$dbhmemberof;
 
-    $mail = lc($mail);
+    $mail = encode('UTF-8', lc($mail));
 
     my $cuid;
     $dbhmails->get($mail, $cuid);
     return 0 if !$cuid;
+
+    $group = encode('UTF-8', $group);
 
     my $groupid;
     $dbhgroups->get($group, $groupid);
@@ -715,7 +720,7 @@ sub account_info {
 
     return undef if !$dbhmails || !$dbhusers;
 
-    $mail = lc($mail);
+    $mail = encode('UTF-8', lc($mail));
 
     my $res = {};
 

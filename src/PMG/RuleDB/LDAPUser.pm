@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use Digest::SHA;
+use Encode qw(encode);
 
 use PVE::INotify;
 
@@ -46,13 +47,15 @@ sub load_attr {
     my $class = ref($type) || $type;
 
     defined($value) || die "undefined value: ERROR";
-    
+
+    my $decoded = PMG::Utils::try_decode_utf8($value);
+
     my $obj;
-    if ($value =~ m/^([^:]*):(.*)$/) {
+    if ($decoded =~ m/^([^:]*):(.*)$/) {
 	$obj = $class->new($2, $1, $ogroup);
-	$obj->{digest} = Digest::SHA::sha1_hex($id, $2, $1, $ogroup);
+	$obj->{digest} = Digest::SHA::sha1_hex($id, encode('UTF-8', $2), encode('UTF-8', $1), $ogroup);
    } else {
-	$obj = $class->new($value, '', $ogroup);
+	$obj = $class->new($decoded, '', $ogroup);
 	$obj->{digest} = Digest::SHA::sha1_hex ($id, $value, '#', $ogroup);
     }
 
@@ -71,7 +74,7 @@ sub save {
     my $user = $self->{ldapuser};
     my $profile = $self->{profile};
  
-    my $confdata = "$profile:$user";
+    my $confdata = encode('UTF-8', "$profile:$user");
     
     if (defined($self->{id})) {
 	# update
