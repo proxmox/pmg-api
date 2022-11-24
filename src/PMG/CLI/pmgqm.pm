@@ -2,6 +2,7 @@ package PMG::CLI::pmgqm;
 
 use strict;
 use Data::Dumper;
+use Encode qw(encode);
 use Template;
 use MIME::Entity;
 use HTML::Entities;
@@ -17,6 +18,7 @@ use PVE::SafeSyslog;
 use PVE::Tools;
 use PVE::INotify;
 use PVE::CLIHandler;
+use PVE::JSONSchema qw(get_standard_option);
 
 use PMG::RESTEnvironment;
 use PMG::Utils;
@@ -57,7 +59,7 @@ sub get_item_data {
     }
 
     $item->{envelope_sender} = $ref->{sender};
-    $item->{pmail} = $ref->{pmail};
+    $item->{pmail} = encode_entities(PMG::Utils::try_decode_utf8($ref->{pmail}));
     $item->{receiver} = $ref->{receiver} || $ref->{pmail};
 
     $item->{date} = strftime("%F", localtime($ref->{time}));
@@ -157,11 +159,10 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    receiver => {
+	    receiver => get_standard_option('pmg-email-address', {
 		description => "Generate report for a single email address. If not specified, generate reports for all users.",
-		type => 'string', format => 'email',
 		optional => 1,
-	    },
+	    }),
 	    timespan => {
 		description => "Select time span.",
 		type => 'string',
@@ -175,11 +176,10 @@ __PACKAGE__->register_method ({
 		enum => ['short', 'verbose', 'custom'],
 		optional => 1,
 	    },
-	    redirect => {
+	    redirect => get_standard_option('pmg-email-address', {
 		description => "Redirect spam report email to this address.",
-		type => 'string', format => 'email',
 		optional => 1,
-	    },
+	    }),
 	    debug => {
 		description => "Debug mode. Print raw email to stdout instead of sending them.",
 		type => 'boolean',
@@ -280,7 +280,7 @@ __PACKAGE__->register_method ({
 	    "ORDER BY pmail, time, receiver");
 
 	if ($target) {
-	    $sth->execute($target);
+	    $sth->execute(encode('UTF-8', $target));
 	} else {
 	    $sth->execute();
 	}
@@ -302,16 +302,18 @@ __PACKAGE__->register_method ({
 	};
 
 	while (my $ref = $sth->fetchrow_hashref()) {
-	    if ($creceiver ne $ref->{pmail}) {
+	    my $decoded_pmail = PMG::Utils::try_decode_utf8($ref->{pmail});
+	    if ($creceiver ne $decoded_pmail) {
 
 		$finalize->() if $data;
 
 		$data = clone($global_data);
 
-		$creceiver = $ref->{pmail};
+		$creceiver = $decoded_pmail;
 		$mailcount = 0;
 
-		$data->{pmail} = $creceiver;
+		$data->{pmail} = encode_entities($decoded_pmail);
+		$data->{pmail_raw} = $ref->{pmail};
 		$data->{managehref} = "$protocol_fqdn_port/quarantine";
 		if ($data->{authmode} ne 'ldap') {
 		    $data->{ticket} = PMG::Ticket::assemble_quarantine_ticket($data->{pmail});

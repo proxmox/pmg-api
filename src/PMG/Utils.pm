@@ -1143,12 +1143,13 @@ sub rfc1522_to_html {
 	    my ($d, $cs) = @$r;
 	    if ($d) {
 		if ($cs) {
-		    $res .= encode_entities(decode($cs, $d));
+		    $res .= encode('UTF-8', decode($cs, $d));
 		} else {
-		    $res .= encode_entities($d);
+		    $res .= $d;
 		}
 	    }
 	}
+	$res = encode_entities(decode('UTF-8', $res));
     };
 
     $res = $enc if $@;
@@ -1257,7 +1258,7 @@ sub finalize_report {
 
     my $top = MIME::Entity->build(
 	Type    => "multipart/related",
-	To      => $data->{pmail},
+	To      => $data->{pmail_raw},
 	From    => $mailfrom,
 	Subject => bencode_header(decode_entities($title)));
 
