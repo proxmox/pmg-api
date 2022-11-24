@@ -152,7 +152,7 @@ sub get_prox_vars {
     } if !$spaminfo;
 
     my $vars = {
-	'SUBJECT' => mime_to_perl_string($entity->head->get ('subject', 0) || 'No Subject'),
+	'SUBJECT' => PMG::Utils::decode_rfc1522($entity->head->get ('subject', 0) || 'No Subject'),
 	'RULE' => $rule->{name},
 	'RULE_INFO' => $msginfo->{rule_info},
 	'SENDER' => $msginfo->{sender},

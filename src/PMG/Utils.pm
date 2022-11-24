@@ -203,6 +203,23 @@ sub subst_values {
     return $body;
 }
 
+sub subst_values_for_header {
+    my ($header, $dh) = @_;
+
+    my $res = '';
+    foreach my $line (split('\r?\n\s*', subst_values ($header, $dh))) {
+	$res .= "\n" if $res;
+	$res .= MIME::Words::encode_mimewords(encode('UTF-8', $line), 'Charset' => 'UTF-8');
+    }
+
+    # support for multiline values (i.e. __SPAM_INFO__)
+    $res =~ s/\n/\n\t/sg; # indent content
+    $res =~ s/\n\s*\n//sg;   # remove empty line
+    $res =~ s/\n?\s*$//s;    # remove trailing spaces
+
+    return $res;
+}
+
 sub reinject_mail {
     my ($entity, $sender, $targets, $xforward, $me, $params) = @_;
 

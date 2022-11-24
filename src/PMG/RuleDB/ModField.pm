@@ -5,7 +5,6 @@ use warnings;
 use DBI;
 use Digest::SHA;
 use Encode qw(encode decode);
-use MIME::Words qw(encode_mimewords);
 
 use PMG::Utils;
 use PMG::ModGroup;
@@ -98,17 +97,7 @@ sub execute {
     my ($self, $queue, $ruledb, $mod_group, $targets, 
 	$msginfo, $vars, $marks) = @_;
 
-    my $fvalue = '';
-
-    foreach my $line (split('\r?\n\s*',PMG::Utils::subst_values ($self->{field_value}, $vars))) {
-	$fvalue .= "\n" if $fvalue;
-	$fvalue .= encode_mimewords(encode('UTF-8', $line), 'Charset' => 'UTF-8');
-    }
-
-    # support for multiline values (i.e. __SPAM_INFO__)
-    $fvalue =~ s/\n/\n\t/sg; # indent content
-    $fvalue =~ s/\n\s*\n//sg;   # remove empty line
-    $fvalue =~ s/\n?\s*$//s;    # remove trailing spaces
+    my $fvalue = PMG::Utils::subst_values_for_header($self->{field_value}, $vars);
 
     my $subgroups = $mod_group->subgroups($targets);
 

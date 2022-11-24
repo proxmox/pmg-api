@@ -117,7 +117,7 @@ sub execute {
 
     my $rulename = $vars->{RULE} // 'unknown';
 
-    my $bcc_to = PMG::Utils::subst_values($self->{target}, $vars);
+    my $bcc_to = PMG::Utils::subst_values_for_header($self->{target}, $vars);
 
     if ($bcc_to =~ m/^\s*$/) {
 	# this happens if a notification is triggered by bounce mails
