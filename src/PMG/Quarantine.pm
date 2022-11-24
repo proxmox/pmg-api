@@ -3,6 +3,7 @@ package PMG::Quarantine;
 use strict;
 use warnings;
 use Net::SMTP;
+use Encode qw(encode);
 
 use PVE::SafeSyslog;
 use PVE::Tools;
@@ -16,7 +17,7 @@ sub add_to_blackwhite {
 
     my $name = $listname eq 'BL' ? 'BL' : 'WL';
     my $oname = $listname eq 'BL' ? 'WL' : 'BL';
-    my $qu = $dbh->quote ($username);
+    my $qu = $dbh->quote (encode('UTF-8', $username));
 
     my $sth = $dbh->prepare(
 	"SELECT * FROM UserPrefs WHERE pmail = $qu AND (Name = 'BL' OR Name = 'WL')");
@@ -25,13 +26,13 @@ sub add_to_blackwhite {
     my $list = { 'WL' => {}, 'BL' => {} };
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $data = $ref->{data};
+	my $data = PMG::Utils::try_decode_utf8($ref->{data});
 	$data =~ s/[,;]/ /g;
 	my @alist = split('\s+', $data);
 
 	my $tmp = {};
 	foreach my $a (@alist) {
-	    if ($a =~ m/^[[:ascii:]]+$/) {
+	    if ($a =~ m/^[^\s\\\@]+(?:\@[^\s\/\\\@]+)?$/) {
 		$tmp->{$a} = 1;
 	    }
 	}
@@ -50,7 +51,7 @@ sub add_to_blackwhite {
 	    if ($delete) {
 		delete($list->{$name}->{$v});
 	    } else {
-		if ($v =~ m/[[:^ascii:]]/) {
+		if ($v =~ m/[\s\\]/) {
 		    die "email address '$v' contains invalid characters\n";
 		}
 		$list->{$name}->{$v} = 1;
@@ -58,8 +59,8 @@ sub add_to_blackwhite {
 	    }
 	}
 
-	my $wlist = $dbh->quote(join (',', keys %{$list->{WL}}) || '');
-	my $blist = $dbh->quote(join (',', keys %{$list->{BL}}) || '');
+	my $wlist = $dbh->quote(encode('UTF-8', join (',', keys %{$list->{WL}})) || '');
+	my $blist = $dbh->quote(encode('UTF-8', join (',', keys %{$list->{BL}})) || '');
 
 	if (!$delete) {
 	    my $maxlen = 200000;

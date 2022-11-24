@@ -94,7 +94,7 @@ sub parse_addrlist {
 	my $regex = $addr;
 	# SA like checks
 	$regex =~ s/[\000\\\(]/_/gs;		# is this really necessasry ?
-	$regex =~ s/([^\*\?_a-zA-Z0-9])/\\$1/g;	# escape possible metachars
+	$regex =~ s/([^\*\?_\w])/\\$1/g;	# escape possible metachars
 	$regex =~ tr/?/./;			# replace "?" with "."
 	$regex =~ s/\*+/\.\*/g;			# replace "*" with  ".*"
 
@@ -149,13 +149,13 @@ sub get_blackwhite {
 	$sth->execute();
 
 	while (my $ref = $sth->fetchrow_hashref()) {
-	    my $pmail = lc ($ref->{pmail});
+	    my $pmail = lc (PMG::Utils::try_decode_utf8($ref->{pmail}));
 	    if ($ref->{name} eq 'WL') {
 		$target_info->{$pmail}->{whitelist} = 
-		    parse_addrlist($ref->{data});
+		    parse_addrlist(PMG::Utils::try_decode_utf8($ref->{data}));
 	    } elsif ($ref->{name} eq 'BL') {
 		$target_info->{$pmail}->{blacklist} = 
-		    parse_addrlist($ref->{data});
+		    parse_addrlist(PMG::Utils::try_decode_utf8($ref->{data}));
 	    }
 	}
 
@@ -205,7 +205,7 @@ sub what_match_targets {
 		($list = $queue->{blackwhite}->{$pmail}->{whitelist}) &&
 		check_addrlist($list, $queue->{all_from_addrs})) {
 		syslog('info', "%s: sender in user (%s) whitelist", 
-		       $queue->{logid}, $pmail);
+		       $queue->{logid}, encode('UTF-8', $pmail));
 	    } else {
 		$target_info->{$t}->{marks} = []; # never add additional marks here
 		$target_info->{$t}->{spaminfo} = $info;
@@ -234,7 +234,7 @@ sub what_match_targets {
 		$target_info->{$t}->{marks} = [];
 		$target_info->{$t}->{spaminfo} = $info;
 		syslog ('info', "%s: sender in user (%s) blacklist", 
-			$queue->{logid}, $pmail);
+			$queue->{logid}, encode('UTF-8',$pmail));
 	    }
 	}
     }

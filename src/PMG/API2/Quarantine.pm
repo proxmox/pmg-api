@@ -141,8 +141,8 @@ my $parse_header_info = sub {
     my $sender = PMG::Utils::decode_rfc1522(PVE::Tools::trim($head->get('sender')));
     $res->{sender} = $sender if $sender && ($sender ne $res->{from});
 
-    $res->{envelope_sender} = $ref->{sender};
-    $res->{receiver} = $ref->{receiver} // $ref->{pmail};
+    $res->{envelope_sender} = PMG::Utils::try_decode_utf8($ref->{sender});
+    $res->{receiver} = PMG::Utils::try_decode_utf8($ref->{receiver} // $ref->{pmail});
     $res->{id} = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};
     $res->{time} = $ref->{time};
     $res->{bytes} = $ref->{bytes};
@@ -452,7 +452,7 @@ __PACKAGE__->register_method ({
 	$sth->execute($quar_type_map->{$quar_type});
 
 	while (my $ref = $sth->fetchrow_hashref()) {
-	    push @$res, { mail => $ref->{pmail} };
+	    push @$res, { mail => PMG::Utils::try_decode_utf8($ref->{pmail}) };
 	}
 
 	return $res;
@@ -547,7 +547,7 @@ __PACKAGE__->register_method ({
 	}
 
 	while (my $ref = $sth->fetchrow_hashref()) {
-	    push @$res, { mail => $ref->{pmail} };
+	    push @$res, { mail => PMG::Utils::try_decode_utf8($ref->{pmail}) };
 	}
 
 	return $res;
@@ -584,7 +584,7 @@ my $quarantine_api = sub {
     }
 
     if ($check_pmail || $role eq 'quser') {
-	$sth->execute($pmail);
+	$sth->execute(encode('UTF-8', $pmail));
     } else {
 	$sth->execute();
     }

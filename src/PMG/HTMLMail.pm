@@ -192,9 +192,10 @@ sub read_raw_email {
     # read header
     my $header;
     while (defined(my $line = <$fh>)) {
-	$raw_header .= $line;
-	chomp $line;
-	push @$header, $line;
+	my $decoded_line = PMG::Utils::try_decode_utf8($line);
+	$raw_header .= $decoded_line;
+	chomp $decoded_line;
+	push @$header, $decoded_line;
 	last if $line =~ m/^\s*$/;
     }
 
