@@ -3,6 +3,7 @@ package PMG::Statistic;
 use strict;
 use warnings;
 use DBI;
+use Encode qw(encode);
 use Time::Local;
 use Time::Zone;
 
@@ -545,6 +546,22 @@ my $compute_sql_orderby = sub {
     return $orderby;
 };
 
+sub user_stat_to_perlstring {
+    my ($entry) = @_;
+
+    my $res = { };
+
+    for my $a (keys %$entry) {
+	if ($a eq 'receiver' || $a eq 'sender' || $a eq 'contact') {
+	    $res->{$a} = PMG::Utils::try_decode_utf8($entry->{$a});
+	} else {
+	    $res->{$a} = $entry->{$a};
+	}
+    }
+
+    return $res;
+}
+
 sub user_stat_contact_details {
     my ($self, $rdb, $receiver, $limit, $sorters, $filter) = @_;
 
@@ -554,19 +571,21 @@ sub user_stat_contact_details {
 
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to);
 
+    my $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%"));
+
     my $query = "SELECT * FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND $cond_good_mail " .
 	"AND NOT direction AND sender != '' AND receiver = ? " .
-	($filter ? "AND sender like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
 	"ORDER BY $orderby limit $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
 
-    $sth->execute($receiver);
+    $sth->execute(encode('UTF-8',$receiver));
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -583,11 +602,14 @@ sub user_stat_contact {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
+    my $filter_pattern;
+    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+
     my $query = "SELECT receiver as contact, count(*) AS count, sum (bytes) AS bytes, " .
 	"count (virusinfo) as viruscount " .
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid " .
-	($filter ? "AND receiver like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
 	"AND $cond_good_mail AND NOT direction AND sender != '' ";
 
     if ($advfilter) {
@@ -603,7 +625,7 @@ sub user_stat_contact {
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -620,20 +642,23 @@ sub user_stat_sender_details {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
+    my $filter_pattern;
+    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+
     my $sth = $rdb->{dbh}->prepare(
 	"SELECT " .
 	"blocked, bytes, ptime, sender, receiver, spamlevel, time, virusinfo " .
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND " .
 	"$cond_good_mail AND NOT direction AND sender = ? " .
-	($filter ? "AND receiver like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
 	"ORDER BY $orderby limit $limit");
 
-    $sth->execute($sender);
+    $sth->execute(encode('UTF-8',$sender));
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -650,11 +675,14 @@ sub user_stat_sender {
 
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to);
 
+    my $filter_pattern;
+    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+
     my $query = "SELECT sender,count(*) AS count, sum (bytes) AS bytes, " .
 	"count (virusinfo) as viruscount, " .
 	"count (CASE WHEN spamlevel >= 3 THEN 1 ELSE NULL END) as spamcount " .
 	"FROM CStatistic WHERE $cond_good_mail AND NOT direction AND sender != '' " .
-	($filter ? "AND sender like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
 	"GROUP BY sender ORDER BY $orderby limit $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
@@ -662,7 +690,7 @@ sub user_stat_sender {
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -679,18 +707,21 @@ sub user_stat_receiver_details {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
+    my $filter_pattern;
+    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+
     my $sth = $rdb->{dbh}->prepare(
 	"SELECT blocked, bytes, ptime, sender, receiver, spamlevel, time, virusinfo " .
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND $cond_good_mail AND receiver = ? " .
-	($filter ? "AND sender like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
 	"ORDER BY $orderby limit $limit");
 
-    $sth->execute($receiver);
+    $sth->execute(encode('UTF-8',$receiver));
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -707,6 +738,9 @@ sub user_stat_receiver {
 
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to) . " AND " .
 	"receiver IS NOT NULL AND receiver != ''";
+
+    my $filter_pattern;
+    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
 
     my $query = "SELECT receiver, " .
 	"count(*) AS count, " .
@@ -728,7 +762,7 @@ sub user_stat_receiver {
     }
 
     $query .= "AND $cond_good_mail and direction " .
-	($filter ? "AND receiver like " . $rdb->{dbh}->quote("%${filter}%") . ' ' : '') .
+	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
 	"GROUP BY receiver ORDER BY $orderby LIMIT $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
@@ -736,7 +770,7 @@ sub user_stat_receiver {
 
     my $res = [];
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
 
     $sth->finish();
@@ -873,9 +907,8 @@ sub recent_receivers {
     my $sth =  $rdb->{dbh}->prepare($cmd);
 
     $sth->execute ($from, $limit);
-
     while (my $ref = $sth->fetchrow_hashref()) {
-	push @$res, $ref;
+	push @$res, user_stat_to_perlstring($ref);
     }
     $sth->finish();
 
