@@ -24,7 +24,7 @@ use PVE::RESTHandler;
 use PVE::INotify;
 use PVE::APIServer::Formatter;
 
-use PMG::Utils;
+use PMG::Utils qw(try_decode_utf8);
 use PMG::AccessControl;
 use PMG::Config;
 use PMG::DBTools;
@@ -141,8 +141,8 @@ my $parse_header_info = sub {
     my $sender = PMG::Utils::decode_rfc1522(PVE::Tools::trim($head->get('sender')));
     $res->{sender} = $sender if $sender && ($sender ne $res->{from});
 
-    $res->{envelope_sender} = PMG::Utils::try_decode_utf8($ref->{sender});
-    $res->{receiver} = PMG::Utils::try_decode_utf8($ref->{receiver} // $ref->{pmail});
+    $res->{envelope_sender} = try_decode_utf8($ref->{sender});
+    $res->{receiver} = try_decode_utf8($ref->{receiver} // $ref->{pmail});
     $res->{id} = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};
     $res->{time} = $ref->{time};
     $res->{bytes} = $ref->{bytes};
@@ -1181,7 +1181,7 @@ __PACKAGE__->register_method ({
 	for my $id (@idlist) {
 
 	    my $ref = $get_and_check_mail->($id, $rpcenv, $dbh);
-	    my $sender = $get_real_sender->($ref);
+	    my $sender = try_decode_utf8($get_real_sender->($ref));
 
 	    if ($action eq 'whitelist') {
 		PMG::Quarantine::add_to_blackwhite($dbh, $ref->{pmail}, 'WL', [ $sender ]);

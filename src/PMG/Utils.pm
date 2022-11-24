@@ -45,6 +45,7 @@ use base 'Exporter';
 
 our @EXPORT_OK = qw(
 postgres_admin_cmd
+try_decode_utf8
 );
 
 my $valid_pmg_realms = ['pam', 'pmg', 'quarantine'];
