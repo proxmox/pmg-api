@@ -562,6 +562,18 @@ sub user_stat_to_perlstring {
     return $res;
 }
 
+my sub get_filter_text {
+    my ($dbh, $field, $filter) = @_;
+
+    if (!$filter || !$field) {
+	return '';
+    }
+
+    my $pattern = $dbh->quote(encode('UTF-8', "%${filter}%"));
+
+    return "AND ${field} like ${pattern} ";
+}
+
 sub user_stat_contact_details {
     my ($self, $rdb, $receiver, $limit, $sorters, $filter) = @_;
 
@@ -571,12 +583,12 @@ sub user_stat_contact_details {
 
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to);
 
-    my $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%"));
+    my $filter_text = get_filter_text($rdb->{dbh}, 'sender', $filter);
 
     my $query = "SELECT * FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND $cond_good_mail " .
 	"AND NOT direction AND sender != '' AND receiver = ? " .
-	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"ORDER BY $orderby limit $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
@@ -602,14 +614,13 @@ sub user_stat_contact {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
-    my $filter_pattern;
-    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+    my $filter_text = get_filter_text($rdb->{dbh}, 'receiver', $filter);
 
     my $query = "SELECT receiver as contact, count(*) AS count, sum (bytes) AS bytes, " .
 	"count (virusinfo) as viruscount " .
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid " .
-	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"AND $cond_good_mail AND NOT direction AND sender != '' ";
 
     if ($advfilter) {
@@ -642,8 +653,7 @@ sub user_stat_sender_details {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
-    my $filter_pattern;
-    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+    my $filter_text = get_filter_text($rdb->{dbh}, 'receiver', $filter);
 
     my $sth = $rdb->{dbh}->prepare(
 	"SELECT " .
@@ -651,7 +661,7 @@ sub user_stat_sender_details {
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND " .
 	"$cond_good_mail AND NOT direction AND sender = ? " .
-	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"ORDER BY $orderby limit $limit");
 
     $sth->execute(encode('UTF-8',$sender));
@@ -675,14 +685,13 @@ sub user_stat_sender {
 
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to);
 
-    my $filter_pattern;
-    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+    my $filter_text = get_filter_text($rdb->{dbh}, 'sender', $filter);
 
     my $query = "SELECT sender,count(*) AS count, sum (bytes) AS bytes, " .
 	"count (virusinfo) as viruscount, " .
 	"count (CASE WHEN spamlevel >= 3 THEN 1 ELSE NULL END) as spamcount " .
 	"FROM CStatistic WHERE $cond_good_mail AND NOT direction AND sender != '' " .
-	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"GROUP BY sender ORDER BY $orderby limit $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
@@ -707,14 +716,13 @@ sub user_stat_receiver_details {
 
     my $cond_good_mail = $self->query_cond_good_mail($from, $to);
 
-    my $filter_pattern;
-    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+    my $filter_text = get_filter_text($rdb->{dbh}, 'sender', $filter);
 
     my $sth = $rdb->{dbh}->prepare(
 	"SELECT blocked, bytes, ptime, sender, receiver, spamlevel, time, virusinfo " .
 	"FROM CStatistic, CReceivers " .
 	"WHERE cid = cstatistic_cid AND rid = cstatistic_rid AND $cond_good_mail AND receiver = ? " .
-	($filter_pattern ? "AND sender like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"ORDER BY $orderby limit $limit");
 
     $sth->execute(encode('UTF-8',$receiver));
@@ -739,8 +747,7 @@ sub user_stat_receiver {
     my $cond_good_mail = $self->query_cond_good_mail ($from, $to) . " AND " .
 	"receiver IS NOT NULL AND receiver != ''";
 
-    my $filter_pattern;
-    $filter_pattern = $rdb->{dbh}->quote(encode('UTF-8', "%${filter}%")) if $filter;
+    my $filter_text = get_filter_text($rdb->{dbh}, 'receiver', $filter);
 
     my $query = "SELECT receiver, " .
 	"count(*) AS count, " .
@@ -762,7 +769,7 @@ sub user_stat_receiver {
     }
 
     $query .= "AND $cond_good_mail and direction " .
-	($filter_pattern ? "AND receiver like " . $filter_pattern . ' ' : '') .
+	$filter_text .
 	"GROUP BY receiver ORDER BY $orderby LIMIT $limit";
 
     my $sth = $rdb->{dbh}->prepare($query);
