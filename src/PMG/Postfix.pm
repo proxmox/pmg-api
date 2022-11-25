@@ -180,9 +180,9 @@ sub postcat {
     my $res = '';
     while (defined(my $line = <$fh>)) {
 	if ($decode) {
-	    $res .= mime_to_perl_string($line);
+	    $res .= PMG::Utils::decode_rfc1522($line);
 	} else {
-	    $res .= $line;
+	    $res .= PMG::Utils::try_decode_utf8($line);
 	}
     }
 
