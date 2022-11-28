@@ -204,7 +204,7 @@ sub what_match_targets {
 	    if ($queue->{blackwhite}->{$pmail} && 
 		($list = $queue->{blackwhite}->{$pmail}->{whitelist}) &&
 		check_addrlist($list, $queue->{all_from_addrs})) {
-		syslog('info', "%s: sender in user (%s) whitelist", 
+		syslog('info', "%s: sender in user (%s) welcomelist",
 		       $queue->{logid}, encode('UTF-8', $pmail));
 	    } else {
 		$target_info->{$t}->{marks} = []; # never add additional marks here
@@ -219,11 +219,11 @@ sub what_match_targets {
 		sa_score => 100,
 		sa_max => $self->{level},
 		sa_data => [{
-		    rule => 'USER_IN_BLACKLIST',
+		    rule => 'USER_IN_BLOCKLIST',
 		    score => 100,
 		    desc => PMG::Utils::user_bl_description(),
 		}],
-		sa_hits => 'USER_IN_BLACKLIST',
+		sa_hits => 'USER_IN_BLOCKLIST',
 	    };
 
 	    my $list;
@@ -233,7 +233,7 @@ sub what_match_targets {
 		check_addrlist($list, $queue->{all_from_addrs})) {
 		$target_info->{$t}->{marks} = [];
 		$target_info->{$t}->{spaminfo} = $info;
-		syslog ('info', "%s: sender in user (%s) blacklist", 
+		syslog ('info', "%s: sender in user (%s) blocklist",
 			$queue->{logid}, encode('UTF-8',$pmail));
 	    }
 	}

@@ -1167,7 +1167,7 @@ sub bencode_header {
 }
 
 sub user_bl_description {
-    return 'From: address is in the user black-list';
+    return 'From: address is in the user block-list';
 }
 
 sub load_sa_descriptions {
@@ -1207,6 +1207,7 @@ sub load_sa_descriptions {
 
     $res->{'ClamAVHeuristics'}->{desc} = "ClamAV heuristic tests";
     $res->{'USER_IN_BLACKLIST'}->{desc} = user_bl_description();;
+    $res->{'USER_IN_BLOCKLIST'}->{desc} = user_bl_description();;
 
     return $res;
 }
