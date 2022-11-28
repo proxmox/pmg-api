@@ -1166,6 +1166,10 @@ sub bencode_header {
     return $res;
 }
 
+sub user_bl_description {
+    return 'From: address is in the user black-list';
+}
+
 sub load_sa_descriptions {
     my ($additional_dirs) = @_;
 
@@ -1202,6 +1206,7 @@ sub load_sa_descriptions {
     }
 
     $res->{'ClamAVHeuristics'}->{desc} = "ClamAV heuristic tests";
+    $res->{'USER_IN_BLACKLIST'}->{desc} = user_bl_description();;
 
     return $res;
 }

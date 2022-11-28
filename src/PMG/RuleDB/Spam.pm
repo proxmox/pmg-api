@@ -221,7 +221,7 @@ sub what_match_targets {
 		sa_data => [{
 		    rule => 'USER_IN_BLACKLIST',
 		    score => 100,
-		    desc => 'From: address is in the user black-list',
+		    desc => PMG::Utils::user_bl_description(),
 		}],
 		sa_hits => 'USER_IN_BLACKLIST',
 	    };
