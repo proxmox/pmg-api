@@ -275,6 +275,8 @@ __PACKAGE__->register_method({
 	my ($task, $filename) = PVE::Tools::upid_decode($param->{upid}, 1);
 	raise_param_exc({ upid => "unable to parse worker upid" }) if !$task;
 
+	my $restenv = PMG::RESTEnvironment->get();
+
 	if ($param->{download}) {
 	    die "Parameter 'download' can't be used with other parameters\n"
 		if (defined($param->{start}) || defined($param->{limit}));
@@ -305,7 +307,7 @@ __PACKAGE__->register_method({
 
 	    my ($count, $lines) = PVE::Tools::dump_logfile($filename, $start, $limit);
 
-	    PMG::RESTEnvironment->get()->set_result_attrib('total', $count);
+	    $rpcenv->set_result_attrib('total', $count);
 
 	    return $lines;
 	}
