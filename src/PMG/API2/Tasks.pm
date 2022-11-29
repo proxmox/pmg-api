@@ -307,7 +307,7 @@ __PACKAGE__->register_method({
 
 	    my ($count, $lines) = PVE::Tools::dump_logfile($filename, $start, $limit);
 
-	    $rpcenv->set_result_attrib('total', $count);
+	    $restenv->set_result_attrib('total', $count);
 
 	    return $lines;
 	}
