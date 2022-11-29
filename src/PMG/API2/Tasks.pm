@@ -275,9 +275,7 @@ __PACKAGE__->register_method({
 	my ($task, $filename) = PVE::Tools::upid_decode($param->{upid}, 1);
 	raise_param_exc({ upid => "unable to parse worker upid" }) if !$task;
 
-	my $download = $param->{download} // 0;
-
-	if ($download) {
+	if ($param->{download}) {
 	    die "Parameter 'download' can't be used with other parameters\n"
 		if (defined($param->{start}) || defined($param->{limit}));
 
