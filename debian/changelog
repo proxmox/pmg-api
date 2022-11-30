@@ -1,3 +1,9 @@
+pmg-api (7.2-2) bullseye; urgency=medium
+
+  * d/control: depend directly on libproxmox-acme-plugins
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 30 Nov 2022 10:46:04 +0100
+
 pmg-api (7.2-1) bullseye; urgency=medium
 
   * queue administration: try to decode utf8
