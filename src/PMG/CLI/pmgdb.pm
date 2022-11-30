@@ -3,6 +3,7 @@ package PMG::CLI::pmgdb;
 use strict;
 use warnings;
 use Data::Dumper;
+use Encode qw(encode);
 
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
@@ -31,7 +32,7 @@ sub print_objects {
     my $objects = $ruledb->load_group_objects ($og->{id});
 
     foreach my $obj (@$objects) {
-	my $desc = $obj->short_desc ();
+	my $desc = encode('UTF-8', $obj->short_desc());
 	print "    OBJECT $obj->{id}: $desc\n";
     }
 }
@@ -46,31 +47,34 @@ sub print_rule {
     };
     my $active = $rule->{active} ? 'active' : 'inactive';
     my $dir = $direction->{$rule->{direction}};
+    my $rulename = encode('UTF-8', $rule->{name});
 
-    print "Found RULE $rule->{id} (prio: $rule->{priority}, $dir, $active): $rule->{name}\n";
+    print "Found RULE $rule->{id} (prio: $rule->{priority}, $dir, $active): $rulename\n";
+
+    my $print_group = sub {
+	my ($type, $og) = @_;
+	my $oname = encode('UTF-8', $og->{name});
+	print "  FOUND $type GROUP $og->{id}: $oname\n";
+	print_objects($ruledb, $og);
+    };
 
     my ($from, $to, $when, $what, $action) =
 	$ruledb->load_groups($rule);
 
     foreach my $og (@$from) {
-	print "  FOUND FROM GROUP $og->{id}: $og->{name}\n";
-	print_objects($ruledb, $og);
+	$print_group->("FROM", $og);
     }
     foreach my $og (@$to) {
-	print "  FOUND TO GROUP $og->{id}: $og->{name}\n";
-	print_objects($ruledb, $og);
+	$print_group->("TO", $og);
     }
     foreach my $og (@$when) {
-	print "  FOUND WHEN GROUP $og->{id}: $og->{name}\n";
-	print_objects($ruledb, $og);
+	$print_group->("WHEN", $og);
     }
     foreach my $og (@$what) {
-	print "  FOUND WHAT GROUP $og->{id}: $og->{name}\n";
-	print_objects($ruledb, $og);
+	$print_group->("WHAT", $og);
     }
     foreach my $og (@$action) {
-	print "  FOUND ACTION GROUP $og->{id}: $og->{name}\n";
-	print_objects($ruledb, $og);
+	$print_group->("ACTION", $og);
     }
 }
 
