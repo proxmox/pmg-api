@@ -31,7 +31,7 @@ Build-Depends: debhelper (>= 12~),
                pmg-doc-generator (>= 6.1-5),
                postgresql-13,
                proxmox-spamassassin,
-               tnef
+               tnef,
 Standards-Version: 4.5.1
 Homepage: https://www.proxmox.com
 
@@ -95,9 +95,8 @@ Depends: apt (>= 2~),
          tnef,
          ucf,
          ${misc:Depends},
-         ${perl:Depends}
-Recommends: ifupdown2,
-            proxmox-offline-mirror-helper
+         ${perl:Depends},
+Recommends: ifupdown2, proxmox-offline-mirror-helper
 Suggests: zfsutils-linux
 Description: Proxmox Mailgateway API Server Implementation
  This implements a REST API to configure Proxmox Mailgateway.
