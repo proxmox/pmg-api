@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use File::Basename;
+use File::Find;
 use File::Path;
 use POSIX qw(strftime);
 
@@ -306,8 +307,13 @@ sub pmg_restore {
 	    unlink "$dirname/config/etc/pmg/cluster.conf"; # never restore cluster config
 	    rmtree "$dirname/config/etc/pmg/master";
 
-	    # remove current config, but keep directory for INotify
-	    rmtree("/etc/pmg", { keep_root => 1 });
+	    # remove current config, but keep directories for INotify
+	    File::Find::find({ wanted => sub {
+		if ( ! -d $File::Find::name) {
+		    unlink($File::Find::name) || die "removing $File::Find::name failed: $!\n";
+		}
+	    }}, '/etc/pmg');
+
 	    # copy files
 	    system("cp -a $dirname/config/etc/pmg/* /etc/pmg/") == 0 ||
 		die "unable to restore system configuration: ERROR";
