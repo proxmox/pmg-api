@@ -308,11 +308,14 @@ sub pmg_restore {
 	    rmtree "$dirname/config/etc/pmg/master";
 
 	    # remove current config, but keep directories for INotify
-	    File::Find::find({ wanted => sub {
-		if ( ! -d $File::Find::name) {
-		    unlink($File::Find::name) || die "removing $File::Find::name failed: $!\n";
-		}
-	    }}, '/etc/pmg');
+	    File::Find::find(
+		sub {
+		    my $file = $File::Find::name;
+		    return if -d $file;
+		    unlink($file) || die "removing $file failed: $!\n";
+		},
+		'/etc/pmg',
+	    );
 
 	    # copy files
 	    system("cp -a $dirname/config/etc/pmg/* /etc/pmg/") == 0 ||
