@@ -312,7 +312,7 @@ sub pmg_restore {
 		sub {
 		    my $file = $File::Find::name;
 		    return if -d $file;
-		    unlink($file) || die "removing $file failed: $!\n";
+		    unlink($file) || $! == POSIX::ENOENT || die "removing $file failed: $!\n";
 		},
 		'/etc/pmg',
 	    );
