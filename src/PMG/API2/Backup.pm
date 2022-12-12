@@ -239,19 +239,12 @@ __PACKAGE__->register_method ({
 	die "nothing selected - please select what you want to restore (config or database?)\n"
 	    if !($param->{database} || $param->{config});
 
-	my $worker = sub {
-	    my $upid = shift;
-
+	return $rpcenv->fork_worker('restore', undef, $authuser, sub {
 	    print "starting restore: $filename\n";
-
-	    PMG::Backup::pmg_restore($filename, $param->{database},
-				     $param->{config}, $param->{statistic});
+	    PMG::Backup::pmg_restore($filename, $param->{database}, $param->{config}, $param->{statistic});
 	    print "restore finished\n";
-
 	    return;
-	};
-
-	return $rpcenv->fork_worker('restore', undef, $authuser, $worker);
+	});
     }});
 
 1;
