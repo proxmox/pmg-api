@@ -37,7 +37,7 @@ sub new {
 	my $sth = $dbh->prepare(
 	    "SELECT ID, Name, Priority, Active, Direction FROM Rule " .
 	    "where Active > 0 " .
-	    "ORDER BY Priority DESC");
+	    "ORDER BY Priority DESC, ID DESC");
 
 	$sth->execute();
 
