@@ -221,6 +221,24 @@ sub subst_values_for_header {
     return $res;
 }
 
+sub mail_needs_smtputf8 {
+    my ($entity, $sender, $targets) = @_;
+
+    return 1 if ($sender =~ /[^\p{PosixPrint}]/);
+
+    foreach my $target (@$targets) {
+	if ($target =~ /[^\p{PosixPrint}]/) {
+	    return 1;
+	}
+    }
+
+    if ($entity->head()->as_string() =~ /([^\p{PosixPrint}\n\r\t])/) {
+	return 1;
+    }
+
+    return 0;
+}
+
 sub reinject_mail {
     my ($entity, $sender, $targets, $xforward, $me, $params) = @_;
 
@@ -245,23 +263,9 @@ sub reinject_mail {
 	    }
 	}
 
-	my $has_utf8_targets = 0;
-	foreach my $target (@$targets) {
-	    if (utf8::is_utf8($target)) {
-		$has_utf8_targets = 1;
-		last;
-	    }
-	}
-
 	my $mail_opts = " BODY=8BITMIME";
-	my $sender_addr;
-	if (utf8::is_utf8($sender)) {
-	    $sender_addr = encode('UTF-8', $smtp->_addr($sender));
-	    $mail_opts .= " SMTPUTF8";
-	} else {
-	    $sender_addr = $smtp->_addr($sender);
-	    $mail_opts .= " SMTPUTF8" if $has_utf8_targets;
-	}
+	$mail_opts .= " SMTPUTF8" if mail_needs_smtputf8($entity, $sender, $targets);
+	my $sender_addr = encode('UTF-8', $smtp->_addr($sender));
 
 	if (defined($params->{mail})) {
 	    my $mailparams = $params->{mail};
@@ -284,12 +288,8 @@ sub reinject_mail {
 		    $rcpt_opts .= " $p=$rcptparams->{$p}";
 		}
 	    }
+	    $rcpt_addr = encode('UTF-8', $smtp->_addr($target));
 
-	    if (utf8::is_utf8($target)) {
-		$rcpt_addr = encode('UTF-8', $smtp->_addr($target));
-	    } else {
-		$rcpt_addr = $smtp->_addr($target);
-	    }
 	    if (!$smtp->_RCPT("TO:" . $rcpt_addr . $rcpt_opts)) {
 		syslog ('err', "smtp error - got: %s %s", $smtp->code, scalar($smtp->message));
 		die "smtp to: ERROR";
