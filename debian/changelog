@@ -1,3 +1,15 @@
+pmg-api (7.2-3) bullseye; urgency=medium
+
+  * keep directories in /etc/pmg for inotify when restoring from backup
+
+  * rulecache: sort rules additionally by id
+
+  * fix mailflow if smtputf8 is disabled
+
+  * pmgdb dump: encode ruledata before printing
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 27 Dec 2022 11:17:13 +0100
+
 pmg-api (7.2-2) bullseye; urgency=medium
 
   * d/control: depend directly on libproxmox-acme-plugins
