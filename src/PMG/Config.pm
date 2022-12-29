@@ -8,6 +8,7 @@ use Data::Dumper;
 use PVE::Tools;
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::SectionConfig;
+use PVE::Network;
 
 use base qw(PVE::SectionConfig);
 
@@ -1011,6 +1012,7 @@ sub read_pmg_mynetworks {
 	    if ($line =~ m!^((?:$IPV4RE|$IPV6RE))/(\d+)\s*(?:#(.*)\s*)?$!) {
 		my ($network, $prefix_size, $comment) = ($1, $2, $3);
 		my $cidr = "$network/${prefix_size}";
+		# FIXME: Drop unused `network_address` and `prefix_size` with PMG 8.0
 		$mynetworks->{$cidr} = {
 		    cidr => $cidr,
 		    network_address => $network,
@@ -1337,10 +1339,15 @@ sub get_template_vars {
 
     my $netlist = PVE::INotify::read_file('mynetworks');
     foreach my $cidr (keys %$netlist) {
-	if ($cidr =~ m/^($IPV6RE)\/(\d+)$/) {
-	    $mynetworks->{"[$1]/$2"} = 1;
+	my $ip = PVE::Network::IP_from_cidr($cidr);
+
+	if (!$ip) {
+	    warn "failed to parse mynetworks entry '$cidr', ignoring\n";
+	} elsif ($ip->version() == 4) {
+	    $mynetworks->{$ip->prefix()} = 1;
 	} else {
-	    $mynetworks->{$cidr} = 1;
+	    my $address = '[' . $ip->short() . ']/' . $ip->prefixlen();
+	    $mynetworks->{$address} = 1;
 	}
     }
 
