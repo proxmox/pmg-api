@@ -232,10 +232,6 @@ sub mail_needs_smtputf8 {
 	}
     }
 
-    if ($entity->head()->as_string() =~ /([^\p{PosixPrint}\n\r\t])/) {
-	return 1;
-    }
-
     return 0;
 }
 
