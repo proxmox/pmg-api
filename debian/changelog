@@ -1,3 +1,14 @@
+pmg-api (7.2-4) bullseye; urgency=medium
+
+  * fix #4410: Remove non-null host bits from CIDR when writing postfix
+    config
+
+  * utils: skip checking headers for non-ascii characters as stop gap to avoid
+    breaking mail flow of a few setups that have smtputf8 disabled in their
+    postfix config (e.g., because their downstream servers do not support this)
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 25 Jan 2023 11:01:14 +0100
+
 pmg-api (7.2-3) bullseye; urgency=medium
 
   * keep directories in /etc/pmg for inotify when restoring from backup
