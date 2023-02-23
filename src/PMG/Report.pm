@@ -15,6 +15,7 @@ my $report_def = {
 	title => 'general system info',
 	cmds => [
 	    'hostname',
+	    'date -R',
 	    'pmgversion --verbose',
 	    'cat /etc/hosts',
 	    'cat /etc/resolv.conf',
