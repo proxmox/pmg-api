@@ -7,6 +7,7 @@ use IO::Select;
 use Xdgmime;
 use Compress::Zlib qw(gzopen);
 use Compress::Bzip2 qw(bzopen);
+use IO::Uncompress::Gunzip;
 use File::Path;
 use File::Temp qw(tempdir);
 use File::Basename;
@@ -296,6 +297,13 @@ sub uncompress_file {
 
     if ($self->{maxratio}) {
 	$maxsize = min2 ($maxsize, $filesize * $self->{maxratio});
+    }
+
+    if($app eq 'guzip' && (my $z = IO::Uncompress::Gunzip->new($filename))) {
+	# the name (FNAME) field is optional in GZIP archives, so we won't
+	# always have a value here
+	my $header = $z->getHeaderInfo();
+	$self->add_glob_mime_type($header->{Name}) if $header->{Name};
     }
 
     $self->add_glob_mime_type ($newname);
