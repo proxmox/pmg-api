@@ -83,7 +83,8 @@ sub init {
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
     add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
     add_dirs($dirs, '/pwt/css/' => "$widgettoolkit_dir/css/");
-    add_dirs($dirs, '/pwt/images/' => "$widgettoolkit_dir/images/");
+    add_dirs($dirs, '/pwt/images/' =>  "$widgettoolkit_dir/images/");
+    add_dirs($dirs, '/pwt/themes/' => "$widgettoolkit_dir/themes/");
 
     $self->{server_config} = {
 	title => 'Proxmox Mail Gateway API',
@@ -198,12 +199,23 @@ sub get_index {
 	$mobile = $args->{mobile} ? 1 : 0;
     }
 
+    my $theme;
+
     if (my $cookie = $r->header('Cookie')) {
 	if (my $newlang = ($cookie =~ /(?:^|\s)PMGLangCookie=([^;]*)/)[0]) {
 	    if ($newlang =~ m/^[a-z]{2,3}(_[A-Z]{2,3})?$/) {
 		$lang = $newlang;
 	    }
 	}
+
+	if (my $newtheme = ($cookie =~ /(?:^|\s)PMGThemeCookie=([^;]*)/)[0]) {
+	    # theme names need to be kebab case, with each segment a maximum of 10 characters long
+	    # and at most 6 segments
+	    if ($newtheme =~ m/^[a-z]{1,10}(-[a-z]{1,10}){0,5}$/) {
+		$theme = $newtheme;
+	    }
+	}
+
 	my $ticket = PVE::APIServer::Formatter::extract_auth_value($cookie, $server->{cookie_name});
 
 	if ($ticket =~ m/^PMGQUAR:/) {
@@ -257,6 +269,8 @@ sub get_index {
 	version => $version,
 	wtversion => $wtversion,
 	quarantinelink => $quarantinelink,
+	theme => $theme,
+	auto => $theme == "auto",
     };
 
     my $template_name;
