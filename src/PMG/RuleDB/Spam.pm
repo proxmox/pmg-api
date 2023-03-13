@@ -300,13 +300,13 @@ sub __get_addr {
 # because we do not call spamassassin in canes of commtouch match
 # see Mail::Spamassassin:PerMsgStatus for details
 sub __all_from_addrs {
-    my ($head) = @_;
+    my ($head, $spamtest) = @_;
 
     my @addrs;
 
     my $resent = $head->get('Resent-From');
     if (defined($resent) && $resent =~ /\S/) {
-	@addrs = Mail::SpamAssassin->find_all_addrs_in_line($resent);
+	@addrs = $spamtest->find_all_addrs_in_line($resent);
     } else {
 	@addrs = map { tr/././s; $_ } grep { $_ ne '' }
         (__get_addr($head, 'From'),		# std
@@ -330,6 +330,8 @@ sub analyze_spam {
 
     $maxspamsize = 200*1024 if !$maxspamsize;
 
+    my $spamtest = $queue->{sa};
+
     my ($sa_score, $sa_max, $sa_scores, $sa_sumary, $list, $autolearn, $bayes, $loglist);
     $list = '';
     $loglist = '';
@@ -345,7 +347,7 @@ sub analyze_spam {
     }
 
     my $fromhash = { $queue->{from} => 1 }; 
-    foreach my $f (__all_from_addrs($entity->head())) {
+    foreach my $f (__all_from_addrs($entity->head(), $spamtest)) {
 	$fromhash->{$f} = 1;
     }
     $queue->{all_from_addrs} = [ keys %$fromhash ];
@@ -372,8 +374,6 @@ sub analyze_spam {
     }
 
     my ($csec, $usec) = gettimeofday ();
-
-    my $spamtest = $queue->{sa};
 
     # only run SA in testmode or when clamav_heuristic did not confirm spam (score < 5)
     if ($msginfo->{testmode} || ($sa_score < 5)) {
