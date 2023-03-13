@@ -9,6 +9,11 @@
 # so you can modify it to enable some disabled-by-default plugins below,
 # if you so wish.
 #
+# There are now multiple files read to enable plugins in the
+# /etc/mail/spamassassin directory; previously only one, "init.pre" was
+# read.  Now both "init.pre", "v310.pre", and any other files ending in
+# ".pre" will be read.  As future releases are made, new plugins will be
+# added to new files, named according to the release they're added in.
 ###########################################################################
 
 [% IF pmg.spam.rbl_checks %]
@@ -40,18 +45,13 @@ loadplugin Mail::SpamAssassin::Plugin::AutoLearnThreshold
 #
 loadplugin Mail::SpamAssassin::Plugin::TextCat
 
-# WhitelistSubject - Whitelist/Blacklist certain subject regular expressions
+# AccessDB - lookup from-addresses in access database
 #
-loadplugin Mail::SpamAssassin::Plugin::WhiteListSubject
+#loadplugin Mail::SpamAssassin::Plugin::AccessDB
 
-###########################################################################
-# experimental plugins
-
-# DomainKeys - perform DomainKeys verification
+# WelcomelistSubject - Welcomelist/Blocklist certain subject regular expressions
 #
-# External modules required for use, see INSTALL for more information.
-#
-#loadplugin Mail::SpamAssassin::Plugin::DomainKeys
+loadplugin Mail::SpamAssassin::Plugin::WelcomeListSubject
 
 # MIMEHeader - apply regexp rules against MIME headers in the message
 #
