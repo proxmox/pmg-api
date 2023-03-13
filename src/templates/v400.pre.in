@@ -48,12 +48,17 @@ endif
 
 [% END %]
 
+
+[% IF pmg.spam.rbl_checks %]
 # DecodeShortUrl - Check for shortened URLs
 #
 # Note that this plugin will send HTTP requests to different URL shortener
 # services.  Enabling caching is recommended, see plugin documentation.
 #
-# loadplugin Mail::SpamAssassin::Plugin::DecodeShortURLs
+loadplugin Mail::SpamAssassin::Plugin::DecodeShortURLs
+url_shortener_cache_type dbi
+url_shortener_cache_dsn dbi:SQLite:dbname=/var/lib/pmg/decode_short_urls.db
+[% END %]
 
 # DMARC - Check DMARC compliance
 #
