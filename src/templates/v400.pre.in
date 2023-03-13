@@ -16,11 +16,37 @@
 # added to new files, named according to the release they're added in.
 ###########################################################################
 
+
+[% IF pmg.spam.extract_text %]
 # ExtractText - Extract text from documents or images for matching
-#
-# Requires manual configuration, see plugin documentation.
-#
-# loadplugin Mail::SpamAssassin::Plugin::ExtractText
+# informational headers and hits not configured
+loadplugin Mail::SpamAssassin::Plugin::ExtractText
+
+ifplugin Mail::SpamAssassin::Plugin::ExtractText
+
+  extracttext_external  pdftotext  /usr/bin/pdftotext -nopgbrk -layout -enc UTF-8 {} -
+  extracttext_use       pdftotext  .pdf application/pdf
+
+  # http://docx2txt.sourceforge.net
+  extracttext_external  docx2txt   /usr/bin/docx2txt {} -
+  extracttext_use       docx2txt   .docx application/docx
+
+  extracttext_external  antiword   /usr/bin/antiword -t -w 0 -m UTF-8.txt {}
+  extracttext_use       antiword   .doc application/(?:vnd\.?)?ms-?word.*
+
+  extracttext_external  unrtf      /usr/bin/unrtf --nopict {}
+  extracttext_use       unrtf      .doc .rtf application/rtf text/rtf
+
+  extracttext_external  odt2txt    /usr/bin/odt2txt --encoding=UTF-8 {}
+  extracttext_use       odt2txt    .odt .ott application/.*?opendocument.*text
+  extracttext_use       odt2txt    .sdw .stw application/(?:x-)?soffice application/(?:x-)?starwriter
+
+  extracttext_external  tesseract  {OMP_THREAD_LIMIT=1} /usr/bin/tesseract -c page_separator= {} -
+  extracttext_use       tesseract  .jpg .png .bmp .tif .tiff image/(?:jpeg|png|x-ms-bmp|tiff)
+
+endif
+
+[% END %]
 
 # DecodeShortUrl - Check for shortened URLs
 #

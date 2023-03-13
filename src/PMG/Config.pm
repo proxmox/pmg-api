@@ -211,6 +211,11 @@ sub properties {
 	    minimum => 64,
 	    default => 256*1024,
 	},
+	extract_text => {
+	    description => "Extract text from attachments (doc, pdf, rtf, images) and scan for spam.",
+	    type => 'boolean',
+	    default => 0,
+	},
     };
 }
 
@@ -225,6 +230,7 @@ sub options {
 	bounce_score => { optional => 1 },
 	rbl_checks => { optional => 1 },
 	maxspamsize => { optional => 1 },
+	extract_text => { optional => 1 },
     };
 }
 
