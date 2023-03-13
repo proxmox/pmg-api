@@ -1515,6 +1515,9 @@ sub rewrite_config_spam {
     $changes = 1 if $self->rewrite_config_file(
 	'v320.pre.in', '/etc/mail/spamassassin/v320.pre');
 
+    $changes = 1 if $self->rewrite_config_file(
+	'v342.pre.in', '/etc/mail/spamassassin/v342.pre');
+
     if ($use_razor) {
 	mkdir "/root/.razor";
 
