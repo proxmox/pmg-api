@@ -64,5 +64,5 @@ url_shortener_cache_dsn dbi:SQLite:dbname=/var/lib/pmg/decode_short_urls.db
 #
 # Requires Mail::DMARC module and working SPF and DKIM Plugins.
 #
-# loadplugin Mail::SpamAssassin::Plugin::DMARC
+loadplugin Mail::SpamAssassin::Plugin::DMARC
 
