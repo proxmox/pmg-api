@@ -39,6 +39,7 @@ TEMPLATES =				\
 	v310.pre.in			\
 	v320.pre.in			\
 	v342.pre.in			\
+	v400.pre.in			\
 	razor-agent.conf.in		\
 	freshclam.conf.in		\
 	clamd.conf.in 			\
