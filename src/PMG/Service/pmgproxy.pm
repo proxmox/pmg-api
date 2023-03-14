@@ -230,6 +230,10 @@ sub get_index {
 	}
     }
 
+    if ($theme eq "") {
+	$theme = "auto"
+    }
+
     $token = PMG::Ticket::assemble_csrf_prevention_token($username)
 	if defined($username);
 
@@ -270,7 +274,6 @@ sub get_index {
 	wtversion => $wtversion,
 	quarantinelink => $quarantinelink,
 	theme => $theme,
-	auto => $theme == "auto",
     };
 
     my $template_name;
