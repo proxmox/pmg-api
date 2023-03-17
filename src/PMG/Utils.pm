@@ -288,8 +288,10 @@ sub reinject_mail {
 	}
 
 	if (!$smtp->_MAIL("FROM:" . $sender_addr . $mail_opts)) {
-	    syslog('err', "smtp error - got: %s %s", $smtp->code, scalar ($smtp->message));
-	    die "smtp from: ERROR";
+	    my @msgs = $smtp->message;
+	    $resmess = $msgs[$#msgs];
+	    $rescode = $smtp->code;
+	    die sprintf("smtp from error - got: %s %s\n", $rescode, $resmess);
 	}
 
 	foreach my $target (@$targets) {
@@ -304,8 +306,10 @@ sub reinject_mail {
 	    $rcpt_addr = encode('UTF-8', $smtp->_addr($target));
 
 	    if (!$smtp->_RCPT("TO:" . $rcpt_addr . $rcpt_opts)) {
-		syslog ('err', "smtp error - got: %s %s", $smtp->code, scalar($smtp->message));
-		die "smtp to: ERROR";
+		my @msgs = $smtp->message;
+		$resmess = $msgs[$#msgs];
+		$rescode = $smtp->code;
+		die sprintf("smtp to error - got: %s %s\n", $rescode, $resmess);
 	    }
 	}
 
@@ -326,13 +330,13 @@ sub reinject_mail {
 	    ($resid) = $resmess =~ m/Ok: queued as ([0-9A-Z]+)/;
 	    $rescode = $smtp->code;
 	    if (!$resid) {
-		die sprintf("unexpected SMTP result - got: %s %s : WARNING", $smtp->code, $resmess);
+		die sprintf("unexpected SMTP result - got: %s %s : WARNING\n", $smtp->code, $resmess);
 	    }
 	} else {
 	    my @msgs = $smtp->message;
 	    $resmess = $msgs[$#msgs];
 	    $rescode = $smtp->code;
-	    die sprintf("sending data failed - got: %s %s : ERROR", $smtp->code, $resmess);
+	    die sprintf("sending data failed - got: %s %s : ERROR\n", $smtp->code, $resmess);
 	}
     };
     my $err = $@;
