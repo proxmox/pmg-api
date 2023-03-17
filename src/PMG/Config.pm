@@ -682,6 +682,11 @@ sub properties {
 	    type => 'boolean',
 	    default => 0
 	},
+	smtputf8 => {
+	    description => "Enable SMTPUTF8 support in Postfix and detection for locally generated mail",
+	    type => 'boolean',
+	    default => 1
+	},
     };
 }
 
@@ -722,6 +727,7 @@ sub options {
 	dnsbl_threshold => { optional => 1 },
 	before_queue_filtering => { optional => 1 },
 	ndr_on_block => { optional => 1 },
+	smtputf8 => { optional => 1 },
     };
 }
 
@@ -1766,6 +1772,7 @@ my $pmg_service_params = {
     mail => {
 	hide_received => 1,
 	ndr_on_block => 1,
+	smtputf8 => 1,
     },
     admin => {
 	dkim_selector => 1,

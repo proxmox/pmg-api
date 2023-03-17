@@ -132,6 +132,10 @@ lmtp_tls_session_cache_database = btree:/var/lib/postfix/lmtp_tls_session_cache
 unverified_recipient_reject_reason = Recipient address lookup failed
 [% END %]
 
+[% IF ! pmg.mail.smtputf8 %]
+smtputf8_enable = no
+[% END %]
+
 
 default_destination_concurrency_limit = 40
 lmtp_destination_concurrency_limit = 20

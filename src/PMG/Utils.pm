@@ -221,26 +221,31 @@ sub subst_values_for_header {
     return $res;
 }
 
-# detects the need for setting smtputf8 based on addresses and headers
+# detects the need for setting smtputf8 based on pmg.conf, addresses and headers
 sub reinject_local_mail {
-    my ($entity, $sender, $targets, $xforward, $me, $params) = @_;
+    my ($entity, $sender, $targets, $xforward, $me) = @_;
 
-    my $needs_smtputf8 = 0;
+    my $cfg = PMG::Config->new();
 
-    $needs_smtputf8 = 1 if ($sender =~ /[^\p{PosixPrint}]/);
+    my $params;
+    if ( $cfg->get('mail', 'smtputf8' )) {
+	my $needs_smtputf8 = 0;
 
-    foreach my $target (@$targets) {
-	if ($target =~ /[^\p{PosixPrint}]/) {
-	    $needs_smtputf8 = 1;
-	    last;
+	$needs_smtputf8 = 1 if ($sender =~ /[^\p{PosixPrint}]/);
+
+	foreach my $target (@$targets) {
+	    if ($target =~ /[^\p{PosixPrint}]/) {
+		$needs_smtputf8 = 1;
+		last;
+	    }
 	}
-    }
 
-    if (!$needs_smtputf8 && $entity->head()->as_string() =~ /([^\p{PosixPrint}\n\r\t])/) {
-	$needs_smtputf8 = 1;
-    }
+	if (!$needs_smtputf8 && $entity->head()->as_string() =~ /([^\p{PosixPrint}\n\r\t])/) {
+	    $needs_smtputf8 = 1;
+	}
 
-    $params->{mail}->{smtputf8} = $needs_smtputf8;
+	$params->{mail}->{smtputf8} = $needs_smtputf8;
+    }
 
     return reinject_mail($entity, $sender, $targets, $xforward, $me, $params);
 }
