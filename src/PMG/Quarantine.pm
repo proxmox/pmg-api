@@ -2,7 +2,6 @@ package PMG::Quarantine;
 
 use strict;
 use warnings;
-use Net::SMTP;
 use Encode qw(encode);
 
 use PVE::SafeSyslog;
@@ -11,6 +10,7 @@ use PVE::Tools;
 use PMG::Utils;
 use PMG::RuleDB;
 use PMG::MailQueue;
+use PMG::MIMEUtils;
 
 sub add_to_blackwhite {
     my ($dbh, $username, $listname, $addrs, $delete) = @_;
@@ -98,55 +98,24 @@ sub deliver_quarantined_mail {
 
     my $id = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};;
 
+    my $parser = PMG::MIMEUtils::new_mime_parser({
+	nested => 1,
+	decode_bodies => 0,
+	extract_uuencode => 0,
+	dumpdir => "/tmp/.quarantine-$id-$receiver-$$/",
+    });
+
+    my $entity = $parser->parse_open("$path");
+    PMG::MIMEUtils::fixup_multipart($entity);
+
     my $sender = 'postmaster'; # notify postmaster if something fails
 
-    my $smtp;
-
     eval {
-	my $smtp = Net::SMTP->new ('127.0.0.1', Port => 10025, Hello => 'quarantine') ||
-	    die "unable to connect to localhost at port 10025\n";
+	my ($qid, $code, $mess) = PMG::Utils::reinject_local_mail(
+	    $entity, $sender, [$receiver], undef, 'quarantine');
 
-	my $resid;
-
-	if (!$smtp->mail($sender)) {
-	    die sprintf("smtp from error - got: %s %s\n", $smtp->code, $smtp->message);
-	}
-
-	if (!$smtp->to($receiver)) {
-	    die sprintf("smtp to error - got: %s %s\n", $smtp->code, $smtp->message);
-	}
-
-	$smtp->data();
-
-	my $header = 1;
-
-	open(my $fh, '<', $path) || die "unable to open file '$path' - $!\n";
-
-	while (defined(my $line = <$fh>)) {
-	    chomp $line;
-	    if ($header && ($line =~ m/^\s*$/)) {
-		$header = 0;
-	    }
-
-	    # skip Delivered-To and Return-Path (avoid problem with postfix
-	    # forwarding loop detection (man local))
-	    next if ($header && (($line =~ m/^Delivered-To:/i) || ($line =~ m/^Return-Path:/i)));
-
-	    # rfc821 requires this
-	    $line =~ s/^\./\.\./mg;
-	    $smtp->datasend("$line\n");
-	}
-	close($fh);
-
-	if ($smtp->dataend()) {
-	    my (@msgs) = $smtp->message;
-	    my ($last_msg) = $msgs[$#msgs];
-	    ($resid) = $last_msg =~ m/Ok: queued as ([0-9A-Z]+)/;
-	    if (!$resid) {
-		die sprintf("smtp error - got: %s %s\n", $smtp->code, $smtp->message);
-	    }
-	} else {
-	    die sprintf("sending data failed - got: %s %s\n", $smtp->code, $smtp->message);
+	if (!$qid) {
+	    die "$mess\n";
 	}
 
 	my $sth = $dbh->prepare(
@@ -156,9 +125,6 @@ sub deliver_quarantined_mail {
 	$sth->finish;
     };
     my $err = $@;
-
-    $smtp->quit if $smtp;
-
     if ($err) {
 	my $msg = "deliver quarantined mail '$id' ($path) failed: $err";
 	syslog('err', $msg);
