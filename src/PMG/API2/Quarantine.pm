@@ -1182,15 +1182,17 @@ __PACKAGE__->register_method ({
 
 	    my $ref = $get_and_check_mail->($id, $rpcenv, $dbh);
 	    my $sender = try_decode_utf8($get_real_sender->($ref));
+	    my $pmail = try_decode_utf8($ref->{pmail});
+	    my $receiver = try_decode_utf8($ref->{receiver} // $ref->{pmail});
 
 	    if ($action eq 'whitelist') {
-		PMG::Quarantine::add_to_blackwhite($dbh, $ref->{pmail}, 'WL', [ $sender ]);
-		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $ref->{receiver} // $ref->{pmail});
+		PMG::Quarantine::add_to_blackwhite($dbh, $pmail, 'WL', [ $sender ]);
+		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
 	    } elsif ($action eq 'blacklist') {
-		PMG::Quarantine::add_to_blackwhite($dbh, $ref->{pmail}, 'BL', [ $sender ]);
+		PMG::Quarantine::add_to_blackwhite($dbh, $pmail, 'BL', [ $sender ]);
 		PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
 	    } elsif ($action eq 'deliver') {
-		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $ref->{receiver} // $ref->{pmail});
+		PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
 	    } elsif ($action eq 'delete') {
 		PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
 	    } else {
