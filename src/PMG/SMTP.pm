@@ -111,6 +111,7 @@ sub loop {
 			$self->{param}->{mail}->{$1} = $2;
 		    } elsif ($opt =~ m/smtputf8/i) {
 			$self->{smtputf8} = 1;
+			$self->{param}->{mail}->{smtputf8} = 1;
 			$from = decode('UTF-8', $from);
 		    } else {
 			#ignore everything else
@@ -314,7 +315,7 @@ EOF
 	Encoding => '7bit',
 	Description => 'Delivery report');
 
-    my $qid = PMG::Utils::reinject_mail($ndr, '', [$sender], undef, $hostname);
+    my $qid = PMG::Utils::reinject_local_mail($ndr, '', [$sender], undef, $hostname);
     if ($qid) {
 	syslog('info', "sent NDR for rejecting recipients - $qid");
     } else {

@@ -256,7 +256,7 @@ sub execute {
 	print $fh "notify end\n";
     } else {
 	my @targets = split(/\s*,\s*/, $to);
-	my $qid = PMG::Utils::reinject_mail(
+	my $qid = PMG::Utils::reinject_local_mail(
 	    $top, $from, \@targets, undef, $msginfo->{fqdn});
 	foreach (@targets) {
 	    my $target = encode('UTF-8', $_);

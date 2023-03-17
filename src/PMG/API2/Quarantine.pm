@@ -1239,7 +1239,7 @@ my sub send_link_mail {
     );
 
     # we use an empty envelope sender (we don't want to receive NDRs)
-    PMG::Utils::reinject_mail ($mail, '', [$receiver], undef, $fqdn);
+    PMG::Utils::reinject_local_mail ($mail, '', [$receiver], undef, $fqdn);
 }
 
 __PACKAGE__->register_method ({

@@ -221,18 +221,28 @@ sub subst_values_for_header {
     return $res;
 }
 
-sub mail_needs_smtputf8 {
-    my ($entity, $sender, $targets) = @_;
+# detects the need for setting smtputf8 based on addresses and headers
+sub reinject_local_mail {
+    my ($entity, $sender, $targets, $xforward, $me, $params) = @_;
 
-    return 1 if ($sender =~ /[^\p{PosixPrint}]/);
+    my $needs_smtputf8 = 0;
+
+    $needs_smtputf8 = 1 if ($sender =~ /[^\p{PosixPrint}]/);
 
     foreach my $target (@$targets) {
 	if ($target =~ /[^\p{PosixPrint}]/) {
-	    return 1;
+	    $needs_smtputf8 = 1;
+	    last;
 	}
     }
 
-    return 0;
+    if (!$needs_smtputf8 && $entity->head()->as_string() =~ /([^\p{PosixPrint}\n\r\t])/) {
+	$needs_smtputf8 = 1;
+    }
+
+    $params->{mail}->{smtputf8} = $needs_smtputf8;
+
+    return reinject_mail($entity, $sender, $targets, $xforward, $me, $params);
 }
 
 sub reinject_mail {
@@ -260,10 +270,12 @@ sub reinject_mail {
 	}
 
 	my $mail_opts = " BODY=8BITMIME";
-	$mail_opts .= " SMTPUTF8" if mail_needs_smtputf8($entity, $sender, $targets);
 	my $sender_addr = encode('UTF-8', $smtp->_addr($sender));
-
 	if (defined($params->{mail})) {
+	    if (delete $params->{mail}->{smtputf8}) {
+		$mail_opts .= " SMTPUTF8";
+	    }
+
 	    my $mailparams = $params->{mail};
 	    for my $p (keys %$mailparams) {
 		$mail_opts .= " $p=$mailparams->{$p}";
@@ -1258,7 +1270,7 @@ sub finalize_report {
 	return;
     }
     # we use an empty envelope sender (we don't want to receive NDRs)
-    PMG::Utils::reinject_mail ($top, '', [$receiver], undef, $data->{fqdn});
+    PMG::Utils::reinject_local_mail ($top, '', [$receiver], undef, $data->{fqdn});
 }
 
 sub lookup_timespan {
