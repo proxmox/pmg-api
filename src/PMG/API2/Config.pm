@@ -23,6 +23,7 @@ use PMG::API2::SMTPWhitelist;
 use PMG::API2::MimeTypes;
 use PMG::API2::Fetchmail;
 use PMG::API2::DestinationTLSPolicy;
+use PMG::API2::InboundTLSDomains;
 use PMG::API2::DKIMSign;
 use PMG::API2::SACustom;
 use PMG::API2::PBS::Remote;
@@ -86,6 +87,11 @@ __PACKAGE__->register_method ({
     path => 'tlspolicy',
 });
 
+__PACKAGE__->register_method ({
+    subclass => "PMG::API2::InboundTLSDomains",
+    path => 'tlsinbounddomains',
+});
+
 __PACKAGE__->register_method({
     subclass => "PMG::API2::DKIMSign",
     path => 'dkim',
@@ -146,6 +152,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'ruledb' };
 	push @$res, { section => 'tfa' };
 	push @$res, { section => 'tlspolicy' };
+	push @$res, { section => 'tlsinbounddomains' };
 	push @$res, { section => 'transport' };
 	push @$res, { section => 'users' };
 	push @$res, { section => 'whitelist' };
