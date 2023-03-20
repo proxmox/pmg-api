@@ -79,6 +79,7 @@ smtpd_sender_restrictions =
         reject_non_fqdn_sender
         check_client_access     cidr:/etc/postfix/clientaccess
         check_sender_access     regexp:/etc/postfix/senderaccess
+        check_sender_access     hash:/etc/pmg/tls_inbound_domains
         check_recipient_access  regexp:/etc/postfix/rcptaccess
 [%- IF pmg.mail.rejectunknown %] reject_unknown_client_hostname[% END %]
 [%- IF pmg.mail.rejectunknownsender %] reject_unknown_sender_domain[% END %]

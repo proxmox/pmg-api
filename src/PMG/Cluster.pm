@@ -464,6 +464,7 @@ sub sync_config_from_master {
 	'mynetworks',
 	'transport',
 	'tls_policy',
+	'tls_inbound_domains',
 	'fetchmailrc',
 	];
 

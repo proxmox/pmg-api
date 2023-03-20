@@ -1160,6 +1160,61 @@ sub postmap_tls_policy {
     PMG::Utils::run_postmap($tls_policy_map_filename);
 }
 
+sub read_tls_inbound_domains {
+    my ($filename, $fh) = @_;
+
+    return {} if !defined($fh);
+
+    my $domains = {};
+
+    while (defined(my $line = <$fh>)) {
+	chomp $line;
+	next if $line =~ m/^\s*$/;
+	next if $line =~ m/^#(.*)\s*$/;
+
+	my $parse_error = sub {
+	    my ($err) = @_;
+	    die "parse error in '$filename': $line - $err";
+	};
+
+	if ($line =~ m/^(\S+) reject_plaintext_session$/) {
+	    my $domain = $1;
+
+	    eval { pmg_verify_transport_domain($domain) };
+	    if (my $err = $@) {
+		$parse_error->($err);
+		next;
+	    }
+
+	    $domains->{$domain} = 1;
+	} else {
+	    $parse_error->('wrong format');
+	}
+    }
+
+    return $domains;
+}
+
+sub write_tls_inbound_domains {
+    my ($filename, $fh, $domains) = @_;
+
+    return if !$domains;
+
+    foreach my $domain (sort keys %$domains) {
+	PVE::Tools::safe_print($filename, $fh, "$domain reject_plaintext_session\n");
+    }
+}
+
+my $tls_inbound_domains_map_filename = "/etc/pmg/tls_inbound_domains";
+PVE::INotify::register_file('tls_inbound_domains', $tls_inbound_domains_map_filename,
+			    \&read_tls_inbound_domains,
+			    \&write_tls_inbound_domains,
+			    undef, always_call_parser => 1);
+
+sub postmap_tls_inbound_domains {
+    PMG::Utils::run_postmap($tls_inbound_domains_map_filename);
+}
+
 my $transport_map_filename = "/etc/pmg/transport";
 
 sub postmap_pmg_transport {
@@ -1696,6 +1751,7 @@ sub rewrite_config_postfix {
     postmap_pmg_domains();
     postmap_pmg_transport();
     postmap_tls_policy();
+    postmap_tls_inbound_domains();
 
     rewrite_postfix_whitelist($rulecache) if $rulecache;
 
