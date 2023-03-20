@@ -1111,7 +1111,7 @@ sub read_tls_policy {
 
 	my $parse_error = sub {
 	    my ($err) = @_;
-	    die "parse error in '$filename': $line - $err";
+	    warn "parse error in '$filename': $line - $err\n";
 	};
 
 	if ($line =~ m/^(\S+)\s+(.+)\s*$/) {
@@ -1174,7 +1174,7 @@ sub read_tls_inbound_domains {
 
 	my $parse_error = sub {
 	    my ($err) = @_;
-	    die "parse error in '$filename': $line - $err";
+	    warn "parse error in '$filename': $line - $err\n";
 	};
 
 	if ($line =~ m/^(\S+) reject_plaintext_session$/) {
