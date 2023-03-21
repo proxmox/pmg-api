@@ -89,7 +89,7 @@ __PACKAGE__->register_method ({
 
 __PACKAGE__->register_method ({
     subclass => "PMG::API2::InboundTLSDomains",
-    path => 'tlsinbounddomains',
+    path => 'tls-inbound-domains',
 });
 
 __PACKAGE__->register_method({
@@ -152,7 +152,7 @@ __PACKAGE__->register_method ({
 	push @$res, { section => 'ruledb' };
 	push @$res, { section => 'tfa' };
 	push @$res, { section => 'tlspolicy' };
-	push @$res, { section => 'tlsinbounddomains' };
+	push @$res, { section => 'tls-inbound-domains' };
 	push @$res, { section => 'transport' };
 	push @$res, { section => 'users' };
 	push @$res, { section => 'whitelist' };
