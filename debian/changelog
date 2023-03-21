@@ -1,3 +1,26 @@
+pmg-api (7.2-5) bullseye; urgency=medium
+
+  * fix #4536: parse original filenames from gzip files
+
+  * proxy: add support for switching themes
+
+  * ruledb: spam: adapt to spamassassin 4.0.0
+
+  * templates: sync spamassassin templates with 4.0.0 upstream
+
+  * templates: enable DecodeShortUrls for SpamAssassin 4.0.0
+
+  * templates: enable DMARC plugin in v400.pre.in
+
+  * fix #2437: config: Add new tls_inbound_domains postfix map and add API
+    endpoint for managing entries
+
+  * config: warn on parse errors for tls related config files
+
+  * fix #4521: api/tasks: replace upid as filename for task log downloads
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Mar 2023 12:59:25 +0100
+
 pmg-api (7.2-4) bullseye; urgency=medium
 
   * fix #4410: Remove non-null host bits from CIDR when writing postfix
