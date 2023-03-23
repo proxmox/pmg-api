@@ -1,3 +1,20 @@
+pmg-api (7.3-1) bullseye; urgency=medium
+
+  * proxy: initialize the theme variable with an empty string
+
+  * smtputf8: keep smtputf8 from incoming postfix, detect for local mail
+
+  * config: make smtputf8 configurable through the API
+
+  * reinject mail: improve error logging
+
+  * quarantine: reuse the reinject local mail helper to profit from some of
+    it's recent improvements like IPv6 or DSN.
+
+  * api: quarantine: decode addresses before delivery/userlisting
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 23 Mar 2023 17:29:01 +0100
+
 pmg-api (7.2-5) bullseye; urgency=medium
 
   * fix #4536: parse original filenames from gzip files
