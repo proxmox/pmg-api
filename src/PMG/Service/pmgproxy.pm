@@ -199,7 +199,7 @@ sub get_index {
 	$mobile = $args->{mobile} ? 1 : 0;
     }
 
-    my $theme;
+    my $theme = "";
 
     if (my $cookie = $r->header('Cookie')) {
 	if (my $newlang = ($cookie =~ /(?:^|\s)PMGLangCookie=([^;]*)/)[0]) {
