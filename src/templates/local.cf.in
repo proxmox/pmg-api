@@ -25,5 +25,5 @@ whitelist_bounce_relays [% composed.wl_bounce_relays %]
 score ANY_BOUNCE_MESSAGE [% pmg.spam.bounce_score %]
 [% END %]
 
-include /usr/share/spamassassin-extra/KAM.cf
+include /usr/share/spamassassin-extra/kam_sa-channels_mcgrail_com.cf
 
