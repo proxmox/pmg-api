@@ -63,7 +63,14 @@ sub type {
 sub properties {
     return {
 	advfilter => {
-	    description => "Use advanced filters for statistic.",
+	    description => "Enable advanced filters for statistic.",
+	    verbose_description => <<EODESC,
+Enable advanced filters for statistic.
+
+If this is enabled, the receiver statistic are limited to active ones
+(receivers which also sent out mail in the 90 days before), and the contact
+statistic will not contain these active receivers.
+EODESC
 	    type => 'boolean',
 	    default => 1,
 	},
@@ -519,11 +526,13 @@ sub properties {
 	    default => 0,
 	},
 	smarthost => {
-	    description => "When set, all outgoing mails are deliverd to the specified smarthost.",
+	    description => "When set, all outgoing mails are deliverd to the specified smarthost.".
+		"(postfix option `default_transport`)",
 	    type => 'string', format => 'address',
 	},
 	smarthostport => {
-	    description => "SMTP port number for smarthost.",
+	    description => "SMTP port number for smarthost.".
+		"(postfix option `default_transport`)",
 	    type => 'integer',
 	    minimum => 1,
 	    maximum => 65535,
@@ -587,13 +596,13 @@ sub properties {
 	    default => 0,
 	},
 	maxsize => {
-	    description => "Maximum email size. Larger mails are rejected.",
+	    description => "Maximum email size. Larger mails are rejected. (postfix option `message_size_limit`)",
 	    type => 'integer',
 	    minimum => 1024,
 	    default => 1024*1024*10,
 	},
 	dwarning => {
-	    description => "SMTP delay warning time (in hours).",
+	    description => "SMTP delay warning time (in hours). (postfix option `delay_warning_time`)",
 	    type => 'integer',
 	    minimum => 0,
 	    default => 4,
@@ -643,31 +652,36 @@ sub properties {
 	    default => 64,
 	},
 	helotests => {
-	    description => "Use SMTP HELO tests.",
+	    description => "Use SMTP HELO tests. (postfix option `smtpd_helo_restrictions)",
 	    type => 'boolean',
 	    default => 0,
 	},
 	rejectunknown => {
-	    description => "Reject unknown clients.",
+	    description => "Reject unknown clients. (postfix option `reject_unknown_client_hostname`)",
 	    type => 'boolean',
 	    default => 0,
 	},
 	rejectunknownsender => {
-	    description => "Reject unknown senders.",
+	    description => "Reject unknown senders. (postfix option `reject_unknown_sender_domain`)",
 	    type => 'boolean',
 	    default => 0,
 	},
 	verifyreceivers => {
-	    description => "Enable receiver verification. The value spefifies the numerical reply code when the Postfix SMTP server rejects a recipient address.",
+	    description => "Enable receiver verification. The value spefifies the numerical reply ".
+		"code when the Postfix SMTP server rejects a recipient address.".
+		"(postfix options `reject_unknown_recipient_domain`, `reject_unverified_recipient`,".
+		" and `unverified_recipient_reject_code`)",
 	    type => 'string',
 	    enum => ['450', '550'],
 	},
 	dnsbl_sites => {
-	    description => "Optional list of DNS white/blacklist domains (see postscreen_dnsbl_sites parameter).",
+	    description => "Optional list of DNS white/blacklist domains (postfix option ".
+		"`postscreen_dnsbl_sites`).",
 	    type => 'string', format => 'dnsbl-entry-list',
 	},
 	dnsbl_threshold => {
-	    description => "The inclusive lower bound for blocking a remote SMTP client, based on its combined DNSBL score (see postscreen_dnsbl_threshold parameter).",
+	    description => "The inclusive lower bound for blocking a remote SMTP client, based on".
+		"its combined DNSBL score (postfix option `postscreen_dnsbl_threshold`).",
 	    type => 'integer',
 	    minimum => 0,
 	    default => 1
