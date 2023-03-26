@@ -526,13 +526,12 @@ sub properties {
 	    default => 0,
 	},
 	smarthost => {
-	    description => "When set, all outgoing mails are deliverd to the specified smarthost.".
-		"(postfix option `default_transport`)",
+	    description => "When set, all outgoing mails are deliverd to the specified smarthost."
+	        ." (postfix option `default_transport`)",
 	    type => 'string', format => 'address',
 	},
 	smarthostport => {
-	    description => "SMTP port number for smarthost.".
-		"(postfix option `default_transport`)",
+	    description => "SMTP port number for smarthost. (postfix option `default_transport`)",
 	    type => 'integer',
 	    minimum => 1,
 	    maximum => 65535,
@@ -667,21 +666,20 @@ sub properties {
 	    default => 0,
 	},
 	verifyreceivers => {
-	    description => "Enable receiver verification. The value spefifies the numerical reply ".
-		"code when the Postfix SMTP server rejects a recipient address.".
-		"(postfix options `reject_unknown_recipient_domain`, `reject_unverified_recipient`,".
-		" and `unverified_recipient_reject_code`)",
+	    description => "Enable receiver verification. The value spefifies the numerical reply"
+	        ." code when the Postfix SMTP server rejects a recipient address."
+	        ." (postfix options `reject_unknown_recipient_domain`, `reject_unverified_recipient`,"
+	        ." and `unverified_recipient_reject_code`)",
 	    type => 'string',
 	    enum => ['450', '550'],
 	},
 	dnsbl_sites => {
-	    description => "Optional list of DNS white/blacklist domains (postfix option ".
-		"`postscreen_dnsbl_sites`).",
+	    description => "Optional list of DNS white/blacklist domains (postfix option `postscreen_dnsbl_sites`).",
 	    type => 'string', format => 'dnsbl-entry-list',
 	},
 	dnsbl_threshold => {
-	    description => "The inclusive lower bound for blocking a remote SMTP client, based on".
-		"its combined DNSBL score (postfix option `postscreen_dnsbl_threshold`).",
+	    description => "The inclusive lower bound for blocking a remote SMTP client, based on"
+	        ." its combined DNSBL score (postfix option `postscreen_dnsbl_threshold`).",
 	    type => 'integer',
 	    minimum => 0,
 	    default => 1
