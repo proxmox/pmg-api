@@ -108,6 +108,11 @@ sub deliver_quarantined_mail {
     my $entity = $parser->parse_open("$path");
     PMG::MIMEUtils::fixup_multipart($entity);
 
+    # delete Delivered-To and Return-Path (avoid problem with postfix
+    # forwarding loop detection (man local))
+    $entity->head->delete('Delivered-To');
+    $entity->head->delete('Return-Path');
+
     my $sender = 'postmaster'; # notify postmaster if something fails
 
     eval {
