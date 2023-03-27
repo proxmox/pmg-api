@@ -430,9 +430,11 @@ sub total_spam_stat {
     my ($self, $rdb) = @_;
     my ($from, $to) = $self->timespan();
 
-    my $sth = $rdb->{dbh}->prepare("SELECT spamlevel, COUNT(spamlevel) AS count FROM CStatistic " .
-				   "WHERE virusinfo IS NULL and time >= ? AND time < ? AND ptime > 0 AND spamlevel > 0 " .
-				   "GROUP BY spamlevel ORDER BY spamlevel");
+    my $sth = $rdb->{dbh}->prepare(
+        "SELECT spamlevel, COUNT(spamlevel) AS count FROM CStatistic"
+        ." WHERE virusinfo IS NULL and time >= ? AND time < ? AND ptime > 0 AND spamlevel > 0 "
+        ." GROUP BY spamlevel ORDER BY spamlevel"
+    );
     $sth->execute($from, $to);
 
     my $res = $sth->fetchall_arrayref({});
@@ -454,9 +456,10 @@ sub total_virus_stat {
     $order = join (' DESC, ', @oa);
     $order .= ' DESC';
 
-    my $sth = $rdb->{dbh}->prepare("SELECT Name, SUM (Count) as count FROM VirusInfo " .
-				   "WHERE time >= ? AND time < ? " .
-				   "GROUP BY name ORDER BY $order, name");
+    my $sth = $rdb->{dbh}->prepare(
+	"SELECT Name, SUM (Count) as count FROM VirusInfo WHERE time >= ? AND time < ? "
+	." GROUP BY name ORDER BY $order, name"
+    );
 
     $sth->execute($from, $to);
 
