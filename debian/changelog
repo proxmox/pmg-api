@@ -1,3 +1,13 @@
+pmg-api (7.3-2) bullseye; urgency=medium
+
+  * config schema: extend documentation for options
+
+  * templates: adapt to new path for KAM rules in proxmox-spamassassin
+
+  * report: add `date -R` to general system info section
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 27 Mar 2023 12:59:53 +0200
+
 pmg-api (7.3-1) bullseye; urgency=medium
 
   * proxy: initialize the theme variable with an empty string
