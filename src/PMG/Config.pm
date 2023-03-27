@@ -651,7 +651,7 @@ sub properties {
 	    default => 64,
 	},
 	helotests => {
-	    description => "Use SMTP HELO tests. (postfix option `smtpd_helo_restrictions)",
+	    description => "Use SMTP HELO tests. (postfix option `smtpd_helo_restrictions`)",
 	    type => 'boolean',
 	    default => 0,
 	},
