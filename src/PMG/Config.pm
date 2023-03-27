@@ -695,7 +695,7 @@ sub properties {
 	    default => 0
 	},
 	smtputf8 => {
-	    description => "Enable SMTPUTF8 support in Postfix and detection for locally generated mail",
+	    description => "Enable SMTPUTF8 support in Postfix and detection for locally generated mail (postfix option `smtputf8_enable`)",
 	    type => 'boolean',
 	    default => 1
 	},
