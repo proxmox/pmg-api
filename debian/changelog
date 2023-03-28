@@ -1,3 +1,12 @@
+pmg-api (7.3-3) bullseye; urgency=medium
+
+  * config schema: document postfix option for smtputf8 flag
+
+  * quarantine: delete Delivered-To and Return-Path when reinjecting mails,
+    fixing a (unpublished) regression with postfix's forwarding loop detection
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 28 Mar 2023 07:42:19 +0200
+
 pmg-api (7.3-2) bullseye; urgency=medium
 
   * config schema: extend documentation for options
