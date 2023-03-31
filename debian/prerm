@@ -19,7 +19,7 @@ case "$1" in
 esac
 
 if [ -d /run/systemd/system ] && [ "$1" = remove ]; then
-    deb-systemd-invoke stop pmgproxy.service pmgdaemon.service >/dev/null
+    deb-systemd-invoke stop pmgproxy.service pmgdaemon.service >/dev/null || true
 fi
 
 # dh_installdeb will replace this with shell code automatically

@@ -89,11 +89,11 @@ case "$1" in
 
         if test ! -e /proxmox_install_mode ; then
 
-            pmgconfig init
-            pmgdb init
+            pmgconfig init || true
+            pmgdb init || true
 
             ucf_register_templates
-            pmgconfig sync --restart
+            pmgconfig sync --restart || true
 
             if [ -z "$2" ]; then
                 if systemctl --quiet is-active pmgpolicy.service ; then
