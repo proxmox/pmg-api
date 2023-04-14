@@ -72,8 +72,9 @@ sub decode_spaminfo {
 
     my $salocaldir = "/var/lib/spamassassin/$saversion/updates_spamassassin_org";
     my $sacustomdir = "/etc/mail/spamassassin";
+    my $kamdir = "/var/lib/spamassassin/$saversion/kam_sa-channels_mcgrail_com";
 
-    $spamdesc = PMG::Utils::load_sa_descriptions([$salocaldir, $sacustomdir]) if !$spamdesc;
+    $spamdesc = PMG::Utils::load_sa_descriptions([$salocaldir, $sacustomdir, $kamdir]) if !$spamdesc;
 
     foreach my $test (split (',', $info)) {
 	my ($name, $score) = split (':', $test);
