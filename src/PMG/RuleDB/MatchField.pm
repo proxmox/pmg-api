@@ -69,7 +69,13 @@ sub save {
 
     defined($self->{ogroup}) || die "undefined ogroup: ERROR";
 
-    my $new_value = "$self->{field}:$self->{field_value}";
+    my $regex = $self->{field_value};
+
+    # test regex for validity
+    eval { "" =~ /$regex/i; };
+    die "invalid regex: $@\n" if $@;
+
+    my $new_value = "$self->{field}:$regex";
     $new_value =~ s/\\/\\\\/g;
     $new_value = encode('UTF-8', $new_value);
 
@@ -111,9 +117,12 @@ sub parse_entity {
 	    my $decvalue = PMG::Utils::decode_rfc1522($value);
 	    $decvalue = PMG::Utils::try_decode_utf8($decvalue);
 
-	    if ($decvalue =~ m|$self->{field_value}|i) {
-		push @$res, $id;
-	    }
+	    eval {
+		if ($decvalue =~ m|$self->{field_value}|i) {
+		    push @$res, $id;
+		}
+	    };
+	    warn "invalid regex: $@\n" if $@;
 	}
     }
 
