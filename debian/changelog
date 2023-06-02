@@ -1,3 +1,12 @@
+pmg-api (7.3-4) bullseye; urgency=medium
+
+  * ruledb: match field: improve validation of regular expressions on addition,
+    warn for existing invalid ones.
+
+  * d/maintscripts: prevent aborting on errors in some commands
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 02 Jun 2023 10:30:31 +0200
+
 pmg-api (7.3-3) bullseye; urgency=medium
 
   * config schema: document postfix option for smtputf8 flag
