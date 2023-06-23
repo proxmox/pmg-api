@@ -477,7 +477,6 @@ cluster_name = '<* postgres.version *>/main'			# added to process titles if none
 #track_io_timing = off
 #track_functions = none			# none, pl, all
 #track_activity_query_size = 1024	# (change requires restart)
-stats_temp_directory = '/var/run/postgresql/<* postgres.version *>-main.pg_stat_tmp'
 
 
 # - Statistics Monitoring -
