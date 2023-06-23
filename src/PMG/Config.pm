@@ -177,12 +177,12 @@ sub properties {
 	use_bayes => {
 	    description => "Whether to use the naive-Bayesian-style classifier.",
 	    type => 'boolean',
-	    default => 1,
+	    default => 0,
 	},
 	use_awl => {
 	    description => "Use the Auto-Whitelist plugin.",
 	    type => 'boolean',
-	    default => 1,
+	    default => 0,
 	},
 	use_razor => {
 	    description => "Whether to use Razor2, if it is available.",
