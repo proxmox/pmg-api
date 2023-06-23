@@ -72,7 +72,7 @@ If this is enabled, the receiver statistic are limited to active ones
 statistic will not contain these active receivers.
 EODESC
 	    type => 'boolean',
-	    default => 1,
+	    default => 0,
 	},
 	dailyreport => {
 	    description => "Send daily reports.",
