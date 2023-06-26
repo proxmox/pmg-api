@@ -23,6 +23,9 @@ use base qw(PVE::CLIHandler);
 
 my $nodename = PVE::INotify::nodename();
 
+my $old_postgres_release = '13';
+my $new_postgres_release = '15';
+
 my $upgraded = 0; # set in check_pmg_packages
 
 sub setup_environment {
@@ -272,17 +275,17 @@ sub check_running_postgres {
     my $upgraded_db = 0;
 
     if ($upgraded) {
-	if ($version ne '15') {
-	    log_warn("Running postgres version is still 13. Please upgrade the database.");
+	if ($version ne $new_postgres_release) {
+	    log_warn("Running postgres version is still $old_postgres_release. Please upgrade the database.");
 	} else {
-	    log_pass("Running postgres version is 15.");
+	    log_pass("After upgrade and running postgres version is $new_postgres_release.");
 	    $upgraded_db = 1;
 	}
     } else {
-	if ($version ne '13') {
-	    log_warn("Running postgres version '$version' is not '13', was a previous upgrade finished?");
+	if ($version ne $old_postgres_release) {
+	    log_warn("Running postgres version '$version' is not '$old_postgres_release', was a previous upgrade finished?");
 	} else {
-	    log_pass("Running postgres version is 13.");
+	    log_pass("Before upgrade and running postgres version is $old_postgres_release.");
 	}
     }
 
