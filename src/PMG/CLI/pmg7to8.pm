@@ -187,6 +187,11 @@ sub check_pmg_packages {
 	    log_fail("$pkg package is too old, please upgrade to >= $min_pmg_ver!");
 	}
 
+	if ($pkg eq 'proxmox-mailgateway-container') {
+	    log_skip("Ignoring kernel version checks for $pkg meta-package");
+	    return;
+	}
+
 	# FIXME: better differentiate between 6.2 from bullseye or bookworm
 	my ($krunning, $kinstalled) = (qr/6\.(?:2\.(?:[2-9]\d+|1[6-8]|1\d\d+)|5)[^~]*$/, 'pve-kernel-6.2');
 	if (!$upgraded) {
