@@ -418,7 +418,9 @@ sub sync_config_from_master {
 
     my $cmd = $rsync_command->(
 	$master_name, '-aq',
-	"[${master_ip}]:$cfgdir/* ${sa_conf_dir}/${sa_custom_cf} ${sa_conf_dir}/${sa_rules_cf}",
+	"[${master_ip}]:$cfgdir/*",
+	"[${master_ip}]:${sa_conf_dir}/${sa_custom_cf}",
+	"[${master_ip}]:${sa_conf_dir}/${sa_rules_cf}",
 	"$syncdir/",
 	'--exclude', 'master/',
 	'--exclude', '*~',
