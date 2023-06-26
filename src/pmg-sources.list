@@ -1,1 +1,1 @@
-deb https://enterprise.proxmox.com/debian/pmg bullseye pmg-enterprise
+deb https://enterprise.proxmox.com/debian/pmg bookworm pmg-enterprise
