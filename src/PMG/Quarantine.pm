@@ -74,12 +74,12 @@ sub add_to_blackwhite {
 	if (scalar(keys %{$list->{WL}})) {
 	    $queries .=
 	    "INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
-	    "VALUES ($qu, 'WL', $wlist, EXTRACT (EPOCH FROM now()));";
+	    "VALUES ($qu, 'WL', $wlist, EXTRACT (EPOCH FROM now())::INTEGER);";
 	}
 	if (scalar(keys %{$list->{BL}})) {
 	    $queries .=
 	    "INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
-	    "VALUES ($qu, 'BL', $blist, EXTRACT (EPOCH FROM now()));";
+	    "VALUES ($qu, 'BL', $blist, EXTRACT (EPOCH FROM now())::INTEGER);";
 	}
 	$dbh->do($queries);
     }

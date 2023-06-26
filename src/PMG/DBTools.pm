@@ -893,7 +893,7 @@ sub init_ruledb {
 sub get_remote_time {
     my ($rdb) = @_;
 
-    my $sth = $rdb->prepare("SELECT EXTRACT (EPOCH FROM TIMESTAMP (0) WITH TIME ZONE 'now') as ctime;");
+    my $sth = $rdb->prepare("SELECT EXTRACT (EPOCH FROM TIMESTAMP (0) WITH TIME ZONE 'now')::INTEGER as ctime;");
     $sth->execute();
     my $ctinfo = $sth->fetchrow_hashref();
     $sth->finish ();
@@ -1100,7 +1100,7 @@ sub update_master_clusterinfo {
 
     foreach my $table (@mt) {
 	$dbh->do ("INSERT INTO ClusterInfo (cid, name, ivalue) select $clientcid, 'lastmt_$table', " .
-		  "EXTRACT(EPOCH FROM now())");
+		  "EXTRACT(EPOCH FROM now())::INTEGER");
     }
 }
 
