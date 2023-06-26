@@ -434,8 +434,8 @@ sub check_time_sync {
     if ($unit_active->('systemd-timesyncd.service')) {
 	log_warn(
 	    "systemd-timesyncd is not the best choice for time-keeping on servers, due to only applying"
-	    ." updates on boot.\n  While not necessary for the upgrade it's recommended to use one of:\n"
-	    ."    * chrony (Default in new Proxmox VE installations)\n    * ntpsec\n    * openntpd\n"
+	    ." updates on boot.\n  It's recommended to use one of:\n"
+	    ."    * chrony\n    * ntpsec\n    * openntpd\n"
 	);
     } elsif ($unit_active->('ntp.service')) {
 	log_info("Debian deprecated and removed the ntp package for Bookworm, but the system"
@@ -443,9 +443,8 @@ sub check_time_sync {
     } elsif (my $active_ntp = ($unit_active->('chrony.service') || $unit_active->('openntpd.service') || $unit_active->('ntpsec.service'))) {
 	log_pass("Detected active time synchronisation unit '$active_ntp'");
     } else {
-	log_warn(
-	    "No (active) time synchronisation daemon (NTP) detected, but synchronized systems are important,"
-	    ." especially for cluster and/or ceph!"
+	log_notice(
+	    "No (active) time synchronisation daemon (NTP) detected"
 	);
     }
 }
