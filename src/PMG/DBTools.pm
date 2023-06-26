@@ -344,6 +344,16 @@ my $createdb = sub {
 	'--lc-ctype=C',
 	$dbname,
     );
+
+    # allow root and www-data to access the public SCHEMA like pre prostgres15
+    # this is not a security issue, since the db is not externally reachable anyway and no
+    # other users should exist
+    my $grantcmd = "GRANT CREATE ON SCHEMA public To \"root\";"
+	."GRANT USAGE ON SCHEMA public To \"root\";"
+	."GRANT CREATE ON SCHEMA public To \"www-data\";"
+	."GRANT USAGE ON SCHEMA public To \"www-data\";";
+
+    postgres_admin_cmd('psql', { input => $grantcmd }, '-d', $dbname);
 };
 
 sub create_ruledb {
