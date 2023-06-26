@@ -289,7 +289,7 @@ sub check_running_postgres {
 	}
     } else {
 	if ($version ne $old_postgres_release) {
-	    log_warn("Running postgres version '$version' is not '$old_postgres_release', was a previous upgrade finished?");
+	    log_fail("Running postgres version '$version' is not '$old_postgres_release', was a previous upgrade left unfinished?");
 	} else {
 	    log_pass("Before upgrade and running postgres version is $old_postgres_release.");
 	}
