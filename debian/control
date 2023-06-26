@@ -3,6 +3,7 @@ Section: perl
 Priority: optional
 Maintainer: Proxmox Support Team <support@proxmox.com>
 Build-Depends: debhelper (>= 12~),
+               libapt-pkg-perl,
                libarchive-perl (>= 3.4.0),
                libarchive-zip-perl,
                libauthen-pam-perl,
