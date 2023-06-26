@@ -170,7 +170,7 @@ sub update_stats_dailystat  {
 	push @values, "GreylistCount = GreylistCount + $ref->{glcount}" if $ref->{glcount};
 	push @values, "SPFCount = SPFCount + $ref->{spfcount}" if $ref->{spfcount};
 	push @values, "PTimeSum = PTimeSum + $ref->{ptimesum}" if $ref->{ptimesum};
-	push @values, "MTime = EXTRACT(EPOCH FROM now())";
+	push @values, "MTime = EXTRACT(EPOCH FROM now())::INTEGER";
 
 	if (scalar (@values)) {
 	    $sql .= "UPDATE dailystat SET ";
@@ -192,7 +192,7 @@ sub update_stats_dailystat  {
 	    ($ref->{spam_in} || 0) . ',' . ($ref->{spam_out} || 0) . ',' .
 	    ($ref->{bounces_in} || 0) . ',' . ($ref->{bounces_out} || 0) . ',' .
 	    ($ref->{glcount} || 0) . ',' . ($ref->{spfcount} || 0) . ',0,' . ($ref->{ptimesum} || 0) .
-	    ",EXTRACT(EPOCH FROM now()));";
+	    ",EXTRACT(EPOCH FROM now())::INTEGER);";
 
 	return $sql;
     };
@@ -236,7 +236,7 @@ sub update_stats_domainstat_in  {
 	push @values, "SpamIn = SpamIn + $ref->{spam_in}" if $ref->{spam_in};
 	push @values, "BouncesIn = BouncesIn + $ref->{bounces_in}" if $ref->{bounces_in};
 	push @values, "PTimeSum = PTimeSum + $ref->{ptimesum}" if $ref->{ptimesum};
-	push @values, "MTime = EXTRACT(EPOCH FROM now())";
+	push @values, "MTime = EXTRACT(EPOCH FROM now())::INTEGER";
 
 	if (scalar (@values)) {
 	    $sql .= "UPDATE domainstat SET ";
@@ -256,7 +256,7 @@ sub update_stats_domainstat_in  {
 		    ($ref->{spam_in} || 0) . ',0,' .
 		    ($ref->{bounces_in} || 0) . ',0,' .
 		    ($ref->{ptimesum} || 0) .
-		    ",EXTRACT(EPOCH FROM now()));";
+		    ",EXTRACT(EPOCH FROM now())::INTEGER);";
 
 	return $sql;
     };
@@ -294,7 +294,7 @@ sub update_stats_domainstat_out  {
 	push @values, "SpamOut = SpamOut + $ref->{spam_out}" if $ref->{spam_out};
 	push @values, "BouncesOut = BouncesOut + $ref->{bounces_out}" if $ref->{bounces_out};
 	push @values, "PTimeSum = PTimeSum + $ref->{ptimesum}" if $ref->{ptimesum};
-	push @values, "MTime = EXTRACT(EPOCH FROM now())";
+	push @values, "MTime = EXTRACT(EPOCH FROM now())::INTEGER";
 
 	if (scalar (@values)) {
 	    $sql .= "UPDATE domainstat SET ";
@@ -314,7 +314,7 @@ sub update_stats_domainstat_out  {
 	    ',0,' . ($ref->{spam_out} || 0) .
 	    ',0,' . ($ref->{bounces_out} || 0) .
 	    ','. ($ref->{ptimesum} || 0) .
-	    ",EXTRACT(EPOCH FROM now()));";
+	    ",EXTRACT(EPOCH FROM now())::INTEGER);";
 
 	return $sql;
     };
@@ -342,7 +342,7 @@ sub update_stats_virusinfo  {
 	my $sql = '';
 
 	push @values, "Count = Count + $ref->{count}" if $ref->{count};
-	push @values, "MTime = EXTRACT(EPOCH FROM now())";
+	push @values, "MTime = EXTRACT(EPOCH FROM now()::INTEGER)";
 
 	if (scalar (@values)) {
 	    $sql .= "UPDATE VirusInfo SET ";
@@ -357,7 +357,7 @@ sub update_stats_virusinfo  {
 
 	my $sql .= "INSERT INTO VirusInfo values ($ref->{day}, " .  $dbh->quote($ref->{name}) .
 	    ',' . ($ref->{count} || 0) .
-	    ",EXTRACT(EPOCH FROM now()));";
+	    ",EXTRACT(EPOCH FROM now())::INTEGER);";
 
 	return $sql;
     };

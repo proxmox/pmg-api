@@ -116,7 +116,7 @@ sub update_rbl_stats {
 
     my $sth = $dbh->prepare(
 	'INSERT INTO LocalStat (Time, RBLCount, PregreetCount, CID, MTime) ' .
-	'VALUES (?, ?, ?, ?, EXTRACT(EPOCH FROM now())) ' .
+	'VALUES (?, ?, ?, ?, EXTRACT(EPOCH FROM now())::INTEGER) ' .
 	'ON CONFLICT (Time, CID) DO UPDATE SET ' .
 	'RBLCount = LocalStat.RBLCount + excluded.RBLCount, ' .
 	'PregreetCount = LocalStat.PregreetCount + excluded.PregreetCount, ' .
