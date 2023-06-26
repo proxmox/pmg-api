@@ -313,7 +313,7 @@ sub check_services_disabled {
 	if (scalar($active_list->@*) < 1) {
 	    log_pass("All services inactive.");
 	} else {
-	    my $msg = "Not all services inactive. Consider stopping and disabling them: \n    ";
+	    my $msg = "Not upgraded but core services still active. Consider stopping and masking them for the upgrade: \n    ";
 	    $msg .= join("\n    ", $active_list->@*);
 	    log_warn($msg);
 	}
@@ -321,11 +321,11 @@ sub check_services_disabled {
 	if (scalar($inactive_list->@*) < 1) {
 	    log_pass("All services active.");
 	} elsif ($upgraded_db) {
-	    my $msg = "Not all services active. Consider enabling and starting them: \n    ";
+	    my $msg = "Already upgraded DB, but not all services active again. Consider unmasking and starting them: \n    ";
 	    $msg .= join("\n    ", $inactive_list->@*);
 	    log_warn($msg);
 	} else {
-	    log_skip("Not all services upgraded, but DB was not upgraded yet.");
+	    log_skip("Not all services active, but DB was not upgraded yet - please upgrade DB and then unmask and start services again.");
 	}
     }
 }
