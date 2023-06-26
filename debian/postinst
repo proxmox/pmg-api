@@ -89,6 +89,34 @@ case "$1" in
 
         if test ! -e /proxmox_install_mode ; then
 
+            pmgconf="/etc/pmg/pmg.conf"
+            if test -n "$2" && dpkg --compare-versions "$2" 'lt' '8.0.0'; then
+                # on upgrade add pre 8.0 default values for advfilter, use_awl and use_bayes
+                # TODO: remove with 9.0
+                if test ! -e $pmgconf ; then
+                    # if the config does not exist at all, fill with previous default configs
+                    printf "section: admin\n\tadvfilter 1\n" > $pmgconf
+                    printf "\nsection: spam\n\tuse_bayes 1\n\tuse_awl 1\n" >> $pmgconf
+                else
+                    if ! grep -q 'section: admin' $pmgconf ; then
+                        printf "\nsection: admin" >> $pmgconf
+                    fi
+                    if ! grep -q 'advfilter' $pmgconf ; then
+                        sed -i '/section: admin/a\\tadvfilter 1' $pmgconf
+                    fi
+
+                    if ! grep -q 'section: spam' $pmgconf ; then
+                        printf "\nsection: spam" >> $pmgconf
+                    fi
+                    if ! grep -q 'use_bayes' $pmgconf ; then
+                        sed -i '/section: spam/a\\tuse_bayes 1' $pmgconf
+                    fi
+                    if ! grep -q 'use_awl' $pmgconf ; then
+                        sed -i '/section: spam/a\\tuse_awl 1' $pmgconf
+                    fi
+                fi
+            fi
+
             pmgconfig init || true
             pmgdb init || true
 
