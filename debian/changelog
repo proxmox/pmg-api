@@ -1,3 +1,11 @@
+pmg-api (7.3-5) bullseye; urgency=medium
+
+  * introduce pmg7to8 CLI upgrade helper
+
+  * pmgsh: initialize RPC/REST environment late
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 26 Jun 2023 17:17:50 +0200
+
 pmg-api (7.3-4) bullseye; urgency=medium
 
   * ruledb: match field: improve validation of regular expressions on addition,
