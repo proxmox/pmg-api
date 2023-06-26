@@ -4,6 +4,7 @@ PACKAGE=pmg-api
 
 BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION)
 
+DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_all.deb
 
 REPOID = $(shell git rev-parse --short=8 HEAD)
@@ -24,6 +25,16 @@ deb: $(DEB)
 $(DEB): $(BUILDDIR)
 	cd $(BUILDDIR); dpkg-buildpackage -b -us -uc
 	lintian $(DEB)
+
+dsc:
+	rm -rf $(BUILDDIR) $(DSC)
+	$(MAKE) $(DSC)
+	lintian $(DSC)
+$(DSC): $(BUILDDIR)
+	cd $(BUILDDIR); dpkg-buildpackage -S -us -uc -d
+
+sbuild: $(DSC)
+	sbuild $<
 
 .PHONY: upload
 upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
