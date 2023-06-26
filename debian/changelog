@@ -1,3 +1,27 @@
+pmg-api (8.0.0~1) bookworm; urgency=medium
+
+  * re-build for Proxmox Mail Gateway 8 based on Debian 12 Bookworm
+
+  * update postgresql dependency to 15
+
+  * postgresql.conf template: drop 'stats_temp_directory' config-setting as it
+    was deprecated by upstream PostgreSQL 14 and removed with 15.
+
+  * explicitly depend on rsyslog for the tracking center, as rsyslog doesn't
+    gets installed by default in Debian 12 Bookworm anymore
+
+  * config: disable awl and bayes by default
+
+  * config: disable advanced statistic filters by default
+
+  * debian/postinst: hard code old default values for 'advfilter',
+    'use_bayes' & 'use_awl' during upgrade to 8.0.0
+
+  * grant 'root' and 'www-data' users respective permissions on public schema
+    for newly created databases
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 26 Jun 2023 17:43:06 +0200
+
 pmg-api (7.3-4) bullseye; urgency=medium
 
   * ruledb: match field: improve validation of regular expressions on addition,
