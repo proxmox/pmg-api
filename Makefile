@@ -2,7 +2,7 @@ include /usr/share/dpkg/pkg-info.mk
 
 PACKAGE=pmg-api
 
-BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION_UPSTREAM)
+BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION)
 
 DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_all.deb
 
@@ -13,13 +13,17 @@ export REPOID
 export PMGVERSION = $(DEB_VERSION_UPSTREAM_REVISION)
 export PMGRELEASE = $(DEB_VERSION_UPSTREAM)
 
+$(BUILDDIR): src debian
+	rm -rf $@ $@.tmp
+	cp -a src $@.tmp
+	cp -a debian $@.tmp/
+	mv $@.tmp $@
+
 .PHONY: deb
-deb $(DEB):
-	rm -rf $(BUILDDIR)
-	rsync -a src/ debian $(BUILDDIR)
+deb: $(DEB)
+$(DEB): $(BUILDDIR)
 	cd $(BUILDDIR); dpkg-buildpackage -b -us -uc
 	lintian $(DEB)
-
 
 .PHONY: upload
 upload: $(DEB)
