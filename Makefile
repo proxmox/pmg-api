@@ -37,7 +37,8 @@ check:
 .PHONY: clean distclean
 distclean: clean
 clean:
-	rm -rf *.deb *.changes *.buildinfo $(BUILDDIR) $(PACKAGE)*.tar.gz *.dsc
+	rm -rf $(PACKAGE)-[0-9]*/
+	rm -rf *.deb *.changes *.build *.buildinfo $(PACKAGE)*tar* *.dsc
 
 .PHONY: dinstall
 dinstall: $(DEB)
