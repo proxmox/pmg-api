@@ -32,7 +32,7 @@ upload: $(DEB)
 
 .PHONY: check
 check:
-	make -C src/tests check
+	$(MAKE) -C src/tests check
 
 .PHONY: clean distclean
 distclean: clean
