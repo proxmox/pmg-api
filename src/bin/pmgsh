@@ -21,13 +21,6 @@ use PMG::API2;
 
 use JSON;
 
-PMG::RESTEnvironment->setup_default_cli_env();
-
-my $rpcenv = PMG::RESTEnvironment->get();
-
-my $logid = $ENV{PVE_LOG_ID} || 'pmgsh';
-initlog($logid);
-
 my $basedir = '/api2/json';
 
 my $cdir = '';
@@ -67,8 +60,9 @@ if ($cmd) {
     if ($cmd eq 'verifyapi') {
 	PVE::RESTHandler::validate_method_schemas();
 	exit 0;
-    } elsif ($cmd eq 'ls' || $cmd eq 'get' || $cmd eq 'create' || 
-	     $cmd eq 'set' || $cmd eq 'delete' ||$cmd eq 'help' ) {
+    } elsif ($cmd =~ /^(?:ls|get|create|set|delete|help)$/) {
+	PMG::RESTEnvironment->setup_default_cli_env(); # only set up once actually required
+	initlog($ENV{PVE_LOG_ID} || 'pmgsh');
 	pmg_command([ $cmd, @ARGV],  $opt_nooutput);
 	exit(0);
     } else {
@@ -81,6 +75,11 @@ if (scalar (@ARGV) != 0) {
     print_usage();
     exit(-1);
 }
+
+# only set up once actually required allows calling verifyapi in restriced clean sbuild env
+PMG::RESTEnvironment->setup_default_cli_env();
+my $rpcenv = PMG::RESTEnvironment->get();
+initlog($ENV{PVE_LOG_ID} || 'pmgsh');
 
 print "entering PMG shell - type 'help' for help\n";
 
