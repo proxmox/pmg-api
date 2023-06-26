@@ -106,7 +106,7 @@ Recommends: antiword,
             poppler-utils,
             proxmox-offline-mirror-helper,
             tesseract-ocr,
-            unrtf
+            unrtf,
 Suggests: zfsutils-linux
 Description: Proxmox Mailgateway API Server Implementation
  This implements a REST API to configure Proxmox Mailgateway.
