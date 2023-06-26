@@ -37,6 +37,7 @@ my ($min_pmg_major, $min_pmg_minor, $min_pmg_pkgrel) = (7, 3, 2);
 my $counters = {
     pass => 0,
     skip => 0,
+    notice => 0,
     warn => 0,
     fail => 0,
 };
@@ -61,6 +62,11 @@ sub log_info {
 }
 sub log_skip {
     $log_line->('skip', @_);
+}
+sub log_notice {
+    print color('bold');
+    $log_line->('notice', @_);
+    print color('reset');
 }
 sub log_warn {
     print color('yellow');
