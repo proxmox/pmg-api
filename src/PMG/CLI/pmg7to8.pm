@@ -23,6 +23,12 @@ use base qw(PVE::CLIHandler);
 
 my $nodename = PVE::INotify::nodename();
 
+my $old_postgres_release = '13';
+my $new_postgres_release = '15';
+
+my $old_suite = 'bullseye';
+my $new_suite = 'bookworm';
+
 my $upgraded = 0; # set in check_pmg_packages
 
 sub setup_environment {
@@ -34,6 +40,7 @@ my ($min_pmg_major, $min_pmg_minor, $min_pmg_pkgrel) = (7, 3, 2);
 my $counters = {
     pass => 0,
     skip => 0,
+    notice => 0,
     warn => 0,
     fail => 0,
 };
@@ -58,6 +65,11 @@ sub log_info {
 }
 sub log_skip {
     $log_line->('skip', @_);
+}
+sub log_notice {
+    print color('bold');
+    $log_line->('notice', @_);
+    print color('reset');
 }
 sub log_warn {
     print color('yellow');
@@ -272,17 +284,17 @@ sub check_running_postgres {
     my $upgraded_db = 0;
 
     if ($upgraded) {
-	if ($version ne '15') {
-	    log_warn("Running postgres version is still 13. Please upgrade the database.");
+	if ($version ne $new_postgres_release) {
+	    log_warn("Running postgres version is still $old_postgres_release. Please upgrade the database.");
 	} else {
-	    log_pass("Running postgres version is 15.");
+	    log_pass("After upgrade and running postgres version is $new_postgres_release.");
 	    $upgraded_db = 1;
 	}
     } else {
-	if ($version ne '13') {
-	    log_warn("Running postgres version '$version' is not '13', was a previous upgrade finished?");
+	if ($version ne $old_postgres_release) {
+	    log_fail("Running postgres version '$version' is not '$old_postgres_release', was a previous upgrade left unfinished?");
 	} else {
-	    log_pass("Running postgres version is 13.");
+	    log_pass("Before upgrade and running postgres version is $old_postgres_release.");
 	}
     }
 
@@ -313,7 +325,7 @@ sub check_services_disabled {
 	if (scalar($active_list->@*) < 1) {
 	    log_pass("All services inactive.");
 	} else {
-	    my $msg = "Not all services inactive. Consider stopping and disabling them: \n    ";
+	    my $msg = "Not upgraded but core services still active. Consider stopping and masking them for the upgrade: \n    ";
 	    $msg .= join("\n    ", $active_list->@*);
 	    log_warn($msg);
 	}
@@ -321,24 +333,25 @@ sub check_services_disabled {
 	if (scalar($inactive_list->@*) < 1) {
 	    log_pass("All services active.");
 	} elsif ($upgraded_db) {
-	    my $msg = "Not all services active. Consider enabling and starting them: \n    ";
+	    my $msg = "Already upgraded DB, but not all services active again. Consider unmasking and starting them: \n    ";
 	    $msg .= join("\n    ", $inactive_list->@*);
 	    log_warn($msg);
 	} else {
-	    log_skip("Not all services upgraded, but DB was not upgraded yet.");
+	    log_skip("Not all services active, but DB was not upgraded yet - please upgrade DB and then unmask and start services again.");
 	}
     }
 }
 
 sub check_apt_repos {
-    log_info("Checking if the suite for the Debian security repository is correct..");
-
-    my $found = 0;
+    log_info("Checking for package repository suite mismatches..");
 
     my $dir = '/etc/apt/sources.list.d';
     my $in_dir = 0;
 
     # TODO: check that (original) debian and Proxmox MG mirrors are present.
+
+    my ($found_suite, $found_suite_where);
+    my ($mismatches, $strange_suite);
 
     my $check_file = sub {
 	my ($file) = @_;
@@ -360,23 +373,37 @@ sub check_apt_repos {
 	    next if $line !~ m/^deb[[:space:]]/; # is case sensitive
 
 	    my $suite;
-
-	    # catch any of
-	    # https://deb.debian.org/debian-security
-	    # http://security.debian.org/debian-security
-	    # http://security.debian.org/
-	    if ($line =~ m|https?://deb\.debian\.org/debian-security/?\s+(\S*)|i) {
-		$suite = $1;
-	    } elsif ($line =~ m|https?://security\.debian\.org(?:.*?)\s+(\S*)|i) {
+	    if ($line =~ m|deb\s+\w+://\S+\s+(\S*)|i) {
 		$suite = $1;
 	    } else {
 		next;
 	    }
-
-	    $found = 1;
-
 	    my $where = "in ${file}:${number}";
-	    # TODO: is this useful (for some other checks)?
+
+	    $suite =~ s/-(?:updates|backports|security)$//;
+	    if ($suite ne $old_suite && $suite ne $new_suite) {
+		log_notice(
+		    "found unusual suite '$suite', neither old '$old_suite' nor new '$new_suite'.."
+		    ."\n    Affected file:line $where"
+		    ."\n    Please assure this is shipping compatible packages for the upgrade!"
+		);
+		$strange_suite = 1;
+		next;
+	    }
+
+	    if (!defined($found_suite)) {
+		$found_suite = $suite;
+		$found_suite_where = $where;
+	    } elsif ($suite ne $found_suite) {
+		if (!defined($mismatches)) {
+		    $mismatches = [];
+		    push $mismatches->@*,
+			{ suite => $found_suite, where => $found_suite_where},
+			{ suite => $suite, where => $where};
+		} else {
+		    push $mismatches->@*, { suite => $suite, where => $where};
+		}
+	    }
 	}
     };
 
@@ -386,10 +413,17 @@ sub check_apt_repos {
 
     PVE::Tools::dir_glob_foreach($dir, '^.*\.list$', $check_file);
 
-    if (!$found) {
-	# only warn, it might be defined in a .sources file or in a way not caaught above
-	log_warn("No Debian security repository detected in /etc/apt/sources.list and " .
-	    "/etc/apt/sources.list.d/*.list");
+    if (defined($mismatches)) {
+	my @mismatch_list = map { "found suite $_->{suite} at $_->{where}" } $mismatches->@*;
+
+	log_fail(
+	    "Found mixed old and new package repository suites, fix before upgrading! Mismatches:"
+	    ."\n    " . join("\n    ", @mismatch_list)
+	);
+    } elsif ($strange_suite) {
+	log_notice("found no suite mismatches, but found at least one strange suite");
+    } else {
+	log_pass("found no suite mismatch");
     }
 }
 
