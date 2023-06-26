@@ -443,9 +443,7 @@ sub check_time_sync {
     } elsif (my $active_ntp = ($unit_active->('chrony.service') || $unit_active->('openntpd.service') || $unit_active->('ntpsec.service'))) {
 	log_pass("Detected active time synchronisation unit '$active_ntp'");
     } else {
-	log_notice(
-	    "No (active) time synchronisation daemon (NTP) detected"
-	);
+	log_notice("No (active) time synchronisation daemon (NTP) detected");
     }
 }
 
