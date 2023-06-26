@@ -1,6 +1,4 @@
-# this requires package pmg-doc-generator
-export NOVIEW=1
-include /usr/share/pmg-doc-generator/pmg-doc-generator.mk
+-include /usr/share/pmg-doc-generator/pmg-doc-generator.mk
 
 DESTDIR=
 
@@ -216,8 +214,8 @@ check:
 
 .PHONY: clean
 clean:
-	make cleanup-docgen
-	make -C tests clean
+	$(MAKE) -C tests clean
+	rm -f *.xml.tmp *.1 *.5 *.8 *{synopsis,opts}.adoc docinfo.xml
 	rm -f PMG/pmgcfg.pm
 	rm -rf ${CONF_MANS} *.bash-completion *.service-bash-completion
 	if test -d .git; then  rm -f PMG/pmgcfg.pm; fi
