@@ -11,7 +11,7 @@ REPOID = $(shell git rev-parse --short=8 HEAD)
 export PACKAGE
 export REPOID
 export PMGVERSION = $(DEB_VERSION_UPSTREAM_REVISION)
-export PMGRELEASE = $(DEB_VERSION_UPSTREAM)
+export PMGRELEASE = $(shell echo $(DEB_VERSION_UPSTREAM) | cut -c 1-3)
 
 $(BUILDDIR): src debian
 	rm -rf $@ $@.tmp
@@ -26,8 +26,9 @@ $(DEB): $(BUILDDIR)
 	lintian $(DEB)
 
 .PHONY: upload
+upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
 upload: $(DEB)
-	tar cf - $(DEB) | ssh -X repoman@repo.proxmox.com -- upload --product pmg --dist bullseye
+	tar cf - $(DEB) | ssh -X repoman@repo.proxmox.com -- upload --product pmg --dist $(UPLOAD_DIST)
 
 .PHONY: check
 check:
