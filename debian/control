@@ -3,7 +3,7 @@ Section: perl
 Priority: optional
 Maintainer: Proxmox Support Team <support@proxmox.com>
 Build-Depends: debhelper (>= 12~),
-               libarchive-perl (>= 3.4.0-1),
+               libarchive-perl (>= 3.4.0),
                libarchive-zip-perl,
                libauthen-pam-perl,
                libcompress-bzip2-perl,
@@ -29,7 +29,7 @@ Build-Depends: debhelper (>= 12~),
                libxdgmime-perl,
                p7zip-full,
                perl (>= 5.10.0-19),
-               pmg-doc-generator (>= 7.3-1),
+               pmg-doc-generator (>= 7.3),
                postgresql-15,
                proxmox-spamassassin,
                tnef,
