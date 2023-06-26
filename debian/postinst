@@ -98,10 +98,11 @@ case "$1" in
                     printf "section: admin\n\tadvfilter 1\n" > $pmgconf
                     printf "\nsection: spam\n\tuse_bayes 1\n\tuse_awl 1\n" >> $pmgconf
                 else
-                    if ! grep -q 'section: admin' $pmgconf ; then
-                        printf "\nsection: admin" >> $pmgconf
-                    fi
                     if ! grep -q 'advfilter' $pmgconf ; then
+                        echo "hard-code old default for 'advfilter'"
+                        if ! grep -q 'section: admin' $pmgconf ; then
+                            printf "\nsection: admin" >> $pmgconf
+                        fi
                         sed -i '/section: admin/a\\tadvfilter 1' $pmgconf
                     fi
 
@@ -109,9 +110,11 @@ case "$1" in
                         printf "\nsection: spam" >> $pmgconf
                     fi
                     if ! grep -q 'use_bayes' $pmgconf ; then
+                        echo "hard-code old default for 'use_bayes'"
                         sed -i '/section: spam/a\\tuse_bayes 1' $pmgconf
                     fi
                     if ! grep -q 'use_awl' $pmgconf ; then
+                        echo "hard-code old default for 'use_awl'"
                         sed -i '/section: spam/a\\tuse_awl 1' $pmgconf
                     fi
                 fi
