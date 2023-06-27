@@ -138,6 +138,12 @@ sub authenticate_pam_user {
 	return @res;
     });
 
+    if (my $rpcenv = PMG::RESTEnvironment->get()) {
+	if (my $ip = $rpcenv->get_client_ip()) {
+	    $pamh->pam_set_item(PAM_RHOST(), $ip);
+	}
+    }
+
     if (!ref($pamh)) {
 	my $err = $pamh->pam_strerror($pamh);
 	die "Error during PAM init: $err";
