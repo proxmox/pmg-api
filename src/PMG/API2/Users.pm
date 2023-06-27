@@ -13,6 +13,7 @@ use PVE::Exception qw(raise_perm_exc);
 
 use PMG::RESTEnvironment;
 use PMG::UserConfig;
+use PMG::TFAConfig;
 
 use base qw(PVE::RESTHandler);
 
@@ -228,5 +229,35 @@ __PACKAGE__->register_method ({
 
 	return undef;
     }});
+
+__PACKAGE__->register_method ({
+    name => 'unlock_tfa',
+    path => '{userid}/unlock-tfa',
+    method => 'PUT',
+    protected => 1,
+    description => "Unlock a user's TFA authentication.",
+    permissions => { check => [ 'admin' ] },
+    parameters => {
+	additionalProperties => 0,
+	properties => {
+	    userid => get_standard_option('userid'),
+	},
+    },
+    returns => { type => 'boolean' },
+    code => sub {
+        my ($param) = @_;
+
+        my $userid = extract_param($param, "userid");
+
+	my $user_was_locked = PMG::TFAConfig::lock_config(sub {
+	    my $tfa_cfg = PMG::TFAConfig->new();
+	    my $was_locked = $tfa_cfg->api_unlock_tfa($userid);
+	    $tfa_cfg->write() if $was_locked;
+	    return $was_locked;
+	});
+
+	return $user_was_locked;
+    }});
+
 
 1;
