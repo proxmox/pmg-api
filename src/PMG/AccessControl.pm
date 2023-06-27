@@ -127,7 +127,7 @@ sub authenticate_pam_user {
 
     # user need to be able to read /etc/passwd /etc/shadow
 
-    my $pamh = Authen::PAM->new('common-auth', $username, sub {
+    my $pamh = Authen::PAM->new('proxmox-mailgateway-auth', $username, sub {
 	my @res;
 	while(@_) {
 	    my $msg_type = shift;
