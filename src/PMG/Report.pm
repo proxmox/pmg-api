@@ -125,6 +125,7 @@ sub check_dns_resolution {
 	stop_at_threshold => 0,
     });
     $sa->init();
+    $sa->{resolver}->load_resolver();
 
     my $packet = $sa->{resolver}->send('www.proxmox.com');
     my $answer = $packet->{answer}->[0];
