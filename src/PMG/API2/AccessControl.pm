@@ -120,14 +120,35 @@ my sub create_or_verify_ticket : prototype($$$$$$) {
 		my $rpcenv = PMG::RESTEnvironment->get();
 		$origin = 'https://'.$rpcenv->get_request_host(1);
 	    }
-	    my $must_save = $tfa_cfg->authentication_verify(
+	    my $result = $tfa_cfg->authentication_verify2(
 		$username,
 		$tfa_challenge,
 		$pw_or_ticket,
 		$origin,
 	    );
 
-	    $tfa_cfg->write() if $must_save;
+	    if (!$result) {
+		# Sanity check, should be unreachable.
+		die "2nd factor failed\n";
+	    }
+
+	    if ($result->{'needs-saving'}) {
+		$tfa_cfg->write();
+	    }
+
+	    if ($result->{'totp-limit-reached'}) {
+		# FIXME: Notify/Send-mail to the user (or admin/root if none configured)
+		die "failed 2nd factor: TOTP limit reached, locked\n";
+	    }
+	    if ($result->{'tfa-limit-reached'}) {
+		# FIXME: Notify/Send-mail to the user (or admin/root if none configured)
+		die "failed 2nd factor: TFA limit reached, user locked out\n";
+	    }
+	    if (!$result->{'result'}) {
+		# "Regular" failure.
+		die "failed 2nd factor\n";
+	    }
+	    # Otherwise TFA succeeded.
 	});
 
 	$tfa_challenge = undef;
