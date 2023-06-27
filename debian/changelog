@@ -1,3 +1,18 @@
+pmg-api (8.0.0) bookworm; urgency=medium
+
+  * d/postinst: remove re-generation of unique machine-ID for old ISOs
+
+  * cluster: adapt invocation of rsync for the version in Debian 12 Bookworm
+
+  * postgresql compat: cast results explicitly to integer to cope with
+    PostgreSQL 15 changes where UNIX epochs are returned as float
+
+  * auth: set PAM context to 'proxmox-mailgateway-auth' and set the rhost to
+    the IP address the users connects with, allowing one to limit PAM login to
+    certain networks.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 27 Jun 2023 18:20:30 +0200
+
 pmg-api (8.0.0~1) bookworm; urgency=medium
 
   * re-build for Proxmox Mail Gateway 8 based on Debian 12 Bookworm
