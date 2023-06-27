@@ -14,6 +14,7 @@ use PMG::UserConfig;
 use PMG::AccessControl;
 use PMG::API2::Users;
 use PMG::API2::TFA;
+use PMG::TFAConfig;
 
 use Data::Dumper;
 

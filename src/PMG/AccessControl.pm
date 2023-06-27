@@ -11,6 +11,7 @@ use PVE::Exception qw(raise raise_perm_exc);
 use PMG::UserConfig;
 use PMG::LDAPConfig;
 use PMG::LDAPSet;
+use PMG::TFAConfig;
 
 sub normalize_path {
     my $path = shift;
