@@ -169,6 +169,8 @@ SOURCES = ${LIBSOURCES} ${CLI_BINARIES} ${TEMPLATES_FILES} ${CONF_MANS} ${CLI_MA
 
 all: ${SOURCES}
 
+# TODO: fallbacks for version/release if not build via packaging
+REPOID ?= $(or $(shell git rev-parse --short=12 HEAD), unknown)
 PMG/pmgcfg.pm: PMG/pmgcfg.pm.in
 	sed -e s/@VERSION@/${PMGVERSION}/ -e s/@PMGRELEASE@/${PMGRELEASE}/ -e s/@PACKAGE@/${PACKAGE}/ -e s/@REPOID@/${REPOID}/ $< >$@.tmp
 	mv $@.tmp $@

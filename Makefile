@@ -7,17 +7,11 @@ BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION)
 DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_all.deb
 
-REPOID = $(shell git rev-parse --short=8 HEAD)
-
-export PACKAGE
-export REPOID
-export PMGVERSION = $(DEB_VERSION_UPSTREAM_REVISION)
-export PMGRELEASE = $(shell echo $(DEB_VERSION_UPSTREAM) | cut -c 1-3)
-
 $(BUILDDIR): src debian
 	rm -rf $@ $@.tmp
 	cp -a src $@.tmp
 	cp -a debian $@.tmp/
+	echo "REPOID_GENERATED=$(shell git rev-parse --short=12 HEAD)" > $@.tmp/debian/rules.env
 	mv $@.tmp $@
 
 .PHONY: deb
