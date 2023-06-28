@@ -1,3 +1,14 @@
+pmg-api (8.0.2) bookworm; urgency=medium
+
+  * make section match more precise when hard-coding 'use_bayes' & 'use_awl'
+    properties
+
+  * tell the systemd debhelper to not stop the no-start services on upgrade,
+    avoiding noisy warnings for those with an associated timer and also that
+    any currently running operation of those services gets aborted
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jun 2023 08:35:38 +0200
+
 pmg-api (8.0.1) bookworm; urgency=medium
 
   * include version metadata again in statically generated pmgcfg module again
