@@ -16,7 +16,7 @@ export REPOID=${REPOID_GENERATED}
 	dh $@
 
 override_dh_installsystemd:
-	dh_installsystemd --no-start \
+	dh_installsystemd --no-start --no-stop-on-upgrade \
 		pmg-hourly.service \
 		pmg-daily.service \
 		pmgspamreport.service \
