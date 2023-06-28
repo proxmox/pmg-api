@@ -1,3 +1,10 @@
+pmg-api (8.0.3) bookworm; urgency=medium
+
+  * pmgpolicy, pmg-smtp-filter: set sensible PATH to ensure that standard
+    system binaries can be executed even if just their base name is used.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jun 2023 17:42:32 +0200
+
 pmg-api (8.0.2) bookworm; urgency=medium
 
   * make section match more precise when hard-coding 'use_bayes' & 'use_awl'
