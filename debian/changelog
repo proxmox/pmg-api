@@ -1,3 +1,9 @@
+pmg-api (8.0.1) bookworm; urgency=medium
+
+  * include version metadata again in statically generated pmgcfg module again
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jun 2023 08:04:50 +0200
+
 pmg-api (8.0.0) bookworm; urgency=medium
 
   * d/postinst: remove re-generation of unique machine-ID for old ISOs
