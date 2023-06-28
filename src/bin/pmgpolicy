@@ -27,6 +27,10 @@ use PMG::ClusterConfig;
 
 use base qw(Net::Server::PreForkSimple);
 
+$ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
+
+delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
+
 my $greylist_delay = 3*60;            # greylist window
 my $greylist_lifetime = 3600*24*2;    # retry window
 my $greylist_awlifetime = 3600*24*36; # expire window

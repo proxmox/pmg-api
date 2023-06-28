@@ -49,6 +49,10 @@ use PMG::Statistic;
 
 use base qw(Net::Server::PreFork);
 
+$ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
+
+delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
+
 my $opt_commandline = [$0, @ARGV];
 my $opt_max_dequeue = 1;
 my $opt_dequeue_time = 30;
