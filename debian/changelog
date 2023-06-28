@@ -7,7 +7,13 @@ pmg-api (8.0.2) bookworm; urgency=medium
     avoiding noisy warnings for those with an associated timer and also that
     any currently running operation of those services gets aborted
 
- -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jun 2023 08:35:38 +0200
+  * enable TFA lockout, for the relatively low-entropy TOTP type after 8
+    consecutive tries, for all other types after 1000 consecutive tries, as
+    they have much higher entropy
+
+  * include tfa lock status in user list and add user tfa-unlock endpoint
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jun 2023 11:12:57 +0200
 
 pmg-api (8.0.1) bookworm; urgency=medium
 
