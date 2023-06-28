@@ -49,6 +49,17 @@ __PACKAGE__->register_method ({
 		enable => { type => 'boolean'},
 		role => { type => 'string'},
 		comment => { type => 'string', optional => 1},
+		'totp-locked' => {
+		    type => 'boolean',
+		    optional => 1,
+		    description => 'True if the user is currently locked out of TOTP factors.',
+		},
+		'tfa-locked-until' => {
+		    type => 'integer',
+		    optional => 1,
+		    description =>
+			'Contains a timestamp until when a user is locked out of 2nd factors.',
+		},
 	    },
 	},
 	links => [ { rel => 'child', href => "{userid}" } ],
@@ -57,6 +68,7 @@ __PACKAGE__->register_method ({
 	my ($param) = @_;
 
 	my $cfg = PMG::UserConfig->new();
+	my $tfa_cfg = PMG::TFAConfig->new();
 
 	my $rpcenv = PMG::RESTEnvironment->get();
 	my $authuser = $rpcenv->get_user();
@@ -66,7 +78,15 @@ __PACKAGE__->register_method ({
 
 	foreach my $userid (sort keys %$cfg) {
 	    next if $role eq 'qmanager' && $authuser ne $userid;
-	    push @$res, $extract_userdata->($cfg->{$userid});
+	    my $entry = $extract_userdata->($cfg->{$userid});
+	    if (defined($tfa_cfg)) {
+		if (my $data = $tfa_cfg->tfa_lock_status($userid)) {
+		    for (qw(totp-locked tfa-locked-until)) {
+			$entry->{$_} = $data->{$_} if exists($data->{$_});
+		    }
+		}
+	    }
+	    push @$res, $entry;
 	}
 
 	return $res;
