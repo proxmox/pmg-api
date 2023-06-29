@@ -385,7 +385,7 @@ sub check_apt_repos {
 	    }
 	    my $where = "in ${file}:${number}";
 
-	    $suite =~ s/-(?:(?:proposed-)?updates|backports|security)$//;
+	    $suite =~ s/-(?:(?:proposed-)?updates|backports|security|debug)(?:-debug)?$//;
 	    if ($suite ne $old_suite && $suite ne $new_suite) {
 		log_notice(
 		    "found unusual suite '$suite', neither old '$old_suite' nor new '$new_suite'.."
