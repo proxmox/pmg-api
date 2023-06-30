@@ -342,7 +342,7 @@ sub update_stats_virusinfo  {
 	my $sql = '';
 
 	push @values, "Count = Count + $ref->{count}" if $ref->{count};
-	push @values, "MTime = EXTRACT(EPOCH FROM now()::INTEGER)";
+	push @values, "MTime = EXTRACT(EPOCH FROM now())::INTEGER";
 
 	if (scalar (@values)) {
 	    $sql .= "UPDATE VirusInfo SET ";
