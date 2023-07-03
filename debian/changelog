@@ -1,3 +1,12 @@
+pmg-api (7.3-7) bullseye; urgency=medium
+
+  * statistics: fix syntax of SQL query for virus info counter update
+
+  * pmg7to8: extend suite-mismatch checks with reporting all mismatches at once
+    and also check oldoldstable and older suites.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 03 Jul 2023 13:26:59 +0200
+
 pmg-api (7.3-6) bullseye; urgency=medium
 
   * cluster: future-proof rsync invocation for Debian 12 Bookworm upgrade
