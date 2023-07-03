@@ -78,7 +78,6 @@ if (scalar (@ARGV) != 0) {
 
 # only set up once actually required allows calling verifyapi in restriced clean sbuild env
 PMG::RESTEnvironment->setup_default_cli_env();
-my $rpcenv = PMG::RESTEnvironment->get();
 initlog($ENV{PVE_LOG_ID} || 'pmgsh');
 
 print "entering PMG shell - type 'help' for help\n";
@@ -451,6 +450,7 @@ sub list_dir {
 sub pmg_command {
     my ($args, $nooutput) = @_;
 
+    my $rpcenv = PMG::RESTEnvironment->get();
     $rpcenv->init_request();
 
     my $ticket = PMG::Ticket::assemble_ticket('root@pam');
