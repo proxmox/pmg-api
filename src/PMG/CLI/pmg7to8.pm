@@ -26,8 +26,13 @@ my $nodename = PVE::INotify::nodename();
 my $old_postgres_release = '13';
 my $new_postgres_release = '15';
 
-my $old_suite = 'bullseye';
 my $new_suite = 'bookworm';
+my $old_suite = 'bullseye';
+my $older_suites = {
+    buster => 1,
+    stretch => 1,
+    jessie => 1,
+};
 
 my $upgraded = 0; # set in check_pmg_packages
 
@@ -356,7 +361,7 @@ sub check_apt_repos {
     # TODO: check that (original) debian and Proxmox MG mirrors are present.
 
     my ($found_suite, $found_suite_where);
-    my ($mismatches, $strange_suite);
+    my ($mismatches, $strange_suites);
 
     my $check_file = sub {
 	my ($file) = @_;
@@ -385,14 +390,9 @@ sub check_apt_repos {
 	    }
 	    my $where = "in ${file}:${number}";
 
-	    $suite =~ s/-(?:(?:proposed-)?updates|backports|security|debug)(?:-debug)?$//;
-	    if ($suite ne $old_suite && $suite ne $new_suite) {
-		log_notice(
-		    "found unusual suite '$suite', neither old '$old_suite' nor new '$new_suite'.."
-		    ."\n    Affected file:line $where"
-		    ."\n    Please assure this is shipping compatible packages for the upgrade!"
-		);
-		$strange_suite = 1;
+	    $suite =~ s/-(?:(?:proposed-)?updates|backports|debug|security)(?:-debug)?$//;
+	    if ($suite ne $old_suite && $suite ne $new_suite && !$older_suites->{$suite}) {
+		push $strange_suites->@*, { suite => $suite, where => $where };
 		next;
 	    }
 
@@ -418,14 +418,25 @@ sub check_apt_repos {
 
     PVE::Tools::dir_glob_foreach($dir, '^.*\.list$', $check_file);
 
+    if ($strange_suites) {
+	my @strange_list = map { "found suite $_->{suite} at $_->{where}" } $strange_suites->@*;
+	log_notice(
+	    "found unusual suites that are neither old '$old_suite' nor new '$new_suite':"
+	    ."\n    " . join("\n    ", @strange_list)
+	    ."\n  Please ensure these repositories are shipping compatible packages for the upgrade!"
+	);
+    }
     if (defined($mismatches)) {
 	my @mismatch_list = map { "found suite $_->{suite} at $_->{where}" } $mismatches->@*;
 
 	log_fail(
 	    "Found mixed old and new package repository suites, fix before upgrading! Mismatches:"
 	    ."\n    " . join("\n    ", @mismatch_list)
+	    ."\n  Configure the same base-suite for all Proxmox and Debian provided repos and ask"
+	    ." original vendor for any third-party repos."
+	    ."\n  E.g., for the upgrade to Proxmox Mail Gateway ".($min_pmg_major + 1)." use the '$new_suite' suite."
 	);
-    } elsif ($strange_suite) {
+    } elsif (defined($strange_suites)) {
 	log_notice("found no suite mismatches, but found at least one strange suite");
     } else {
 	log_pass("found no suite mismatch");
