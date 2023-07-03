@@ -1,3 +1,11 @@
+pmg-api (8.0.4) bookworm; urgency=medium
+
+  * fix #4815: pmgsh: fix calling the api paths directly
+
+  * statistics: fix syntax of SQL query for virus info counter update
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 03 Jul 2023 12:42:23 +0200
+
 pmg-api (8.0.3) bookworm; urgency=medium
 
   * pmgpolicy, pmg-smtp-filter: set sensible PATH to ensure that standard
