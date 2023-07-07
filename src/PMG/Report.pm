@@ -2,9 +2,9 @@ package PMG::Report;
 
 use strict;
 use warnings;
-use PVE::Tools;
 use Mail::SpamAssassin::DnsResolver;
 
+use PVE::Tools;
 use PMG::Utils;
 
 $ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
