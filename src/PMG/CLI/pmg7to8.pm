@@ -563,6 +563,24 @@ sub check_misc {
 
     check_apt_repos();
     check_bootloader();
+
+    my ($template_dir, $base_dir) = ('/etc/pmg/templates/', '/var/lib/pmg/templates');
+    my @override_but_unmodified = ();
+    PVE::Tools::dir_glob_foreach($base_dir, '.*\.(?:tt|in).*', sub {
+	my ($filename) = @_;
+	return if !-e "$template_dir/$filename";
+
+	my $shipped = PVE::Tools::file_get_contents("$base_dir/$filename", 1024*1024);
+	my $override = PVE::Tools::file_get_contents("$template_dir/$filename", 1024*1024);
+
+	push @override_but_unmodified, $filename if $shipped eq $override;
+    });
+    if (scalar(@override_but_unmodified)) {
+	my $msg = "Found overrides in '/etc/pmg/templates/' for template, but without modification."
+	    ." Consider simply removing them: \n    "
+	    . join("\n    ", @override_but_unmodified);
+	log_notice($msg);
+    }
 }
 
 my sub colored_if {
