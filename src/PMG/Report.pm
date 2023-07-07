@@ -5,6 +5,8 @@ use warnings;
 use PVE::Tools;
 use Mail::SpamAssassin::DnsResolver;
 
+use PMG::Utils;
+
 $ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
 
 my $cmd_timeout = 10; # generous timeout
@@ -46,7 +48,7 @@ my $report_def = {
 	'pmgconfig dump',
 	sub { dir2text('/etc/pmg/','(?:domains|mynetworks|tls_policy|transport)' ) },
 	sub { dir2text('/etc/postfix/','(?:clientaccess|senderaccess|rcptaccess)' ) },
-	sub { dir2text('/etc/pmg/templates/', '[^.].*' ) },
+	sub { dump_templates() },
 	'pmgdb dump',
     ],
 };
@@ -133,6 +135,27 @@ sub check_dns_resolution {
 
     $report .= "\n# resolve www.proxmox.com\n";
     $report .= $answertext . "\n";
+}
+
+sub dump_templates {
+    my ($template_dir, $base_dir) = ('/etc/pmg/templates/', '/var/lib/pmg/templates');
+    PVE::Tools::dir_glob_foreach($template_dir, '[^.].*', sub {
+	my ($file) = @_;
+	my $override_but_unmodified = 0;
+	if ($file =~ /.*\.(?:tt|in).*/ && -e "$base_dir/$file") {
+	    my $shipped = PVE::Tools::file_get_contents("$base_dir/$file", 1024*1024);
+	    my $override = PVE::Tools::file_get_contents("$template_dir/$file", 1024*1024);
+	    $override_but_unmodified = $shipped eq $override;
+	}
+	if ($file =~ /\.ucf-(?:dist|new|old)/) {
+	    $report .= "\n# SKIP $file\n";
+	} elsif ($override_but_unmodified) {
+	    $report .= "\n# NOTE, found a unmodified template-override: $file\n";
+	} else {
+	    $report .=  "\n# cat $template_dir$file\n";
+	    $report .= PVE::Tools::file_get_contents($template_dir.$file)."\n";
+	}
+    });
 }
 
 1;
