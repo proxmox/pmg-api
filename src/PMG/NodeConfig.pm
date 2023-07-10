@@ -120,8 +120,7 @@ sub print_domain : prototype($) {
 
 sub read_pmg_node_config {
     my ($filename, $fh) = @_;
-    local $/ = undef; # slurp mode
-    my $raw = defined($fh) ? <$fh> : '';
+    my $raw = defined($fh) ? do { local $/ = undef; <$fh> } : '';
     my $digest = Digest::SHA::sha1_hex($raw);
     my $conf = PVE::JSONSchema::parse_config($config_schema, $filename, $raw);
     $conf->{digest} = $digest;

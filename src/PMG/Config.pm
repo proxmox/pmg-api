@@ -939,10 +939,8 @@ sub get_config {
 sub read_pmg_conf {
     my ($filename, $fh) = @_;
 
-    local $/ = undef; # slurp mode
-
     my $raw;
-    $raw = <$fh> if defined($fh);
+    $raw = do { local $/ = undef; <$fh> } if defined($fh);
 
     return  PMG::Config::Base->parse_config($filename, $raw);
 }

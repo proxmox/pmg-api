@@ -106,9 +106,7 @@ sub generate_auth_key {
 my $read_rsa_priv_key = sub {
    my ($filename, $fh) = @_;
 
-   local $/ = undef; # slurp mode
-
-   my $input = <$fh>;
+   my $input = do { local $/ = undef; <$fh> };
 
    return Crypt::OpenSSL::RSA->new_private_key($input);
 
@@ -121,9 +119,7 @@ PVE::INotify::register_file('auth_priv_key', $authprivkeyfn,
 my $read_rsa_pub_key = sub {
    my ($filename, $fh) = @_;
 
-   local $/ = undef; # slurp mode
-
-   my $input = <$fh>;
+   my $input = do { local $/ = undef; <$fh> };
 
    return Crypt::OpenSSL::RSA->new_public_key($input);
 };
@@ -135,9 +131,7 @@ PVE::INotify::register_file('auth_pub_key', $authpubkeyfn,
 my $read_csrf_secret = sub {
    my ($filename, $fh) = @_;
 
-   local $/ = undef; # slurp mode
-
-   my $input = <$fh>;
+   my $input = do { local $/ = undef; <$fh> };
 
    return Digest::SHA::hmac_sha256_base64($input);
 };
