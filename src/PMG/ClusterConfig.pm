@@ -170,9 +170,7 @@ sub lock_config {
 sub read_cluster_conf {
     my ($filename, $fh) = @_;
 
-    local $/ = undef; # slurp mode
-
-    my $raw = defined($fh) ? <$fh> : undef;
+    my $raw = defined($fh) ? do { local $/ = undef; <$fh> } : undef;
 
     my $cinfo = PMG::ClusterConfig::Base->parse_config($filename, $raw);
 
