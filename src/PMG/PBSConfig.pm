@@ -194,9 +194,7 @@ __PACKAGE__->init();
 sub read_pmg_pbs_conf {
     my ($filename, $fh) = @_;
 
-    local $/ = undef; # slurp mode
-
-    my $raw = defined($fh) ? <$fh> : '';
+    my $raw = defined($fh) ? do { local $/ = undef; <$fh> } : '';
 
     return __PACKAGE__->parse_config($filename, $raw);
 }

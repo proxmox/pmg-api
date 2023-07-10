@@ -30,8 +30,7 @@ PVE::JSONSchema::register_standard_option('pmg-acme-pluginid', {
 
 sub read_pmg_acme_challenge_config {
     my ($filename, $fh) = @_;
-    local $/ = undef; # slurp mode
-    my $raw = defined($fh) ? <$fh> : '';
+    my $raw = defined($fh) ? do { local $/ = undef; <$fh> } : '';
     return PVE::ACME::Challenge->parse_config($filename, $raw);
 }
 
