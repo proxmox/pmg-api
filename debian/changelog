@@ -1,12 +1,13 @@
 pmg-api (8.0.5) bookworm; urgency=medium
 
-  * cluster config: restrict slurp scope to avoid issue parsing network interfaces
+  * cluster config: restrict slurp scope to avoid issue parsing network
+    interfaces
 
   * pmg7to8: notify about unmodified templates
 
   * system report: skip irrelevant files in /etc/pmg/templates
 
- -- Proxmox Support Team <support@proxmox.com>  Tue, 11 Jul 2023 17:52:07 +0200
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 11 Jul 2023 17:53:49 +0200
 
 pmg-api (8.0.4) bookworm; urgency=medium
 
