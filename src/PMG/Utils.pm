@@ -2,44 +2,45 @@ package PMG::Utils;
 
 use strict;
 use warnings;
+use utf8;
+# compat for older perl code which allows arbitray binary data (including invalid UTF-8)
+# TODO: can we remove this (as our perl source texts should be all UTF-8 compatible)?
+no utf8;
+
 use Cwd;
 use DBI;
-use Net::Cmd;
-use Net::SMTP;
-use IO::File;
-use File::stat;
-use POSIX qw(strftime);
-use File::stat;
+use Data::Dumper;
+use Digest::MD5;
+use Digest::SHA;
+use Encode;
 use File::Basename;
+use File::stat;
+use File::stat;
+use Filesys::Df;
+use HTML::Entities;
+use IO::File;
+use JSON;
 use MIME::Entity;
-use MIME::Words;
 use MIME::Parser;
+use MIME::Words;
+use Net::Cmd;
+use Net::IP;
+use Net::SMTP;
+use POSIX qw(strftime);
+use RRDs;
+use Socket;
 use Time::HiRes qw (gettimeofday);
 use Time::Local;
 use Xdgmime;
-use Data::Dumper;
-use Digest::SHA;
-use Digest::MD5;
-use Net::IP;
-use Socket;
-use RRDs;
-use Filesys::Df;
-use Encode;
-use utf8;
-no utf8;
 
-use HTML::Entities;
-use JSON;
-
-use PVE::ProcFSTools;
-use PVE::Network;
-use PVE::Tools;
-use PVE::SafeSyslog;
-use PVE::ProcFSTools;
 use PMG::AtomicFile;
+use PMG::MIMEUtils;
 use PMG::MailQueue;
 use PMG::SMTPPrinter;
-use PMG::MIMEUtils;
+use PVE::Network;
+use PVE::ProcFSTools;
+use PVE::SafeSyslog;
+use PVE::Tools;
 
 use base 'Exporter';
 
@@ -86,10 +87,8 @@ sub verify_username {
 	return undef;
     }
 
-    # we only allow a limited set of characters
-    # colon is not allowed, because we store usernames in
-    # colon separated lists)!
-    # slash is not allowed because it is used as pve API delimiter
+    # we only allow a limited set of characters. Colons aren't allowed, because we store usernames
+    # with colon separated lists! slashes aren't allowed because it is used as pve API delimiter
     # also see "man useradd"
     my $realm_list = join('|', @$valid_pmg_realms);
     if ($username =~ m!^([^\s:/]+)\@(${realm_list})$!) {
