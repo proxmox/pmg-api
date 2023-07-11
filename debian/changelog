@@ -1,3 +1,18 @@
+pmg-api (7.3-8) bullseye; urgency=medium
+
+  * report: adapt to changes in SpamAssassin DNS api
+
+  * fix #4815: pmgsh: fix calling the api paths directly
+
+  * cluster config: restrict slurp scope to avoid issue parsing network
+    interfaces
+
+  * pmg7to8: notify about unmodified templates
+
+  * system report: skip irrelevant files in /etc/pmg/templates
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 11 Jul 2023 17:50:19 +0200
+
 pmg-api (7.3-7) bullseye; urgency=medium
 
   * statistics: fix syntax of SQL query for virus info counter update
