@@ -43,8 +43,6 @@ my $run_pmg_log_tracker = sub {
 
     my $logids = {};
 
-    my $timezone = tz_local_offset();;
-
     if (defined(my $id = $includelog)) {
 	if ($id =~ m/^Q([a-f0-9]+)R([a-f0-9]+)$/i) {
 	    $logids->{$1} = 1;
@@ -128,7 +126,7 @@ my $run_pmg_log_tracker = sub {
 	    } elsif ($line =~ m/^TO:([0-9A-F]+):([0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]+)>\s+\((\S+)\)$/) {
 		my $new = {
 		    size => $entry->{size} // 0,
-		    time => hex($1) - $timezone,
+		    time => hex($1),
 		    qid => $2,
 		    dstatus => $3,
 		    from => $4,
@@ -174,7 +172,7 @@ my $run_pmg_log_tracker = sub {
 	    } elsif ($line =~ m/^TO:([0-9A-F]+):(T[0-9A-F]+L[0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]*)>$/) {
 		my $e = {};
 		$e->{client} = $entry->{client} if defined($entry->{client});
-		$e->{time} = hex($1) - $timezone;
+		$e->{time} = hex($1);
 		$e->{id} = $2;
 		$e->{dstatus} = $3;
 		$e->{from} = $4;
