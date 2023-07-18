@@ -66,7 +66,7 @@ __PACKAGE__->register_method ({
 
 	my $newkernel;
 	foreach my $p (@$oldlist) {
-	    if (($p->{Package} =~ m/^pve-kernel/) &&
+	    if (($p->{Package} =~ m/^(?:pve|proxmox)-kernel/) &&
 		!grep { $_->{Package} eq $p->{Package} } @$pkglist) {
 		$newkernel = 1;
 		last;
