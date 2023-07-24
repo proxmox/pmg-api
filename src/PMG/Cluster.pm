@@ -307,7 +307,7 @@ sub get_remote_cert_fingerprint {
     eval {
 	PVE::Tools::run_command($ssh_cmd, outfunc => sub {
 	    my ($line) = @_;
-	    if ($line =~ m/SHA256 Fingerprint=((?:[A-Fa-f0-9]{2}:){31}[A-Fa-f0-9]{2})/) {
+	    if ($line =~ m/SHA256 Fingerprint=((?:[a-f0-9]{2}:){31}[a-f0-9]{2})/i) {
 		$fp = $1;
 	    }
 	});
