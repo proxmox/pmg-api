@@ -1,3 +1,9 @@
+pmg-api (8.0.6) bookworm; urgency=medium
+
+  * cluster: fingerprint parsing: adapt to changed openssl output
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 25 Jul 2023 11:32:42 +0200
+
 pmg-api (8.0.5) bookworm; urgency=medium
 
   * cluster config: restrict slurp scope to avoid issue parsing network
