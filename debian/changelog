@@ -1,3 +1,9 @@
+pmg-api (8.0.7) bookworm; urgency=medium
+
+  * handle pve-kernel -> proxmox-kernel rename
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 01 Aug 2023 11:53:07 +0200
+
 pmg-api (8.0.6) bookworm; urgency=medium
 
   * cluster: fingerprint parsing: adapt to changed openssl output
