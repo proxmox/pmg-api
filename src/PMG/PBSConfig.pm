@@ -96,6 +96,14 @@ sub properties {
 	    type => 'string',
 	    optional => 1,
 	},
+	port => {
+	    description => "Non-default port for Proxmox Backup Server.",
+	    optional => 1,
+	    type => 'integer',
+	    minimum => 1,
+	    maximum => 65535,
+	    default => 8007,
+	},
 	username => get_standard_option('pmg-email-address', {
 	    description => "Username or API token ID on the Proxmox Backup Server"
 	}),
@@ -123,6 +131,7 @@ sub options {
 	disable => { optional => 1 },
 	username => { optional => 1 },
 	password => { optional => 1 },
+	port => { optional => 1 },
 	fingerprint => { optional => 1 },
 	notify => { optional => 1 },
 	'include-statistics' => { optional => 1 },
