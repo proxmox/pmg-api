@@ -110,8 +110,7 @@ PVE::JSONSchema::register_standard_option('userid', {
 PVE::JSONSchema::register_standard_option('username', {
     description => "Username (without realm)",
     type => 'string',
-    pattern => '[^\s:\/\@]{3,60}',
-    minLength => 4,
+    pattern => '[^\s:\/\@]{1,60}',
     maxLength => 64,
 });
 
