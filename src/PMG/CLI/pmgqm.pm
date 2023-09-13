@@ -316,7 +316,7 @@ __PACKAGE__->register_method ({
 		$data->{pmail_raw} = $ref->{pmail};
 		$data->{managehref} = "$protocol_fqdn_port/quarantine";
 		if ($data->{authmode} ne 'ldap') {
-		    $data->{ticket} = PMG::Ticket::assemble_quarantine_ticket($data->{pmail});
+		    $data->{ticket} = PMG::Ticket::assemble_quarantine_ticket($data->{pmail_raw});
 		    my $esc_ticket = uri_escape($data->{ticket});
 		    $data->{managehref} .= "?ticket=${esc_ticket}";
 		}
