@@ -366,7 +366,7 @@ sub load_config {
     my $prop = $self->{server};
 
     if ($self->{ruledb}) {
-	$self->log (0, "reloading configuration $database");
+	$self->log ('info', "reloading configuration $database");
 	$self->{ruledb}->close ();
     }
 
@@ -426,7 +426,7 @@ sub pre_loop_hook {
 
     $prop->{log_level} = 3;
 
-    $self->log (0, "Filter daemon (re)started (max. $max_servers processes)");
+    $self->log ('info', "Filter daemon (re)started (max. $max_servers processes)");
 
     eval {  PMG::MailQueue::cleanup_active(); };
     $self->log (0, "Cleanup failures: $@") if $@;

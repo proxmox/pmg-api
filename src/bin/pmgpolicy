@@ -290,7 +290,7 @@ sub pre_loop_hook {
 
     $prop->{log_level} = 3;
 
-    $self->log(0, "Policy daemon (re)started");
+    $self->log('info', "Policy daemon (re)started");
 
     $SIG{'USR1'} = sub {
 	# reloading server configuration
@@ -315,7 +315,7 @@ sub load_config {
     my $prop = $self->{server};
 
     if ($self->{ruledb}) {
-	$self->log(0, "reloading configuration $database");
+	$self->log('info', "reloading configuration $database");
 	$self->{ruledb}->close();
     }
 
