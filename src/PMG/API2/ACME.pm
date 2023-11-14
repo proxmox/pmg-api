@@ -132,6 +132,18 @@ __PACKAGE__->register_method ({
 		default => $acme_default_directory_url,
 		optional => 1,
 	    }),
+	    'eab-kid' => {
+		type => 'string',
+		description => 'Key Identifier for External Account Binding.',
+		requires => 'eab-hmac-key',
+		optional => 1,
+	    },
+	    'eab-hmac-key' => {
+		type => 'string',
+		description => 'HMAC key for External Account Binding.',
+		requires => 'eab-kid',
+		optional => 1,
+	    },
 	},
     },
     returns => {
@@ -151,6 +163,8 @@ __PACKAGE__->register_method ({
 
 	my $directory = extract_param($param, 'directory') // $acme_default_directory_url;
 	my $contact = $account_contact_from_param->($param);
+	my $eab_kid = extract_param($param, 'eab-kid');
+	my $eab_hmac_key = extract_param($param, 'eab-hmac-key');
 
 	my $realcmd = sub {
 	    PMG::CertHelpers::lock_acme($account_name, 10, sub {
@@ -160,7 +174,7 @@ __PACKAGE__->register_method ({
 		print "Registering new ACME account..\n";
 		my $acme = PMG::RS::Acme->new($directory);
 		eval {
-		    $acme->new_account($account_file, defined($param->{tos_url}), $contact, undef);
+		    $acme->new_account($account_file, defined($param->{tos_url}), $contact, undef, $eab_kid, $eab_hmac_key);
 		};
 		if (my $err = $@) {
 		    unlink $account_file;
