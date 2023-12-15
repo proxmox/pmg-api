@@ -491,6 +491,32 @@ sub check_bootloader {
     }
 }
 
+sub check_dkms_modules {
+    if (defined($get_pkg->('proxmox-mailgateway-container'))) {
+	log_skip("Ignore dkms in containers.");
+	return;
+    }
+
+    log_info("Check for dkms modules...");
+
+    my $count;
+    my $set_count = sub {
+	$count = scalar @_;
+    };
+
+    my $exit_code = eval {
+	run_command(['dkms', 'status', '-k', '`uname -r`'], outfunc => $set_count, noerr => 1)
+    };
+
+    if ($exit_code != 0) {
+	log_skip("could not get dkms status");
+    } elsif (!$count) {
+	log_pass("no dkms modules found");
+    } else {
+	log_warn("dkms modules found, this might cause issues during upgrade.");
+    }
+}
+
 sub check_misc {
     print_header("MISCELLANEOUS CHECKS");
     my $ssh_config = eval { PVE::Tools::file_get_contents('/root/.ssh/config') };
@@ -563,6 +589,7 @@ sub check_misc {
 
     check_apt_repos();
     check_bootloader();
+    check_dkms_modules();
 
     my ($template_dir, $base_dir) = ('/etc/pmg/templates/', '/var/lib/pmg/templates');
     my @override_but_unmodified = ();
