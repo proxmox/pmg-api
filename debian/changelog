@@ -1,3 +1,13 @@
+pmg-api (7.3-9) bullseye; urgency=medium
+
+  * cluster: fingerprint parsing: adapt to changed openssl output
+
+  * pmg7to8: Add check for dkms modules
+
+  * pmg7to8: check for proper grub meta-package for bootmode
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 20 Dec 2023 11:03:19 +0100
+
 pmg-api (7.3-8) bullseye; urgency=medium
 
   * report: adapt to changes in SpamAssassin DNS api
