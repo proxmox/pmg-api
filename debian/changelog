@@ -1,3 +1,24 @@
+pmg-api (8.0.8) bookworm; urgency=medium
+
+  * fix #4944: api/pbs remote: Add a port config
+
+  * user quarantine: use raw pmail for ticket assembly
+
+  * reduce the logging level of certain messages
+
+  * apt: use `apt changelog` for changelog fetching
+
+  * api/cli: acme: add eab parameters
+
+  * api: acme: deprecate tos endpoint in favor of new meta endpoint
+  * api: quarantine: include descriptions for KAM rules in the spaminfo
+
+  * pmg7to8: Add check for dkms modules
+
+  * pmg7to8: check for proper grub meta-package for bootmode
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 20 Dec 2023 10:58:29 +0100
+
 pmg-api (8.0.7) bookworm; urgency=medium
 
   * handle pve-kernel -> proxmox-kernel rename
