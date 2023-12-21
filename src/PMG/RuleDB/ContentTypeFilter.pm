@@ -60,6 +60,13 @@ sub parse_entity {
 
     my $res;
 
+    # test regex for validity
+    eval { "" =~ m|$self->{field_value}|; };
+    if (my $err = $@) {
+	warn "invalid regex: $err\n";
+	return $res;
+    }
+
     # match subtypes? We currently do exact matches only.
 
     if (my $id = $entity->head->mime_attr ('x-proxmox-tmp-aid')) {

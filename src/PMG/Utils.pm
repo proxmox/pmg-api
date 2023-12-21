@@ -1579,4 +1579,16 @@ sub try_decode_utf8 {
     return eval { decode('UTF-8', $data, 1) } // $data;
 }
 
+sub test_regex {
+    my ($regex) = @_;
+
+    # some errors in regex only create warnings e.g. m/^*foo/ others actually cause a
+    # die e.g. m/*foo/ - treat a warn die here
+    local $SIG{__WARN__} = sub { die @_ };
+    eval { "" =~ m/$regex/i; };
+    die "invalid regex: $@\n" if $@;
+
+    return undef;
+}
+
 1;

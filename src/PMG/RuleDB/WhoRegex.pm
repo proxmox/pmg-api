@@ -60,6 +60,9 @@ sub save {
     defined($self->{address}) || die "undefined address: ERROR";
 
     my $adr = $self->{address};
+
+    PMG::Utils::test_regex("^${adr}\$");
+
     $adr =~ s/\\/\\\\/g;
     $adr = encode('UTF-8', $adr);
 
@@ -100,7 +103,12 @@ sub who_match {
 
     my $t = $self->address;
 
-    return $addr =~ m/^$t$/i;
+    my $res;
+    eval {
+	$res = $addr =~ m/^$t$/i;
+    };
+    warn "invalid regex: $@\n" if $@;
+    return $res;
 }
 
 sub address { 

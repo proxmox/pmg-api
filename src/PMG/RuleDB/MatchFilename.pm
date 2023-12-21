@@ -58,6 +58,9 @@ sub save {
     defined($self->{ogroup}) || die "undefined ogroup: ERROR";
 
     my $new_value = $self->{fname};
+
+    PMG::Utils::test_regex("^${new_value}\$");
+
     $new_value =~ s/\\/\\\\/g;
     $new_value = encode('UTF-8', $new_value);
 
@@ -91,9 +94,12 @@ sub parse_entity {
 	chomp $id;
 
 	if (my $value = PMG::Utils::extract_filename($entity->head)) {
-	    if ($value =~ m|^$self->{fname}$|i) {
-		push @$res, $id;
-	    }
+	    eval {
+		if ($value =~ m|^$self->{fname}$|i) {
+		    push @$res, $id;
+		}
+	    };
+	    warn "invalid regex: $@\n" if $@;
 	}
     }
 

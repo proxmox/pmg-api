@@ -25,6 +25,13 @@ sub parse_entity {
 
     my $res;
 
+    # test regex for validity
+    eval { "" =~ m|^$self->{fname}$|i; };
+    if (my $err = $@) {
+	warn "invalid regex: $err\n";
+	return $res;
+    }
+
     if (my $id = $entity->head->mime_attr('x-proxmox-tmp-aid')) {
 	chomp $id;
 

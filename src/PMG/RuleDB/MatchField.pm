@@ -71,9 +71,7 @@ sub save {
 
     my $regex = $self->{field_value};
 
-    # test regex for validity
-    eval { "" =~ /$regex/i; };
-    die "invalid regex: $@\n" if $@;
+    PMG::Utils::test_regex($regex);
 
     my $new_value = "$self->{field}:$regex";
     $new_value =~ s/\\/\\\\/g;
