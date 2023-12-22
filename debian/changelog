@@ -1,3 +1,10 @@
+pmg-api (8.0.9) bookworm; urgency=medium
+
+  * implement "SMTP-smuggling" mitigation for external port - see
+    https://www.postfix.org/smtp-smuggling.html for details
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 22 Dec 2023 11:16:42 +0100
+
 pmg-api (8.0.8) bookworm; urgency=medium
 
   * fix #4944: api/pbs remote: Add a port config
