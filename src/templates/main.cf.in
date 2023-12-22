@@ -99,6 +99,8 @@ smtpd_recipient_restrictions =
 unverified_recipient_reject_code = [% pmg.mail.verifyreceivers %]
 [% END %]
 
+smtpd_data_restrictions = reject_unauth_pipelining
+
 smtpd_client_connection_count_limit = [% pmg.mail.conn_count_limit %]
 smtpd_client_connection_rate_limit = [% pmg.mail.conn_rate_limit %]
 smtpd_client_message_rate_limit = [% pmg.mail.message_rate_limit %]
