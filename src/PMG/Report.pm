@@ -47,6 +47,7 @@ my $report_def = {
     pmg => [
 	'pmgconfig dump',
 	sub { dir2text('/etc/pmg/','(?:domains|mynetworks|tls_policy|transport)' ) },
+	'cat /etc/pmg/dkim/domains',
 	sub { dir2text('/etc/postfix/','(?:clientaccess|senderaccess|rcptaccess)' ) },
 	sub { dump_templates() },
 	'pmgdb dump',
