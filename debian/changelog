@@ -1,3 +1,9 @@
+pmg-api (8.0.11) bookworm; urgency=medium
+
+  * fix invalid whitespaces in master.cf template introduced in 8.0.10
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 02 Jan 2024 12:53:36 +0100
+
 pmg-api (8.0.10) bookworm; urgency=medium
 
   * address smtp-smuggling vulnerability (CVE-2023-51764) with the fix
