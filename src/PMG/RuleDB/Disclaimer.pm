@@ -31,7 +31,7 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 1;   
+    return 1;
 }
 
 sub final {
@@ -50,13 +50,13 @@ _EOD_
 
 sub new {
     my ($type, $value, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
 
     $value //= $std_discl;
-    
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
-   
+
     $self->{value} = $value;
 
     return $self;
@@ -64,17 +64,17 @@ sub new {
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     defined($value) || die "undefined object attribute: ERROR";
-  
+
     my $obj = $class->new(decode('UTF-8', $value), $ogroup);
 
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $value, $ogroup);
-    
+
     return $obj;
 }
 
@@ -91,9 +91,9 @@ sub save {
 
     if (defined ($self->{id})) {
 	# update
-	
+
 	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?", 
+	    "UPDATE Object SET Value = ? WHERE ID = ?",
 	    undef, $value, $self->{id});
 
     } else {
@@ -104,14 +104,14 @@ sub save {
 	    "VALUES (?, ?, ?);");
 
 	$sth->execute($self->ogroup, $self->otype, $value);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+
+	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
-sub add_data { 
+sub add_data {
     my ($self, $entity, $data) = @_;
 
     $entity->bodyhandle || return undef;
@@ -122,14 +122,14 @@ sub add_data {
     if (my $path = $entity->{PMX_decoded_path}) {
 	$fh = IO::File->new("<$path");
     } else {
-	$fh = $entity->open("r"); 
+	$fh = $entity->open("r");
     }
 
     return undef if !$fh;
 
     # in memory (we can't modify the file, because
     # a.) that would modify all entities (see ModGroup)
-    # b.) bad performance 
+    # b.) bad performance
     my $body = new MIME::Body::InCore || return undef;
 
     my $newfh = $body->open ("w") || return undef;
@@ -190,7 +190,7 @@ sub sign {
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
+    my ($self, $queue, $ruledb, $mod_group, $targets,
 	$msginfo, $vars, $marks) = @_;
 
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
@@ -212,7 +212,7 @@ sub execute {
 
 	$parser->parse($tmp);
 	$parser->eof;
-	    
+
 	$self->sign($entity, "$html\n", "$text\n", $queue->{logid}, $rulename);
 
 	return;
