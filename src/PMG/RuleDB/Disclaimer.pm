@@ -165,25 +165,23 @@ sub sign {
 		last;
 	    }
 	}
-    } elsif ($entity->head->mime_type =~ m{text/}) {
-	if ($entity->head->mime_type =~ m{text/(html|plain)}) {
-	    my $type = $1;
-	    my $cs = $entity->head->mime_attr("content-type.charset") // 'ascii';
-	    eval {
-		my $encoded = encode($cs, $type eq 'html' ? $html : $text, Encode::FB_CROAK);
-		$self->add_data($entity, $encoded);
-	    };
-	    # simply ignore if we can't represent the disclainer
-	    # with that encoding
-	    if ($@) {
-		syslog('info', "%s: adding disclaimer failed (rule: %s)", $logid, $rulename);
-	    } else {
-		syslog('info', "%s: added disclaimer (rule: %s)", $logid, $rulename);
-	    }
-	    $found = 1;
+    } elsif ($entity->head->mime_type =~ m{text/(html|plain)}) {
+	my $type = $1;
+	my $cs = $entity->head->mime_attr("content-type.charset") // 'ascii';
+	eval {
+	    my $encoded = encode($cs, $type eq 'html' ? $html : $text, Encode::FB_CROAK);
+	    $self->add_data($entity, $encoded);
+	};
+	# simply ignore if we can't represent the disclainer
+	# with that encoding
+	if ($@) {
+	    syslog('info', "%s: adding disclaimer failed (rule: %s)", $logid, $rulename);
 	} else {
-	    # do nothing - unknown format
+	    syslog('info', "%s: added disclaimer (rule: %s)", $logid, $rulename);
 	}
+	$found = 1;
+    } else {
+	# do nothing - unknown format
     }
 
     return $found;
