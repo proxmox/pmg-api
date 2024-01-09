@@ -1,3 +1,11 @@
+pmg-api (7.3-11) bullseye; urgency=medium
+
+  * address smtp-smuggling vulnerability (CVE-2023-51764) with the fix
+    recommended by postfix upstream by disallowing bare linefeeds, except from
+    internal sources, requires postfix version 3.5.23-0+deb11u1 to take effect
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 09 Jan 2024 11:55:20 +0100
+
 pmg-api (7.3-10) bullseye; urgency=medium
 
   * implement "SMTP-smuggling" mitigation for external port - see
