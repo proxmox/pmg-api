@@ -711,6 +711,14 @@ sub properties {
 	    type => 'boolean',
 	    default => 1
 	},
+	'filter-timeout' => {
+	    description => "Timeout for the processing of one mail (in seconds)  (postfix option"
+		." `smtpd_proxy_timeout` and `lmtp_data_done_timeout`)",
+	    type => 'integer',
+	    default => 600,
+	    minimum => 2,
+	    maximum => 86400
+	},
     };
 }
 
@@ -752,6 +760,7 @@ sub options {
 	before_queue_filtering => { optional => 1 },
 	ndr_on_block => { optional => 1 },
 	smtputf8 => { optional => 1 },
+	'filter-timeout' => { optional => 1 },
     };
 }
 

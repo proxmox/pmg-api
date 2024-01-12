@@ -50,9 +50,10 @@ default_transport = smtp:[% pmg.mail.smarthost %]:[% pmg.mail.smarthostport %]
 [% END %]
 
 [% IF pmg.mail.before_queue_filtering -%]
-smtpd_proxy_timeout = 600s
+smtpd_proxy_timeout = [% pmg.mail.item('filter-timeout') %]s
 [% ELSE %]
 content_filter=scan:127.0.0.1:10024
+lmtp_data_done_timeout = [% pmg.mail.item('filter-timeout') %]s
 [%- END %]
 
 mail_name = Proxmox
