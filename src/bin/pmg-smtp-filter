@@ -529,7 +529,7 @@ sub run_dequeue {
 
     $self->log (2, "starting database maintenance");
 
-    my ($csec, $usec) = gettimeofday ();
+    my $starttime = [ gettimeofday() ];
 
     my $cinfo = PVE::INotify::read_file("cluster.conf");
 
@@ -545,8 +545,7 @@ sub run_dequeue {
     if ($err) {
 	$self->log (0, $err);
     } else {
-	my ($csec_end, $usec_end) = gettimeofday ();
-	my $ptime = int (($csec_end - $csec) * 1000 + ($usec_end - $usec) / 1000);
+	my $ptime = int(tv_interval($starttime) * 1000);
 	$self->log (2, "end database maintenance ($ptime ms)");
     }
 
@@ -565,7 +564,7 @@ sub unpack_entity {
 	if (PMG::Unpack::is_archive ($magic)) {
 	    $self->log (3, "$queue->{logid}: found archive '$filename' ($magic)");
 
-	    my $start = [gettimeofday];
+	    my $start = [ gettimeofday() ];
 
 	    $unpack->{mime} = {};
 
@@ -596,7 +595,7 @@ sub unpack_entity {
 sub handle_smtp {
     my ($self, $smtp) = @_;
 
-    my ($csec, $usec) = gettimeofday ();
+    my $starttime = [ gettimeofday() ];
 
     my $queue;
     my $msginfo = {};
@@ -720,7 +719,7 @@ sub handle_smtp {
 	    my $decdir = $queue->{dumpdir} . "/__decoded_archives";
 	    mkdir $decdir;
 
-	    my $start = [gettimeofday];
+	    my $start = [ gettimeofday() ];
 
 	    my $unpack;
 	    eval {
@@ -775,9 +774,7 @@ sub handle_smtp {
 
     die $err if $err;
 
-    my ($csec_end, $usec_end) = gettimeofday ();
-    my $time_total =
-	int (($csec_end-$csec)*1000 + ($usec_end - $usec)/1000);
+    my $time_total = int(tv_interval($starttime) * 1000);
 
 # PHASE 5 - log statistics
 # on error: log error messages
