@@ -330,6 +330,11 @@ sub apply_rules {
 
     my $mod_group = PMG::ModGroup->new($entity, $msginfo->{targets});
 
+    my $processing_time = int(tv_interval($msginfo->{starttime}));
+    my $filter_timeout = $self->{pmg_cfg}->get('mail', 'filter-timeout');
+    die "processing took ${processing_time}s, longer than the timeout (${filter_timeout}s)\n"
+	if $processing_time > $filter_timeout;
+
     foreach my $rule (@$rules) {
 	my $targets = $rule_targets{$rule->{id}};
 	next if !$targets;
@@ -642,6 +647,7 @@ sub handle_smtp {
 	$msginfo->{fqdn} = $msginfo->{hostname};
 	$msginfo->{fqdn} .= ".$msginfo->{domain}" if $msginfo->{domain};
 	$msginfo->{lcid} = $lcid;
+	$msginfo->{starttime} = $starttime;
 
 	# $msginfo->{targets} is case sensitive,
 	# but pmail is always lower case!
