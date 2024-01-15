@@ -49,7 +49,7 @@ If this e-mail or attached files contain information which do not relate to our 
 _EOD_
 
 sub new {
-    my ($type, $value, $ogroup, $top) = @_;
+    my ($type, $value, $ogroup, $top, $separator) = @_;
 
     my $class = ref($type) || $type;
 
@@ -59,6 +59,7 @@ sub new {
 
     $self->{value} = $value;
     $self->{top} = $top;
+    $self->{separator} = $separator;
 
     return $self;
 }
@@ -76,14 +77,16 @@ sub load_attr {
     $sth->execute($id);
 
     my $top = 0;
+    my $separator = 1;
 
     while (my $ref = $sth->fetchrow_hashref()) {
 	$top = $ref->{value} if $ref->{name} eq 'top';
+	$separator = $ref->{value} if $ref->{name} eq 'separator';
     }
 
     $sth->finish();
 
-    my $obj = $class->new(decode('UTF-8', $value), $ogroup, $top);
+    my $obj = $class->new(decode('UTF-8', $value), $ogroup, $top, $separator);
 
     $obj->{id} = $id;
 
@@ -110,9 +113,11 @@ sub save {
 	    "UPDATE Object SET Value = ? WHERE ID = ?",
 	    undef, $value, $self->{id});
 
-	$ruledb->{dbh}->do(
-	    "DELETE FROM Attribut WHERE Name = ? and Object_ID = ?",
-	    undef, 'top',  $self->{id});
+	for my $prop (qw(top separator)) {
+	    $ruledb->{dbh}->do(
+		"DELETE FROM Attribut WHERE Name = ? and Object_ID = ?",
+		undef, $prop,  $self->{id});
+	}
     } else {
 	# insert
 
@@ -125,10 +130,12 @@ sub save {
 	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
-    if (defined($self->{top})) {
-	$ruledb->{dbh}->do(
-	    "INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
-	    undef, $self->{top}, 'top',  $self->{id});
+    for my $prop (qw(top separator)) {
+	if (defined($self->{$prop})) {
+	    $ruledb->{dbh}->do(
+		"INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
+		undef, $self->{$prop}, $prop,  $self->{id});
+	}
     }
 
     return $self->{id};
@@ -227,10 +234,11 @@ sub execute {
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);
 	my $html;
+	my $separator = $self->{separator} ? '<br>--<br>' : '<br>';
 	if ($self->{top}) {
-	    $html = PMG::Utils::subst_values ($self->{value}, $vars) . "<br>--<br>";
+	    $html = PMG::Utils::subst_values ($self->{value}, $vars) . $separator;
 	} else {
-	    $html = "<br>--<br>" . PMG::Utils::subst_values ($self->{value}, $vars);
+	    $html = $separator . PMG::Utils::subst_values ($self->{value}, $vars);
 	}
 
 	my $text = "";
@@ -272,6 +280,13 @@ sub properties {
 	    optional => 1,
 	    default => 'end',
 	},
+	'add-separator' => {
+	    description => "If set to 1, adds a '--' separator between the disclaimer and the".
+		" content. Set to 0 to prevent that.",
+	    type => 'boolean',
+	    optional => 1,
+	    default => 1,
+	},
     };
 }
 
@@ -281,6 +296,7 @@ sub get {
     return {
 	disclaimer => $self->{value},
 	position => $self->{top} ? 'start' : 'end',
+	'add-separator' => $self->{separator} // 1,
     };
 }
 
@@ -292,6 +308,12 @@ sub update {
 	$self->{top} = 1;
     } else {
 	delete $self->{top};
+    }
+
+    if (defined($param->{'add-separator'}) && $param->{'add-separator'} == 0) {
+	$self->{separator} = 0;
+    } else {
+	delete $self->{separator};
     }
 }
 
