@@ -49,7 +49,7 @@ If this e-mail or attached files contain information which do not relate to our 
 _EOD_
 
 sub new {
-    my ($type, $value, $ogroup) = @_;
+    my ($type, $value, $ogroup, $top) = @_;
 
     my $class = ref($type) || $type;
 
@@ -58,6 +58,7 @@ sub new {
     my $self = $class->SUPER::new($class->otype(), $ogroup);
 
     $self->{value} = $value;
+    $self->{top} = $top;
 
     return $self;
 }
@@ -69,7 +70,20 @@ sub load_attr {
 
     defined($value) || die "undefined object attribute: ERROR";
 
-    my $obj = $class->new(decode('UTF-8', $value), $ogroup);
+    my $sth = $ruledb->{dbh}->prepare(
+	"SELECT * FROM Attribut WHERE Object_ID = ?");
+
+    $sth->execute($id);
+
+    my $top = 0;
+
+    while (my $ref = $sth->fetchrow_hashref()) {
+	$top = $ref->{value} if $ref->{name} eq 'top';
+    }
+
+    $sth->finish();
+
+    my $obj = $class->new(decode('UTF-8', $value), $ogroup, $top);
 
     $obj->{id} = $id;
 
@@ -96,6 +110,9 @@ sub save {
 	    "UPDATE Object SET Value = ? WHERE ID = ?",
 	    undef, $value, $self->{id});
 
+	$ruledb->{dbh}->do(
+	    "DELETE FROM Attribut WHERE Name = ? and Object_ID = ?",
+	    undef, 'top',  $self->{id});
     } else {
 	# insert
 
@@ -106,6 +123,12 @@ sub save {
 	$sth->execute($self->ogroup, $self->otype, $value);
 
 	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+    }
+
+    if (defined($self->{top})) {
+	$ruledb->{dbh}->do(
+	    "INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
+	    undef, $self->{top}, 'top',  $self->{id});
     }
 
     return $self->{id};
@@ -134,13 +157,19 @@ sub add_data {
 
     my $newfh = $body->open ("w") || return undef;
 
+    if ($self->{top}) {
+	$newfh->print($data);
+    }
+
     while (defined($_ = $fh->getline())) {
 	$newfh->print($_); # copy contents
     }
 
     $newfh->print("\n"); # add final \n
 
-    $newfh->print($data);
+    if (!$self->{top}) {
+	$newfh->print($data);
+    }
 
     $newfh->close || return undef;
 
@@ -197,8 +226,12 @@ sub execute {
 
     foreach my $ta (@$subgroups) {
 	my ($tg, $entity) = (@$ta[0], @$ta[1]);
-
-	my $html = "<br>--<br>" . PMG::Utils::subst_values ($self->{value}, $vars);
+	my $html;
+	if ($self->{top}) {
+	    $html = PMG::Utils::subst_values ($self->{value}, $vars) . "<br>--<br>";
+	} else {
+	    $html = "<br>--<br>" . PMG::Utils::subst_values ($self->{value}, $vars);
+	}
 
 	my $text = "";
 	my $parser = HTML::Parser->new(
@@ -232,6 +265,13 @@ sub properties {
 	    type => 'string',
 	    maxLength => 2048,
 	},
+	position => {
+	    description => "Put the disclaimer at the specified position.",
+	    type => 'string',
+	    enum => ['start', 'end'],
+	    optional => 1,
+	    default => 'end',
+	},
     };
 }
 
@@ -240,6 +280,7 @@ sub get {
 
     return {
 	disclaimer => $self->{value},
+	position => $self->{top} ? 'start' : 'end',
     };
 }
 
@@ -247,6 +288,11 @@ sub update {
     my ($self, $param) = @_;
 
     $self->{value} = $param->{disclaimer};
+    if (defined($param->{position}) && $param->{position} eq 'start') {
+	$self->{top} = 1;
+    } else {
+	delete $self->{top};
+    }
 }
 
 1;
