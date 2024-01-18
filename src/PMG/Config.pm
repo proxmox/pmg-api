@@ -459,8 +459,17 @@ sub get_max_filters {
 
     my $max_servers = 5;
     my $servermem = 120;
+    my $base;
     my $memory = physical_memory();
-    my $add_servers = int(($memory - 512)/$servermem);
+    if ($memory < 3840) {
+	warn "low amount of system memory installed, recommended is 4+ GB\n"
+	    ."to prevent OOM kills, it is better to set max_filters manually\n";
+	$base = $memory > 1536 ? 1024 : 512;
+    } else {
+	$base = 2816;
+	$servermem = 150;
+    }
+    my $add_servers = int(($memory - $base)/$servermem);
     $max_servers += $add_servers if $add_servers > 0;
     $max_servers = 40 if  $max_servers > 40;
 
