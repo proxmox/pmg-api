@@ -32,8 +32,9 @@ sub print_objects {
     my $objects = $ruledb->load_group_objects ($og->{id});
 
     foreach my $obj (@$objects) {
+	my $type_text = $obj->otype_text();
 	my $desc = encode('UTF-8', $obj->short_desc());
-	print "    OBJECT $obj->{id}: $desc\n";
+	print "    OBJECT $type_text $obj->{id}: $desc\n";
     }
 }
 
