@@ -28,6 +28,14 @@ sub new {
 
     my $sha1 = Digest::SHA->new;
 
+    my $type_map =  {
+	0 => "from",
+	1 => "to",
+	2 => "when",
+	3 => "what",
+	4 => "action",
+    };
+
     eval {
 	$dbh->begin_work;
 
@@ -53,7 +61,11 @@ sub new {
 	    $sha1->add(join(',', $ref->{id}, $ref->{name}, $ref->{priority}, $ref->{active},
 			    $ref->{direction}) . "|");
 
-	    my ($from, $to, $when, $what, $action);
+	    $self->{"$ruleid:from"} = { groups => [] };
+	    $self->{"$ruleid:to"} =  { groups => [] };
+	    $self->{"$ruleid:when"} = { groups => [] };
+	    $self->{"$ruleid:what"} = { groups => [] };
+	    $self->{"$ruleid:action"} = { groups => [] };
 
 	    my $sth1 = $dbh->prepare(
 		"SELECT Objectgroup_ID, Grouptype FROM RuleGroup " .
@@ -64,20 +76,7 @@ sub new {
 	    while (my $ref1 = $sth1->fetchrow_hashref()) {
 		my $gtype = $ref1->{grouptype};
 		my $groupid = $ref1->{objectgroup_id};
-
-		# emtyp groups differ from non-existent groups!
-
-		if ($gtype == 0) {      #from
-		    $from = [] if !defined ($from);
-		} elsif ($gtype == 1) { # to
-		    $to = [] if !defined ($to);
-		} elsif ($gtype == 2) { # when
-		    $when = [] if !defined ($when);
-		} elsif ($gtype == 3) { # what
-		    $what = [] if !defined ($what);
-		} elsif ($gtype == 4) { # action
-		    $action = [] if !defined ($action);
-		}
+		my $objects = [];
 
 		my $sth2 = $dbh->prepare(
 		    "SELECT ID FROM Object where Objectgroup_ID = '$groupid' " .
@@ -90,14 +89,9 @@ sub new {
 		    $sha1->add (join (',', $objid, $gtype, $groupid) . "|");
 		    $sha1->add ($obj->{digest}, "|");
 
-		    if ($gtype == 0) {      #from
-			push @$from, $obj;
-		    } elsif ($gtype == 1) { # to
-			push @$to,  $obj;
-		    } elsif ($gtype == 2) { # when
-			push @$when,  $obj;
-		    } elsif ($gtype == 3) { # what
-			push @$what,  $obj;
+		    push @$objects, $obj;
+
+		    if ($gtype == 3) { # what
 			if ($obj->otype == PMG::RuleDB::ArchiveFilter->otype ||
 			    $obj->otype == PMG::RuleDB::MatchArchiveFilename->otype)
 			{
@@ -111,20 +105,20 @@ sub new {
 			    }
 			}
 		    } elsif ($gtype == 4) { # action
-			push @$action, $obj;
 			$self->{"$ruleid:final"} = 1 if $obj->final();
 		    }
 		}
 		$sth2->finish();
+
+		my $group = {
+		    objects => $objects,
+		};
+
+		my $type = $type_map->{$gtype};
+		push $self->{"$ruleid:$type"}->{groups}->@*, $group;
 	    }
 
 	    $sth1->finish();
-
-	    $self->{"$ruleid:from"} = $from;
-	    $self->{"$ruleid:to"} =  $to;
-	    $self->{"$ruleid:when"} = $when;
-	    $self->{"$ruleid:what"} = $what;
-	    $self->{"$ruleid:action"} = $action;
 	}
 
 	# Cache Greylist Exclusion
@@ -203,7 +197,15 @@ sub get_actions {
 
     defined($ruleid) || die "undefined rule id: ERROR";
 
-    return $self->{"$ruleid:action"};
+    my $actions = $self->{"$ruleid:action"};
+
+    return undef if scalar($actions->{groups}->@*) == 0;
+
+    my $res = [];
+    for my $action ($actions->{groups}->@*) {
+	push $res->@*, $action->{objects}->@*;
+    }
+    return $res;
 }
 
 sub greylist_match {
@@ -239,15 +241,17 @@ sub from_match {
 
     my $from = $self->{"$ruleid:from"};
 
-    return 1 if !defined ($from);
+    return 1 if scalar($from->{groups}->@*) == 0;
 
     # postfix prefixes ipv6 addresses with IPv6:
     if (defined($ip) && $ip =~ /^IPv6:(.*)/) {
 	$ip = $1;
     }
 
-    foreach my $obj (@$from) {
-	return 1 if $obj->who_match($addr, $ip, $ldap);
+    for my $group ($from->{groups}->@*) {
+	for my $obj ($group->{objects}->@*) {
+	    return 1 if $obj->who_match($addr, $ip, $ldap);
+	}
     }
 
     return 0;
@@ -258,11 +262,14 @@ sub to_match {
 
     my $to = $self->{"$ruleid:to"};
 
-    return 1 if !defined ($to);
+    return 1 if scalar($to->{groups}->@*) == 0;
 
-    foreach my $obj (@$to) {
-	return 1 if $obj->who_match($addr, undef, $ldap);
+    for my $group ($to->{groups}->@*) {
+	for my $obj ($group->{objects}->@*) {
+	    return 1 if $obj->who_match($addr, undef, $ldap);
+	}
     }
+
 
     return 0;
 }
@@ -272,10 +279,12 @@ sub when_match {
 
     my $when = $self->{"$ruleid:when"};
 
-    return 1 if !defined ($when);
+    return 1 if scalar($when->{groups}->@*) == 0;
 
-    foreach my $obj (@$when) {
-	return 1 if $obj->when_match($time);
+    for my $group ($when->{groups}->@*) {
+	for my $obj ($group->{objects}->@*) {
+	    return 1 if $obj->when_match($time);
+	}
     }
 
     return 0;
@@ -292,7 +301,7 @@ sub what_match {
     # $res->{$target}->{marks} is only used in apply_rules() to exclude some
     # targets (spam blacklist and whitelist)
 
-    if (!defined ($what)) {
+    if (scalar($what->{groups}->@*) == 0) {
 	# match all targets
 	foreach my $target (@{$msginfo->{targets}}) {
 	    $res->{$target}->{marks} = [];
@@ -304,10 +313,12 @@ sub what_match {
 
     my $marks;
 
-    foreach my $obj (@$what) {
-	if (!$obj->can('what_match_targets')) {
-	    if (my $match = $obj->what_match($queue, $element, $msginfo, $dbh)) {
-		push @$marks, @$match;
+    for my $group ($what->{groups}->@*) {
+	for my $obj ($group->{objects}->@*) {
+	    if (!$obj->can('what_match_targets')) {
+		if (my $match = $obj->what_match($queue, $element, $msginfo, $dbh)) {
+		    push @$marks, @$match;
+		}
 	    }
 	}
     }
@@ -317,12 +328,14 @@ sub what_match {
 	$res->{marks} = $marks;
     }
 
-    foreach my $obj (@$what) {
-	if ($obj->can ("what_match_targets")) {
-	    my $target_info;
-	    if ($target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
-		foreach my $k (keys %$target_info) {
-		    $res->{$k} = $target_info->{$k};
+    for my $group ($what->{groups}->@*) {
+	for my $obj ($group->{objects}->@*) {
+	    if ($obj->can ("what_match_targets")) {
+		my $target_info;
+		if ($target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
+		    foreach my $k (keys %$target_info) {
+			$res->{$k} = $target_info->{$k};
+		    }
 		}
 	    }
 	}
