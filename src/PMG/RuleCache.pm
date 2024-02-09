@@ -322,9 +322,7 @@ sub what_match {
 	    my $target_info;
 	    if ($target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
 		foreach my $k (keys %$target_info) {
-		    my $cmarks = $target_info->{$k}->{marks}; # make a copy
 		    $res->{$k} = $target_info->{$k};
-		    push @{$res->{$k}->{marks}}, @$cmarks if $cmarks;
 		}
 	    }
 	}
