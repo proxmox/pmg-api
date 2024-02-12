@@ -104,7 +104,7 @@ unverified_recipient_reject_code = [% pmg.mail.verifyreceivers %]
 
 smtpd_data_restrictions = reject_unauth_pipelining
 
-smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline = normalize
 smtpd_forbid_bare_newline_exclusions =
         $mynetworks,
         cidr:/etc/postfix/clientaccess
