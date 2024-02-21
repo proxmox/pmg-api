@@ -295,53 +295,38 @@ sub what_match {
 
     my $what = $self->{"$ruleid:what"};
 
-    my $res;
-
-    # $res->{marks} is used by mark specific actions like remove-attachments
-    # $res->{$target}->{marks} is only used in apply_rules() to exclude some
-    # targets (spam blacklist and whitelist)
+    my $marks;
+    my $spaminfo;
 
     if (scalar($what->{groups}->@*) == 0) {
 	# match all targets
 	foreach my $target (@{$msginfo->{targets}}) {
-	    $res->{$target}->{marks} = [];
+	    $marks->{$target} = [];
 	}
-
-	$res->{marks} = [];
-	return $res;
+	return ($marks, $spaminfo);
     }
-
-    my $marks;
 
     for my $group ($what->{groups}->@*) {
 	for my $obj ($group->{objects}->@*) {
 	    if (!$obj->can('what_match_targets')) {
 		if (my $match = $obj->what_match($queue, $element, $msginfo, $dbh)) {
-		    push @$marks, @$match;
+		    for my $target ($msginfo->{targets}->@*) {
+			push $marks->{$target}->@*, $match->@*;
+		    }
 		}
-	    }
-	}
-    }
-
-    foreach my $target (@{$msginfo->{targets}}) {
-	$res->{$target}->{marks} = $marks;
-	$res->{marks} = $marks;
-    }
-
-    for my $group ($what->{groups}->@*) {
-	for my $obj ($group->{objects}->@*) {
-	    if ($obj->can ("what_match_targets")) {
-		my $target_info;
-		if ($target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
-		    foreach my $k (keys %$target_info) {
-			$res->{$k} = $target_info->{$k};
+	    } else {
+		if (my $target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
+		    foreach my $k (keys $target_info->%*) {
+			push $marks->{$k}->@*, $target_info->{$k}->{marks}->@*;
+			# only save spaminfo once
+			$spaminfo = $target_info->{$k}->{spaminfo} if !defined($spaminfo);
 		    }
 		}
 	    }
 	}
     }
 
-    return $res;
+    return ($marks, $spaminfo);
 }
 
 1;

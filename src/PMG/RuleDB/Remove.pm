@@ -198,9 +198,15 @@ sub execute {
 
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
-    if (!$self->{all} && ($#$marks == -1)) {
-	# no marks
-	return;
+    if (!$self->{all}) {
+	my $found_mark = 0;
+	for my $target (keys $marks->%*) {
+	    if (scalar($marks->{$target}->@*) > 0) {
+		$found_mark = 1;
+		last;
+	    }
+	}
+	return if !$found_mark;
     }
 
     my $subgroups = $mod_group->subgroups ($targets);
@@ -256,7 +262,11 @@ sub execute {
 	}
 
 	$self->{message_seen} = 0;
-	$self->delete_marked_parts($queue, $entity, $html, $rtype, $marks, $rulename);
+
+	# since currently all marks are equal for all target, just use the first one
+	my $match_marks = $marks->{$tg->[0]};
+
+	$self->delete_marked_parts($queue, $entity, $html, $rtype, $match_marks, $rulename);
 	delete $self->{message_seen};
 
 	if ($msginfo->{testmode}) {

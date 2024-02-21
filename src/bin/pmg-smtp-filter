@@ -240,6 +240,7 @@ sub apply_rules {
     my %rule_targets;
     my %rule_actions;
     my %rule_marks;
+    my %rule_spaminfo;
     my $matching_rules = [];
 
     my $rulecache = $self->{rulecache};
@@ -275,8 +276,11 @@ sub apply_rules {
 	    next;
 	}
 
-	$rule_marks{$rule->{id}} =
+	my ($marks, $spaminfo) =
 	    $rulecache->what_match ($rule->{id}, $queue, $entity, $msginfo, $dbh);
+
+	$rule_marks{$rule->{id}} = $marks;
+	$rule_spaminfo{$rule->{id}} = $spaminfo;
 
 	$rule_actions{$rule->{id}} = $rulecache->get_actions ($rule->{id});
 	my $fin = $rulecache->final ($rule->{id});
@@ -286,7 +290,6 @@ sub apply_rules {
 	    next if $final->{$target};
 	    next if !defined ($rule_marks{$rule->{id}});
 	    next if !defined ($rule_marks{$rule->{id}}->{$target});
-	    next if !defined ($rule_marks{$rule->{id}}->{$target}->{marks});
 	    next if !$rulecache->to_match ($rule->{id}, $target, $ldap);
 
 	    $final->{$target} = $fin;
@@ -329,24 +332,15 @@ sub apply_rules {
 	my $targets = $rule_targets{$rule->{id}};
 	next if !$targets;
 
-	my $spaminfo;
-	foreach my $t (@$targets) {
-	    if ($rule_marks{$rule->{id}}->{$t} && $rule_marks{$rule->{id}}->{$t}->{spaminfo}) {
-		$spaminfo = $rule_marks{$rule->{id}}->{$t}->{spaminfo};
-		# we assume spam info is the same for all matching targets
-		last;
-	    }
-	}
-
 	my $vars = $self->get_prox_vars (
-	    $queue, $entity, $msginfo, $rule, $rule_targets{$rule->{id}}, $spaminfo);
+	    $queue, $entity, $msginfo, $rule, $rule_targets{$rule->{id}}, $rule_spaminfo{$rule->{id}});
 
 	my @sorted_actions = sort {$a->priority <=> $b->priority} @{$rule_actions{$rule->{id}}};
 
 	foreach my $action (@sorted_actions) {
 	    $action->execute(
 		$queue, $self->{ruledb}, $mod_group, $rule_targets{$rule->{id}}, $msginfo, $vars,
-		$rule_marks{$rule->{id}}->{marks}, $ldap
+		$rule_marks{$rule->{id}}, $ldap
 	    );
 	    last if $action->final;
 	}
