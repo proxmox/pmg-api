@@ -295,6 +295,18 @@ my $userprefs_ctablecmd =  <<__EOD;
 
 __EOD
 
+my $rule_attributes_cmd = <<__EOD;
+    CREATE TABLE Rule_Attributes (
+      Rule_ID INTEGER NOT NULL,
+      Name VARCHAR(20) NOT NULL,
+      Value BYTEA NULL,
+      PRIMARY KEY (Rule_ID, Name)
+    );
+
+    CREATE INDEX Rule_Attributes_Rule_ID_Index ON Rule_Attributes(Rule_ID);
+
+__EOD
+
 my $object_group_attributes_cmd = <<__EOD;
     CREATE TABLE Objectgroup_Attributes (
       Objectgroup_ID INTEGER NOT NULL,
@@ -452,6 +464,8 @@ sub create_ruledb {
 
         $virusinfo_stat_ctablecmd;
 
+        $rule_attributes_cmd;
+
         $object_group_attributes_cmd;
 EOD
     );
@@ -508,6 +522,7 @@ sub upgradedb {
 	'CStatistic', $cstatistic_ctablecmd,
 	'ClusterInfo', $clusterinfo_ctablecmd,
 	'VirusInfo', $virusinfo_stat_ctablecmd,
+	'Rule_Attributes', $rule_attributes_cmd,
 	'Objectgroup_Attributes', $object_group_attributes_cmd,
     };
 
@@ -620,6 +635,7 @@ sub init_ruledb {
 	$dbh->do(
 	    "DELETE FROM Rule;"
 	    ." DELETE FROM RuleGroup;"
+	    ." DELETE FROM Rule_Attributes;"
 	    ." DELETE FROM Objectgroup_Attributes;"
 	    ." DELETE FROM Attribut WHERE Object_ID NOT IN ($glids);"
 	    ." DELETE FROM Object WHERE ID NOT IN ($glids);"

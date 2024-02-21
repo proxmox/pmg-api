@@ -31,6 +31,14 @@ sub format_rule {
 	active => $rule->{active},
 	direction => $rule->{direction},
     };
+    my $types = [qw(what when from to)];
+    my $attributes = [qw(and invert)];
+    for my $type ($types->@*) {
+	for my $attribute ($attributes->@*) {
+	    my $opt = "${type}-${attribute}";
+	    $data->{$opt} = $rule->{$opt} if defined($rule->{$opt});
+	}
+    }
 
     $cond_create_group->($data, 'from', $from);
     $cond_create_group->($data, 'to', $to);

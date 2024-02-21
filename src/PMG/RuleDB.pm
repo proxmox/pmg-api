@@ -668,6 +668,35 @@ sub delete_object {
     return 1;
 }
 
+sub update_rule_attributes {
+    my ($self, $rule) = @_;
+
+    my $types = [qw(what when from to)];
+    my $attributes = [qw(and invert)];
+
+    for my $type ($types->@*) {
+	for my $attribute ($attributes->@*) {
+	    my $prop = "$type-$attribute";
+
+	    # only save the values if they're set to 1
+	    if ($rule->{$prop}) {
+		$self->{dbh}->do(
+		    "INSERT INTO Rule_Attributes (Rule_ID, Name, Value) " .
+		    "VALUES (?, ?, ?) ".
+		    "ON CONFLICT (Rule_ID, Name) DO UPDATE SET Value = ?", undef,
+		    $rule->{id}, $prop, $rule->{$prop}, $rule->{$prop},
+		);
+	    } else {
+		$self->{dbh}->do(
+		    "DELETE FROM Rule_Attributes " .
+		    "WHERE Rule_ID = ? AND Name = ?", undef,
+		    $rule->{id}, $prop,
+		);
+	    }
+	}
+    }
+}
+
 sub save_rule {
     my ($self, $rule) = @_;
 
@@ -682,28 +711,53 @@ sub save_rule {
 
     my $rulename = encode('UTF-8', $rule->{name});
     if (defined($rule->{id})) {
+	$self->{dbh}->begin_work;
 
-	$self->{dbh}->do(
-	    "UPDATE Rule " .
-	    "SET Name = ?, Priority = ?, Active = ?, Direction = ? " .
-	    "WHERE ID = ?", undef,
-	    $rulename, $rule->{priority}, $rule->{active},
-	    $rule->{direction}, $rule->{id});
+	eval {
+	    $self->{dbh}->do(
+		"UPDATE Rule " .
+		"SET Name = ?, Priority = ?, Active = ?, Direction = ? " .
+		"WHERE ID = ?", undef,
+		$rulename, $rule->{priority}, $rule->{active},
+		$rule->{direction}, $rule->{id});
 
-	return $rule->{id};
+	    $self->update_rule_attributes($rule);
 
+	    $self->{dbh}->commit;
+	};
+
+	if (my $err = $@) {
+	    $self->{dbh}->rollback;
+	    syslog('err', $err);
+	    return undef;
+	}
     } else {
-	my $sth = $self->{dbh}->prepare(
-	    "INSERT INTO Rule (Name, Priority, Active, Direction) " .
-	    "VALUES (?, ?, ?, ?);");
+	$self->{dbh}->begin_work;
 
-	$sth->execute($rulename, $rule->priority, $rule->active,
-		      $rule->direction);
+	eval {
+	    my $sth = $self->{dbh}->prepare(
+		"INSERT INTO Rule (Name, Priority, Active, Direction) " .
+		"VALUES (?, ?, ?, ?);");
 
-	return $rule->{id} = PMG::Utils::lastid($self->{dbh}, 'rule_id_seq');
+	    $sth->execute($rulename, $rule->priority, $rule->active,
+		$rule->direction);
+
+
+	    $rule->{id} = PMG::Utils::lastid($self->{dbh}, 'rule_id_seq');
+
+	    $self->update_rule_attributes($rule);
+
+	    $self->{dbh}->commit;
+	};
+
+	if (my $err = $@) {
+	    $self->{dbh}->rollback;
+	    syslog('err', $err);
+	    return undef;
+	}
     }
 
-    return undef;
+    return $rule->{id};
 }
 
 sub delete_rule {
@@ -717,6 +771,8 @@ sub delete_rule {
 	$self->{dbh}->do("DELETE FROM Rule " .
 			 "WHERE ID = ?", undef, $ruleid);
 	$self->{dbh}->do("DELETE FROM RuleGroup " .
+			 "WHERE Rule_ID = ?", undef, $ruleid);
+	$self->{dbh}->do("DELETE FROM Rule_Attributes " .
 			 "WHERE Rule_ID = ?", undef, $ruleid);
 
 	$self->{dbh}->commit;
@@ -829,24 +885,52 @@ sub rule_remove_group {
     return 1;
 }
 
+sub load_rule_attributes {
+    my ($self, $rule) = @_;
+
+    my $types = [qw(what when from to)];
+    my $attributes = [qw(and invert)];
+
+    my $attribute_sth = $self->{dbh}->prepare("SELECT * FROM Rule_Attributes WHERE Rule_ID = ?");
+    $attribute_sth->execute($rule->{id});
+
+    while (my $ref = $attribute_sth->fetchrow_hashref()) {
+	if ($ref->{name} =~ m/^((?:what|when|from|to)-(?:and|invert))$/) {
+	    my $prop = $1;
+	    $rule->{$prop} = $ref->{value};
+	}
+    }
+}
+
 sub load_rule {
     my ($self, $id) = @_;
 
     defined($id) || die "undefined id: ERROR";
 
-    my $sth = $self->{dbh}->prepare(
-	"SELECT * FROM Rule where id = ? ORDER BY Priority DESC");
+    $self->{dbh}->begin_work;
 
-    my $rules = ();
+    my $rule;
 
-    $sth->execute($id);
+    eval {
+	my $sth = $self->{dbh}->prepare(
+	    "SELECT * FROM Rule where id = ? ORDER BY Priority DESC");
 
-    my $ref = $sth->fetchrow_hashref();
-    die "rule '$id' does not exist\n" if !defined($ref);
+	$sth->execute($id);
 
-    my $rule = PMG::RuleDB::Rule->new($ref->{name}, $ref->{priority},
-				      $ref->{active}, $ref->{direction});
-    $rule->{id} = $ref->{id};
+	my $ref = $sth->fetchrow_hashref();
+	die "rule '$id' does not exist\n" if !defined($ref);
+
+	$rule = PMG::RuleDB::Rule->new($ref->{name}, $ref->{priority},
+					  $ref->{active}, $ref->{direction});
+	$rule->{id} = $ref->{id};
+
+	$self->load_rule_attributes($rule);
+    };
+    my $err = $@;
+
+    $self->{dbh}->rollback; # finish transaction
+
+    die $err if $err;
 
     return $rule;
 }

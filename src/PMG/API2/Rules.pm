@@ -149,6 +149,54 @@ my $rule_params = {
 	type => 'boolean',
 	optional => 1,
     },
+    'what-and' => {
+	description => "Flag to 'and' combine WHAT group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'what-invert' => {
+	description => "Flag to invert WHAT group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'when-and' => {
+	description => "Flag to 'and' combine WHEN group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'when-invert' => {
+	description => "Flag to invert WHEN group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'from-and' => {
+	description => "Flag to 'and' combine FROM group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'from-invert' => {
+	description => "Flag to invert FROM group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'to-and' => {
+	description => "Flag to 'and' combine TO group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    'to-invert' => {
+	description => "Flag to invert TO group matches.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
 };
 
 sub get_rule_params {
@@ -203,7 +251,10 @@ __PACKAGE__->register_method ({
 
 	my $rule = $rdb->load_rule($id);
 
-	for my $key (qw(name active direction priority)) {
+	my $keys = ["name", "priority"];
+	push $keys->@*, keys get_rule_params()->%*;
+
+	for my $key ($keys->@*) {
 	    $rule->{$key} = $param->{$key} if defined($param->{$key});
 	}
 

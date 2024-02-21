@@ -533,6 +533,7 @@ sub sync_ruledb_from_master {
 	$ldb->do("DELETE FROM Object");
 	$ldb->do("DELETE FROM Attribut");
 	$ldb->do("DELETE FROM Objectgroup_Attributes");
+	$ldb->do("DELETE FROM Rule_Attributes");
 
 	eval {
 	    $rdb->begin_work;
@@ -545,6 +546,7 @@ sub sync_ruledb_from_master {
 	    PMG::DBTools::copy_table($ldb, $rdb, "ObjectGroup");
 	    PMG::DBTools::copy_table($ldb, $rdb, "Object", 'value');
 	    PMG::DBTools::copy_table($ldb, $rdb, "Attribut", 'value');
+	    PMG::DBTools::copy_table($ldb, $rdb, "Rule_Attributes");
 	    PMG::DBTools::copy_table($ldb, $rdb, "Objectgroup_Attributes");
 	};
 
