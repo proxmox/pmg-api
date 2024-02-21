@@ -295,6 +295,18 @@ my $userprefs_ctablecmd =  <<__EOD;
 
 __EOD
 
+my $object_group_attributes_cmd = <<__EOD;
+    CREATE TABLE Objectgroup_Attributes (
+      Objectgroup_ID INTEGER NOT NULL,
+      Name VARCHAR(20) NOT NULL,
+      Value BYTEA NULL,
+      PRIMARY KEY (Objectgroup_ID, Name)
+    );
+
+    CREATE INDEX Objectgroup_Attributes_Objectgroup_ID_Index ON Objectgroup_Attributes(Objectgroup_ID);
+
+__EOD
+
 sub cond_create_dbtable {
     my ($dbh, $name, $ctablecmd) = @_;
 
@@ -439,6 +451,8 @@ sub create_ruledb {
         $userprefs_ctablecmd;
 
         $virusinfo_stat_ctablecmd;
+
+        $object_group_attributes_cmd;
 EOD
     );
 
@@ -494,6 +508,7 @@ sub upgradedb {
 	'CStatistic', $cstatistic_ctablecmd,
 	'ClusterInfo', $clusterinfo_ctablecmd,
 	'VirusInfo', $virusinfo_stat_ctablecmd,
+	'Objectgroup_Attributes', $object_group_attributes_cmd,
     };
 
     foreach my $table (keys %$tables) {
@@ -605,6 +620,7 @@ sub init_ruledb {
 	$dbh->do(
 	    "DELETE FROM Rule;"
 	    ." DELETE FROM RuleGroup;"
+	    ." DELETE FROM Objectgroup_Attributes;"
 	    ." DELETE FROM Attribut WHERE Object_ID NOT IN ($glids);"
 	    ." DELETE FROM Object WHERE ID NOT IN ($glids);"
 	    ." DELETE FROM Objectgroup WHERE class != 'greylist';"

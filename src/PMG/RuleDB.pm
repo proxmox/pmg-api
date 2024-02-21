@@ -160,6 +160,30 @@ sub load_groups_by_name {
     };
 }
 
+sub update_group_attributes {
+    my ($self, $og) = @_;
+
+    my $attributes = [qw(and invert)];
+
+    for my $attribute ($attributes->@*) {
+	# only save the values if they're set to 1
+	if ($og->{$attribute}) {
+	    $self->{dbh}->do(
+		"INSERT INTO Objectgroup_Attributes (Objectgroup_ID, Name, Value) " .
+		"VALUES (?, ?, ?) ".
+		"ON CONFLICT (Objectgroup_ID, Name) DO UPDATE SET Value = ?", undef,
+		$og->{id}, $attribute, $og->{$attribute}, $og->{$attribute},
+	    );
+	} else {
+	    $self->{dbh}->do(
+		"DELETE FROM Objectgroup_Attributes " .
+		"WHERE Objectgroup_ID = ? AND Name = ?", undef,
+		$og->{id}, $attribute,
+	    );
+	}
+    }
+}
+
 sub save_group {
     my ($self, $og) = @_;
 
@@ -171,27 +195,51 @@ sub save_group {
 	die "undefined group attribute - class: ERROR";
 
     if (defined($og->{id})) {
+	$self->{dbh}->begin_work;
 
-	$self->{dbh}->do("UPDATE Objectgroup " .
-			 "SET Name = ?, Info = ? " .
-			 "WHERE ID = ?", undef,
-			 encode('UTF-8', $og->{name}),
-			 encode('UTF-8', $og->{info}),
-			 $og->{id});
+	eval {
+	    $self->{dbh}->do("UPDATE Objectgroup " .
+			     "SET Name = ?, Info = ? " .
+			     "WHERE ID = ?", undef,
+			     encode('UTF-8', $og->{name}),
+			     encode('UTF-8', $og->{info}),
+			     $og->{id});
 
-	return $og->{id};
+	    $self->update_group_attributes($og);
 
+	    $self->{dbh}->commit;
+	};
+
+	if (my $err = $@) {
+	    $self->{dbh}->rollback;
+	    syslog('err', $err);
+	    return undef;
+	}
     } else {
-	my $sth = $self->{dbh}->prepare(
-	    "INSERT INTO Objectgroup (Name, Info, Class) " .
-	    "VALUES (?, ?, ?);");
+	$self->{dbh}->begin_work;
 
-	$sth->execute(encode('UTF-8', $og->name), encode('UTF-8', $og->info), $og->class);
+	eval {
+	    my $sth = $self->{dbh}->prepare(
+		"INSERT INTO Objectgroup (Name, Info, Class) " .
+		"VALUES (?, ?, ?);");
 
-	return $og->{id} = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
+	    $sth->execute(encode('UTF-8', $og->name), encode('UTF-8', $og->info), $og->class);
+
+	    $og->{id} = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
+
+	    $self->update_group_attributes($og);
+
+	    $self->{dbh}->commit;
+	};
+
+	if (my $err = $@) {
+	    $self->{dbh}->rollback;
+	    syslog('err', $err);
+	    return undef;
+	}
     }
 
-    return undef;
+    return $og->{id};
 }
 
 sub delete_group {
@@ -228,6 +276,9 @@ sub delete_group {
 	$self->{dbh}->do("DELETE FROM RuleGroup " .
 			 "WHERE Objectgroup_ID = ?", undef, $groupid);
 
+	$self->{dbh}->do("DELETE FROM Objectgroup_Attributes " .
+			 "WHERE Objectgroup_ID = ?", undef, $groupid);
+
 	$sth = $self->{dbh}->prepare("SELECT * FROM Object " .
 				      "where Objectgroup_ID = ?");
 	$sth->execute($groupid);
@@ -252,6 +303,18 @@ sub delete_group {
     return undef;
 }
 
+sub load_group_attributes {
+    my ($self, $og) = @_;
+
+    my $attribute_sth = $self->{dbh}->prepare("SELECT * FROM Objectgroup_Attributes WHERE Objectgroup_ID = ?");
+    $attribute_sth->execute($og->{id});
+
+    while (my $ref = $attribute_sth->fetchrow_hashref()) {
+	$og->{and} = $ref->{value} if $ref->{name} eq 'and';
+	$og->{invert} = $ref->{value} if $ref->{name} eq 'invert';
+    }
+}
+
 sub load_objectgroups {
     my ($self, $class, $id) = @_;
 
@@ -259,34 +322,47 @@ sub load_objectgroups {
 
     defined($class) || die "undefined object class";
 
-    if (!(defined($id))) {
-        $sth = $self->{dbh}->prepare(
-	    "SELECT * FROM Objectgroup where Class = ? ORDER BY name");
-        $sth->execute($class);
-
-    } else {
-        $sth = $self->{dbh}->prepare(
-	    "SELECT * FROM Objectgroup where Class like ? and id = ? " .
-	    "order by name");
-        $sth->execute($class,$id);
-    }
+    $self->{dbh}->begin_work;
 
     my $arr_og = ();
-    while (my $ref = $sth->fetchrow_hashref()) {
-    	my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info},
-					 $ref->{class});
-    	$og->{id} = $ref->{id};
 
-	if ($class eq 'action') {
-	    my $objects = $self->load_group_objects($og->{id});
-	    my $obj = @$objects[0];
-	    defined($obj) || die "undefined action object: ERROR";
-	    $og->{action} = $obj;
+    eval {
+	if (!(defined($id))) {
+	    $sth = $self->{dbh}->prepare(
+		"SELECT * FROM Objectgroup where Class = ? ORDER BY name");
+	    $sth->execute($class);
+
+	} else {
+	    $sth = $self->{dbh}->prepare(
+		"SELECT * FROM Objectgroup where Class like ? and id = ? " .
+		"order by name");
+	    $sth->execute($class,$id);
 	}
-    	push @$arr_og, $og;
-    }
 
-    $sth->finish();
+	while (my $ref = $sth->fetchrow_hashref()) {
+	    my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info},
+					     $ref->{class});
+	    $og->{id} = $ref->{id};
+
+	    if ($class eq 'action') {
+		my $objects = $self->load_group_objects($og->{id});
+		my $obj = @$objects[0];
+		defined($obj) || die "undefined action object: ERROR";
+		$og->{action} = $obj;
+	    } else {
+		$self->load_group_attributes($og);
+	    }
+	    push @$arr_og, $og;
+	}
+
+	$sth->finish();
+    };
+
+    my $err = $@;
+
+    $self->{dbh}->rollback; # finish transaction
+
+    die $err if $err;
 
     return $arr_og;
 }

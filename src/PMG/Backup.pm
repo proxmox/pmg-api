@@ -94,6 +94,7 @@ sub dumpdb {
 	$dbh->do("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 
 	dump_table($dbh, 'attribut', $ofh);
+	dump_table($dbh, 'objectgroup_attributes', $ofh);
 	dump_table($dbh, 'object', $ofh, 'object_id_seq', 'id');
 	dump_table($dbh, 'objectgroup', $ofh, 'objectgroup_id_seq', 'id');
 	dump_table($dbh, 'rule', $ofh, 'rule_id_seq', 'id');

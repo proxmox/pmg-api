@@ -46,12 +46,28 @@ sub format_object_group {
 
     my $res = [];
     foreach my $og (@$ogroups) {
-	push @$res, {
-	    id => $og->{id}, name => $og->{name}, info => $og->{info}
-	};
+	my $group = { id => $og->{id}, name => $og->{name}, info => $og->{info} };
+	$group->{and} = $og->{and} if defined($og->{and});
+	$group->{invert} = $og->{invert} if defined($og->{invert});
+	push @$res, $group;
     }
     return $res;
 }
+
+my $group_attributes = {
+    and => {
+	description => "If set to 1, objects in this group are 'and' combined.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+    invert => {
+	description => "If set to 1, the resulting match is inverted.",
+	type => 'boolean',
+	default => 0,
+	optional => 1,
+    },
+};
 
 sub register_group_list_api {
     my ($apiclass, $oclass) = @_;
@@ -86,6 +102,11 @@ sub register_group_list_api {
 	    return format_object_group($ogroups);
 	}});
 
+    my $additional_parameters = {};
+    if ($oclass =~ /^(?:what|when|who)$/i) {
+	$additional_parameters = { $group_attributes->%* };
+    }
+
     $apiclass->register_method({
 	name => "create_${oclass}_group",
 	path => $oclass,
@@ -108,6 +129,7 @@ sub register_group_list_api {
 		    maxLength => 255,
 		    optional => 1,
 		},
+		$additional_parameters->%*,
 	    },
 	},
 	returns => { type => 'integer' },
@@ -118,6 +140,10 @@ sub register_group_list_api {
 
 	    my $og = PMG::RuleDB::Group->new(
 		$param->{name}, $param->{info} // '', $oclass);
+
+	    for my $prop (qw(and invert)) {
+		$og->{$prop} = $param->{$prop} if defined($param->{$prop});
+	    }
 
 	    return $rdb->save_group($og);
 	}});
@@ -199,6 +225,11 @@ sub register_object_group_config_api {
 
 	}});
 
+    my $additional_parameters = {};
+    if ($oclass =~ /^(?:what|when|who)$/i) {
+	$additional_parameters = { $group_attributes->%* };
+    }
+
     $apiclass->register_method({
 	name => 'set_config',
 	path => $path,
@@ -226,6 +257,7 @@ sub register_object_group_config_api {
 		    maxLength => 255,
 		    optional => 1,
 		},
+		$additional_parameters->%*,
 	    },
 	},
 	returns => { type => "null" },
@@ -243,8 +275,9 @@ sub register_object_group_config_api {
 	    my $og = shift @$list ||
 		die "$oclass group '$ogroup' not found\n";
 
-	    $og->{name} = $param->{name} if defined($param->{name});
-	    $og->{info} = $param->{info} if defined($param->{info});
+	    for my $prop (qw(name info and invert)) {
+		$og->{$prop} = $param->{$prop} if defined($param->{$prop});
+	    }
 
 	    $rdb->save_group($og);
 
