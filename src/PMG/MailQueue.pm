@@ -406,10 +406,10 @@ sub parse_mail {
     # we also remove all proxmox-marks from the mail and add an unique
     # id to each attachment.
 
-    PMG::Utils::remove_marks ($entity, 1);
+    my $max_aid = PMG::Utils::remove_marks ($entity, 1);
     PMG::Utils::add_ct_marks ($entity);
 
-    return $entity;
+    return ($entity, $max_aid);
 }
 
 sub decode_entities {

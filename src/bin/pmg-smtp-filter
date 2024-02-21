@@ -659,7 +659,8 @@ sub handle_smtp {
 
 	my $maxfiles = $pmg_cfg->get('clamav', 'archivemaxfiles');
 
-	my $entity = $queue->parse_mail($maxfiles);
+	my ($entity, $max_aid) = $queue->parse_mail($maxfiles);
+	$msginfo->{max_aid} = $max_aid;
 
 	$self->log (3, "$queue->{logid}: new mail message-id=%s", $queue->{msgid});
 

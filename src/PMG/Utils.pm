@@ -185,6 +185,8 @@ sub remove_marks {
 
 	$id++;
     });
+
+    return $id - 1; # return max AID
 }
 
 sub subst_values {
