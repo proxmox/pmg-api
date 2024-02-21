@@ -893,19 +893,18 @@ sub get {
     my ($self, $section, $key, $nodefault) = @_;
 
     my $pdata = PMG::Config::Base->private();
-    my $pdesc = $pdata->{propertyList}->{$key};
-    die "no such property '$section/$key'\n"
-	if !(defined($pdesc) && defined($pdata->{options}->{$section}) &&
-	     defined($pdata->{options}->{$section}->{$key}));
+    my $schema = $pdata->{propertyList}->{$key} // die "no schema for property '$section/$key'\n";
+    my $options = $pdata->{options}->{$section} // die "no options for section '$section/$key'\n";
 
-    if (defined($self->{ids}->{$section}) &&
-	defined(my $value = $self->{ids}->{$section}->{$key})) {
-	return $value;
-    }
+    die "no such property '$section/$key'\n"
+	if !(defined($schema) && defined($options) && defined($options->{$key}));
+
+    my $values = $self->{ids}->{$section};
+    return $values->{$key} if defined($values) && defined($values->{$key});
 
     return undef if $nodefault;
 
-    return $pdesc->{default};
+    return $schema->{default};
 }
 
 # get a whole section with default value
