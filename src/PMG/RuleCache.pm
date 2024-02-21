@@ -272,13 +272,14 @@ sub from_match {
 	$ip = $1;
     }
 
-    for my $group ($from->{groups}->@*) {
-	for my $obj ($group->{objects}->@*) {
-	    return 1 if $obj->who_match($addr, $ip, $ldap);
-	}
-    }
-
-    return 0;
+    return match_list_with_mode($from->{groups}, $from->{and}, $from->{invert}, sub {
+	my ($group) = @_;
+	my $list = $group->{objects};
+	return match_list_with_mode($list, $group->{and}, $group->{invert}, sub {
+	    my ($obj) = @_;
+	    return $obj->who_match($addr, $ip, $ldap);
+	});
+    });
 }
 
 sub to_match {
@@ -288,14 +289,14 @@ sub to_match {
 
     return 1 if scalar($to->{groups}->@*) == 0;
 
-    for my $group ($to->{groups}->@*) {
-	for my $obj ($group->{objects}->@*) {
-	    return 1 if $obj->who_match($addr, undef, $ldap);
-	}
-    }
-
-
-    return 0;
+    return match_list_with_mode($to->{groups}, $to->{and}, $to->{invert}, sub {
+	my ($group) = @_;
+	my $list = $group->{objects};
+	return match_list_with_mode($list, $group->{and}, $group->{invert}, sub {
+	    my ($obj) = @_;
+	    return $obj->who_match($addr, undef, $ldap);
+	});
+    });
 }
 
 sub when_match {
@@ -305,13 +306,14 @@ sub when_match {
 
     return 1 if scalar($when->{groups}->@*) == 0;
 
-    for my $group ($when->{groups}->@*) {
-	for my $obj ($group->{objects}->@*) {
-	    return 1 if $obj->when_match($time);
-	}
-    }
-
-    return 0;
+    return match_list_with_mode($when->{groups}, $when->{and}, $when->{invert}, sub {
+	my ($group) = @_;
+	my $list = $group->{objects};
+	return match_list_with_mode($list, $group->{and}, $group->{invert}, sub {
+	    my ($obj) = @_;
+	    return $obj->when_match($time);
+	});
+    });
 }
 
 sub what_match {
@@ -351,6 +353,25 @@ sub what_match {
     }
 
     return ($marks, $spaminfo);
+}
+
+# calls sub with each element of $list, and and/ors/inverts the result
+sub match_list_with_mode($$$$) {
+    my ($list, $and, $invert, $sub) = @_;
+
+    $and //= 0;
+    $invert //= 0;
+
+    for my $el ($list->@*) {
+	my $res = $sub->($el);
+	if (!$and) {
+	    return !$invert if $res;
+	} else {
+	    return $invert if !$res;
+	}
+    }
+
+    return $and != $invert;
 }
 
 1;
