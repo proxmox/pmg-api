@@ -67,6 +67,21 @@ sub new {
 	    $self->{"$ruleid:what"} = { groups => [] };
 	    $self->{"$ruleid:action"} = { groups => [] };
 
+	    my $attribute_sth = $dbh->prepare("SELECT * FROM Rule_Attributes WHERE Rule_ID = ? ORDER BY Name");
+	    $attribute_sth->execute($ruleid);
+
+	    my $rule_attributes = [];
+	    while (my $ref = $attribute_sth->fetchrow_hashref()) {
+		if ($ref->{name} =~ m/^(from|to|when|what)-(and|invert)$/) {
+		    my $type = $1;
+		    my $prop = $2;
+		    my $value = $ref->{value};
+		    $self->{"${ruleid}:${type}"}->{$prop} = $value;
+
+		    $sha1->add("${ruleid}:${type}-${prop}=${value}|");
+		}
+	    }
+
 	    my $sth1 = $dbh->prepare(
 		"SELECT Objectgroup_ID, Grouptype FROM RuleGroup " .
 		"where RuleGroup.Rule_ID = '$ruleid' " .
@@ -113,6 +128,15 @@ sub new {
 		my $group = {
 		    objects => $objects,
 		};
+
+		my $objectgroup_sth = $dbh->prepare("SELECT * FROM Objectgroup_Attributes WHERE Objectgroup_ID = ?");
+		$objectgroup_sth->execute($groupid);
+
+		while (my $ref = $objectgroup_sth->fetchrow_hashref()) {
+		    $group->{and} = $ref->{value} if $ref->{name} eq 'and';
+		    $group->{invert} = $ref->{value} if $ref->{name} eq 'invert';
+		}
+		$sha1->add (join(',', $groupid, $group->{and} // 0, $group->{invert} // 0), "|");
 
 		my $type = $type_map->{$gtype};
 		push $self->{"$ruleid:$type"}->{groups}->@*, $group;
