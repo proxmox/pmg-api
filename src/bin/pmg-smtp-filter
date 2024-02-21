@@ -96,6 +96,12 @@ if (!$opt_testmode) {
 	exit (0);
     }
 
+    my $memory = PMG::Config::Mail::physical_memory();
+    if ($memory < 3840) {
+	warn "total memory below 4 GiB, consider setting 'max_filters' manually to avoid OOM-kills\n"
+	    if !defined($pmg_cfg->get('mail', 'max_filters', 1));
+    }
+
     $max_servers = $pmg_cfg->get('mail', 'max_filters') + 2;
     $min_servers = 2;
     $min_spare_servers = 1;

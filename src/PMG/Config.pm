@@ -462,8 +462,7 @@ sub get_max_filters {
     my $base;
     my $memory = physical_memory();
     if ($memory < 3840) {
-	warn "low amount of system memory installed, recommended is 4+ GB\n"
-	    ."to prevent OOM kills, it is better to set max_filters manually\n";
+	warn "low amount of system memory installed, recommended is 4+ GB\n";
 	$base = $memory > 1536 ? 1024 : 512;
     } else {
 	$base = 2816;
