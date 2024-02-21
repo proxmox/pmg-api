@@ -109,6 +109,9 @@ if (!$opt_testmode) {
     $max_requests = 20;
 }
 
+print "using pre-fork workers with min=$min_servers, max=$max_servers, min_spare=$min_spare_servers"
+    .", max_spare=$max_spare_servers, max_requests=$max_requests\n";
+
 $opt_max_dequeue = 0 if $opt_testmode;
 
 my $daemonize = 1;
