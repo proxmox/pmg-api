@@ -81,6 +81,23 @@ sub subgroups {
     return $res;
 }
 
+# explode the groups, so we have one for each target we need
+# only to be used by the rRemove action when there was a spaminfo
+sub explode {
+    my ($self, $targets) = @_;
+
+    my $groups = $self->{groups};
+    my $ea = $self->{ea};
+    my $res;
+
+    # TODO: implment it more direclty with less overhead!
+    for my $target ($targets->@*) {
+	$self->subgroups([$target]);
+    }
+
+    return $self->subgroups($targets);
+}
+
 1;
 
 __END__
