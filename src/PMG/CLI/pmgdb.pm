@@ -40,6 +40,8 @@ sub print_objects {
 sub print_rule {
     my ($ruledb, $rule) = @_;
 
+    $ruledb->load_rule_attributes($rule);
+
     my $direction = {
 	0 => 'in',
 	1 => 'out',
@@ -52,26 +54,50 @@ sub print_rule {
     print "Found RULE $rule->{id} (prio: $rule->{priority}, $dir, $active): $rulename\n";
 
     my $print_group = sub {
-	my ($type, $og) = @_;
+	my ($type, $og, $print_mode) = @_;
 	my $oname = encode('UTF-8', $og->{name});
-	print "  FOUND $type GROUP $og->{id}: $oname\n";
+	my $mode = "";
+	if ($print_mode) {
+	    my $and = $og->{and} // 0;
+	    my $invert = $og->{invert} // 0;
+	    $mode = " (and=$and, invert=$invert)";
+	}
+	print "  FOUND $type GROUP $og->{id}${mode}: $oname\n";
 	print_objects($ruledb, $og);
+    };
+
+    my $print_type_mode = sub {
+	my ($type) = @_;
+	my $and = $rule->{"$type-and"};
+	my $invert = $rule->{"$type-invert"};
+	if (defined($and) || defined($invert)) {
+	    my $print_type = uc($type);
+	    print "  $print_type mode: and=" . ($and // 0) . " invert=". ($invert // 0) . "\n";
+	}
     };
 
     my ($from, $to, $when, $what, $action) =
 	$ruledb->load_groups($rule);
 
+    $print_type_mode->("from") if scalar(@$from);
     foreach my $og (@$from) {
-	$print_group->("FROM", $og);
+	$ruledb->load_group_attributes($og);
+	$print_group->("FROM", $og, 1);
     }
+    $print_type_mode->("to") if scalar(@$to);
     foreach my $og (@$to) {
-	$print_group->("TO", $og);
+	$ruledb->load_group_attributes($og);
+	$print_group->("TO", $og, 1);
     }
+    $print_type_mode->("when") if scalar(@$when);
     foreach my $og (@$when) {
-	$print_group->("WHEN", $og);
+	$ruledb->load_group_attributes($og);
+	$print_group->("WHEN", $og, 1);
     }
+    $print_type_mode->("what") if scalar(@$what);
     foreach my $og (@$what) {
-	$print_group->("WHAT", $og);
+	$ruledb->load_group_attributes($og);
+	$print_group->("WHAT", $og, 1);
     }
     foreach my $og (@$action) {
 	$print_group->("ACTION", $og);
