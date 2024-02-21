@@ -332,27 +332,144 @@ sub what_match {
 	return ($marks, $spaminfo);
     }
 
+    my $what_matches = {};
+
     for my $group ($what->{groups}->@*) {
+	my $group_matches = {};
+	my $and = $group->{and};
+	my $invert = $group->{invert};
 	for my $obj ($group->{objects}->@*) {
 	    if (!$obj->can('what_match_targets')) {
-		if (my $match = $obj->what_match($queue, $element, $msginfo, $dbh)) {
-		    for my $target ($msginfo->{targets}->@*) {
-			push $marks->{$target}->@*, $match->@*;
+		my $match = $obj->what_match($queue, $element, $msginfo, $dbh);
+		for my $target ($msginfo->{targets}->@*) {
+		    if (defined($match)) {
+			push $group_matches->{$target}->@*, $match;
+		    } else {
+			push $group_matches->{$target}->@*, undef;
 		    }
 		}
 	    } else {
-		if (my $target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh)) {
-		    foreach my $k (keys $target_info->%*) {
-			push $marks->{$k}->@*, $target_info->{$k}->{marks}->@*;
+		my $target_info = $obj->what_match_targets($queue, $element, $msginfo, $dbh);
+		for my $target ($msginfo->{targets}->@*) {
+		    my $match = $target_info->{$target};
+		    if (defined($match)) {
+			push $group_matches->{$target}->@*, $match->{marks};
 			# only save spaminfo once
-			$spaminfo = $target_info->{$k}->{spaminfo} if !defined($spaminfo);
+			$spaminfo = $match->{spaminfo} if !defined($spaminfo);
+		    } else {
+			push $group_matches->{$target}->@*, undef;
 		    }
 		}
 	    }
 	}
+
+	for my $target (keys $group_matches->%*) {
+	    my $matches = group_match_and_invert($group_matches->{$target}, $and, $invert, $msginfo);
+	    push $what_matches->{$target}->@*, $matches;
+	}
+    }
+
+    for my $target (keys $what_matches->%*) {
+	my $target_marks = what_match_and_invert($what_matches->{$target}, $what->{and}, $what->{invert});
+	$marks->{$target} = $target_marks;
     }
 
     return ($marks, $spaminfo);
+}
+
+# combines matches of groups
+# this is only binary, and if it matches, 'or' combines the marks
+# so that all found marks are included
+#
+# this way we can create rules like:
+#
+# ---
+# What is and combined:
+# group1: match filename .*\.pdf
+# group2: spamlevel >= 3
+# ACTION: remove attachments
+# ---
+# which would remove attachments for all *.pdf filenames where
+# the spamlevel is >= 3
+sub what_match_and_invert($$$) {
+    my ($matches, $and, $invert) = @_;
+
+    my $match_result = match_list_with_mode($matches, $and, $invert, sub {
+	my ($match) = @_;
+	return defined($match);
+    });
+
+    if ($match_result) {
+	my $res = [];
+	for my $match ($matches->@*) {
+	    push $res->@*, $match->@* if defined($match);
+	}
+	return $res;
+    } else {
+	return undef;
+    }
+}
+
+# combines group matches according to and/invert
+# since we want match groups per mime part, we must
+# look at the marks and possibly invert them
+sub group_match_and_invert($$$$) {
+    my ($group_matches, $and, $invert, $msginfo) = @_;
+
+    my $encountered_parts = 0;
+    if ($and) {
+	my $set = {};
+	my $count = scalar($group_matches->@*);
+	for my $match ($group_matches->@*) {
+	    if (!defined($match)) {
+		$set = {};
+		last;
+	    }
+
+	    if (scalar($match->@*) > 0) {
+		$encountered_parts = 1;
+		$set->{$_}++ for $match->@*;
+	    } else {
+		$set->{$_}++ for (1..$msginfo->{max_aid});
+	    }
+	}
+
+	$group_matches = undef;
+	for my $key (keys $set->%*) {
+	    if ($set->{$key} == $count) {
+		push $group_matches->@*, $key;
+	    }
+	}
+	if (defined($group_matches) && scalar($group_matches->@*) == $count && !$encountered_parts) {
+	    $group_matches = [];
+	}
+    } else {
+	my $set = {};
+	for my $match ($group_matches->@*) {
+	    next if !defined($match);
+	    if (scalar($match->@*) == 0) {
+		$set->{$_} = 1 for (1..$msginfo->{max_aid});
+	    } else {
+		$encountered_parts = 1;
+		$set->{$_} = 1 for $match->@*;
+	    }
+	}
+
+	my $count = scalar(keys $set->%*);
+	if ($count == $msginfo->{max_aid} && !$encountered_parts) {
+	    $group_matches = [];
+	} elsif ($count == 0) {
+	    $group_matches = undef;
+	} else {
+	    $group_matches = [keys $set->%*];
+	}
+    }
+
+    if ($invert) {
+	$group_matches = invert_mark_list($group_matches, $msginfo->{max_aid});
+    }
+
+    return $group_matches;
 }
 
 # calls sub with each element of $list, and and/ors/inverts the result
@@ -372,6 +489,39 @@ sub match_list_with_mode($$$$) {
     }
 
     return $and != $invert;
+}
+
+# inverts a list of marks with the remaining ones of the mail
+# examples:
+# mail has [1,2,3,4,5]
+#
+# undef => [1,2,3,4,5]
+# [1,2] => [3,4,5]
+# [1,2,3,4,5] => undef
+# [] => undef // [] means the whole mail matched
+sub invert_mark_list($$) {
+    my ($list, $max_aid) = @_;
+
+    if (defined($list)) {
+	my $length = scalar($list->@*);
+	if ($length == 0 || $length == ($max_aid - 1)) {
+	    return undef;
+	}
+    }
+
+    $list //= [];
+
+    my $set = {};
+    $set->{$_} = 1 for $list->@*;
+
+    my $new_list = [];
+    for (my $i = 1; $i <= $max_aid; $i++) {
+	if (!$set->{$i}) {
+	    push $new_list->@*, $i;
+	}
+    }
+
+    return $new_list;
 }
 
 1;

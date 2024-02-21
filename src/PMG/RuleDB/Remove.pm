@@ -209,7 +209,14 @@ sub execute {
 	return if !$found_mark;
     }
 
-    my $subgroups = $mod_group->subgroups ($targets);
+    my $subgroups;
+    if ($marks->{spaminfo}) {
+	# when there was a spam check in the rule, we might have different marks for
+	# different targets, so simply copy the mail for each target that matches
+	$subgroups = $mod_group->explode($targets);
+    } else {
+	$subgroups = $mod_group->subgroups ($targets);
+    }
 
     my $html = PMG::Utils::subst_values($self->{text}, $vars);
 
@@ -263,7 +270,8 @@ sub execute {
 
 	$self->{message_seen} = 0;
 
-	# since currently all marks are equal for all target, just use the first one
+	# if we only had a spam/virus check, the marks are identical
+	# otherwise we get a subgroup per target anyway
 	my $match_marks = $marks->{$tg->[0]};
 
 	$self->delete_marked_parts($queue, $entity, $html, $rtype, $match_marks, $rulename);
