@@ -162,7 +162,7 @@ __PACKAGE__->register_method({
     permissions => { check => [ 'admin' ] },
     parameters => {
 	additionalProperties => 0,
-	properties => {
+	properties => PMG::API2::Rules::get_rule_params({
 	    name => {
 		description => "Rule name",
 		type => 'string',
@@ -173,19 +173,7 @@ __PACKAGE__->register_method({
 		minimum => 0,
 		maximum => 100,
 	    },
-	    direction => {
-		description => "Rule direction. Value `0` matches incoming mails, value `1` matches outgoing mails, and value `2` matches both directions.",
-		type => 'integer',
-		minimum => 0,
-		maximum => 2,
-		optional => 1,
-	    },
-	    active => {
-		description => "Flag to activate rule.",
-		type => 'boolean',
-		optional => 1,
-	    },
-	},
+	}),
     },
     returns => { type => 'integer' },
     code => sub {
@@ -193,8 +181,11 @@ __PACKAGE__->register_method({
 
 	my $rdb = PMG::RuleDB->new();
 
-	my $rule = PMG::RuleDB::Rule->new (
-	    $param->{name}, $param->{priority}, $param->{active}, $param->{direction});
+	my $rule = PMG::RuleDB::Rule->new ($param->{name}, $param->{priority});
+
+	for my $key (keys PMG::API2::Rules::get_rule_params()->%*) {
+	    $rule->{$key} = $param->{$key} if defined($param->{$key});
+	}
 
 	return $rdb->save_rule($rule);
     }});

@@ -136,6 +136,31 @@ __PACKAGE__->register_method ({
 	return $data;
    }});
 
+my $rule_params = {
+    direction => {
+	description => "Rule direction. Value `0` matches incoming mails, value `1` matches outgoing mails, and value `2` matches both directions.",
+	type => 'integer',
+	minimum => 0,
+	maximum => 2,
+	optional => 1,
+    },
+    active => {
+	description => "Flag to activate rule.",
+	type => 'boolean',
+	optional => 1,
+    },
+};
+
+sub get_rule_params {
+    my ($base) = @_;
+    $base //= {};
+    return {
+	$base->%*,
+	$rule_params->%*
+    };
+}
+
+
 __PACKAGE__->register_method ({
     name => 'update_config',
     path => 'config',
@@ -146,7 +171,7 @@ __PACKAGE__->register_method ({
     permissions => { check => [ 'admin' ] },
     parameters => {
 	additionalProperties => 0,
-	properties => {
+	properties => get_rule_params({
 	    id => {
 		description => "Rule ID.",
 		type => 'integer',
@@ -156,18 +181,6 @@ __PACKAGE__->register_method ({
 		type => 'string',
 		optional => 1,
 	    },
-	    active => {
-		description => "Flag to activate rule.",
-		type => 'boolean',
-		optional => 1,
-	    },
-	    direction => {
-		description => "Rule direction. Value `0` matches incoming mails, value `1` matches outgoing mails, and value `2` matches both directions.",
-		type => 'integer',
-		minimum => 0,
-		maximum => 2,
-		optional => 1,
-	    },
 	    priority => {
 		description => "Rule priotity.",
 		type => 'integer',
@@ -175,7 +188,7 @@ __PACKAGE__->register_method ({
 		maximum => 100,
 		optional => 1,
 	    },
-	},
+	}),
     },
     returns => { type => "null" },
     code => sub {
