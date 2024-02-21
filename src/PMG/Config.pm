@@ -454,21 +454,22 @@ sub physical_memory {
     return $total;
 }
 
+# heuristic for optimal number of smtp-filter servers
 sub get_max_filters {
-    # estimate optimal number of filter servers
-
     my $max_servers = 5;
-    my $servermem = 120;
-    my $base;
+    my $per_server_memory_usage = 120;
+
     my $memory = physical_memory();
-    if ($memory < 3840) {
+
+    my $base_memory_usage; # the estimated base load of the system
+    if ($memory < 3840) { # 3.75 GiB
 	warn "low amount of system memory installed, recommended is 4+ GB\n";
-	$base = $memory > 1536 ? 1024 : 512;
+	$base_memory_usage = $memory > 1536 ? 1024 : 512;
     } else {
-	$base = 2816;
-	$servermem = 150;
+	$base_memory_usage = 2816; # 2.75 GiB
+	$per_server_memory_usage = 150;
     }
-    my $add_servers = int(($memory - $base)/$servermem);
+    my $add_servers = int(($memory - $base_memory_usage)/$per_server_memory_usage);
     $max_servers += $add_servers if $add_servers > 0;
     $max_servers = 40 if  $max_servers > 40;
 
