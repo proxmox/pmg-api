@@ -948,10 +948,10 @@ if (!$opt_testmode) {
 	$server->run();
     } else {
 
-	my $sender ='sender@proxtest.com';
-	my $targets = ['target1@proxtest.com',
-		       'target2@proxtest.com',
-		       'target3@proxtest.com'];
+	my $sender ='sender@pmg.example';
+	my $targets = ['target1@pmg.example',
+		       'target2@pmg.example',
+		       'target3@pmg.example'];
 
 	my $smtp;
 	while (!$smtp) {
