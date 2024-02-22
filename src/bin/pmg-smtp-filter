@@ -70,10 +70,12 @@ my $prog_name = 'pmg-smtp-filter';
 
 initlog($prog_name, 'mail');
 
-if (!GetOptions ('testmode=s' => \$opt_testmode,
-		 'pidfile=s' => \$opt_pidfile,
-		 'untrusted' => \$opt_untrusted,
-		 'database=s' => \$opt_database)) {
+if (!GetOptions(
+    'testmode=s' => \$opt_testmode,
+    'pidfile=s' => \$opt_pidfile,
+    'untrusted' => \$opt_untrusted,
+    'database=s' => \$opt_database
+)) {
     die "usage error\n";
     exit (-1);
 }
@@ -949,9 +951,11 @@ if (!$opt_testmode) {
     } else {
 
 	my $sender ='sender@pmg.example';
-	my $targets = ['target1@pmg.example',
-		       'target2@pmg.example',
-		       'target3@pmg.example'];
+	my $targets = [
+	    'target1@pmg.example',
+	    'target2@pmg.example',
+	    'target3@pmg.example',
+	];
 
 	my $smtp;
 	while (!$smtp) {
