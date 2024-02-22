@@ -72,13 +72,11 @@ sub add_to_blackwhite {
 
 	my $queries = "DELETE FROM UserPrefs WHERE pmail = $qu AND (Name = 'WL' OR Name = 'BL');";
 
-	$queries .=
-	"INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
-	"VALUES ($qu, 'WL', $wlist, EXTRACT (EPOCH FROM now())::INTEGER);";
+	$queries .= "INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
+	    "VALUES ($qu, 'WL', $wlist, EXTRACT (EPOCH FROM now())::INTEGER);";
 
-	$queries .=
-	"INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
-	"VALUES ($qu, 'BL', $blist, EXTRACT (EPOCH FROM now())::INTEGER);";
+	$queries .= "INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
+	    "VALUES ($qu, 'BL', $blist, EXTRACT (EPOCH FROM now())::INTEGER);";
 
 	$dbh->do($queries);
     }
