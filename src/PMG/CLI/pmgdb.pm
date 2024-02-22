@@ -52,7 +52,7 @@ sub print_rule {
     my $dir = $direction->{$rule->{direction}};
     my $rulename = encode('UTF-8', $rule->{name});
 
-    print "Found RULE $rule->{id} (prio: $rule->{priority}, $dir, $active): $rulename\n";
+    print "RULE $rule->{id} (prio: $rule->{priority}, $dir, $active): $rulename\n";
 
     my $print_group = sub {
 	my ($type, $og, $print_mode) = @_;
@@ -63,7 +63,7 @@ sub print_rule {
 	    my $invert = $og->{invert} // 0;
 	    $mode = " (and=$and, invert=$invert)";
 	}
-	print "  FOUND $type GROUP $og->{id}${mode}: $oname\n";
+	print "  $type group $og->{id}${mode}: $oname\n";
 	print_objects($ruledb, $og);
     };
 
