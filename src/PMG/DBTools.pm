@@ -1132,6 +1132,14 @@ sub update_master_clusterinfo {
 	$dbh->do ("INSERT INTO ClusterInfo (cid, name, ivalue) select $clientcid, 'lastmt_$table', " .
 		  "EXTRACT(EPOCH FROM now())::INTEGER");
     }
+
+    my @lastid_tables = ('CStatistic', 'CMailStore');
+
+    for my $table (@lastid_tables) {
+        $dbh->do("INSERT INTO ClusterInfo (cid, name, ivalue) " .
+	    "SELECT $clientcid, 'lastid_$table', COALESCE (max (rid), -1) FROM $table " .
+	    "WHERE cid = $clientcid");
+    }
 }
 
 sub update_client_clusterinfo {
