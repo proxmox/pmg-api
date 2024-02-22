@@ -48,7 +48,7 @@ sub print_rule {
 	1 => 'out',
 	2 => 'in+out',
     };
-    my $active = $rule->{active} ? 'active' : 'inactive';
+    my $active = $rule->{active} ? 'ACTIVE' : 'inactive';
     my $dir = $direction->{$rule->{direction}};
     my $rulename = encode('UTF-8', $rule->{name});
 
