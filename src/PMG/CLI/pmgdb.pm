@@ -39,10 +39,11 @@ sub print_objects {
 }
 
 sub print_rule {
-    my ($ruledb, $rule) = @_;
+    my ($ruledb, $rule, $active_only) = @_;
 
     $ruledb->load_rule_attributes($rule);
 
+    return if !$rule->{active} && $active_only;
     my $direction = {
 	0 => 'in',
 	1 => 'out',
@@ -112,7 +113,14 @@ __PACKAGE__->register_method ({
     description => "Print the PMG rule database.",
     parameters => {
 	additionalProperties => 0,
-	properties => {},
+	properties => {
+	    active => {
+		type => 'boolean',
+		description => "Print only active rules",
+		optional => 1,
+		default => 0,
+	    },
+	},
     },
     returns => { type => 'null'},
     code => sub {
@@ -124,7 +132,7 @@ __PACKAGE__->register_method ({
 	my $rules = $ruledb->load_rules();
 
 	foreach my $rule (@$rules) {
-	    print_rule($ruledb, $rule);
+	    print_rule($ruledb, $rule, $param->{active});
 	}
 
 	$ruledb->close();
