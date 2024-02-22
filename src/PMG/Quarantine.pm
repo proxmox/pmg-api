@@ -59,8 +59,8 @@ sub add_to_blackwhite {
 	    }
 	}
 
-	my $wlist = $dbh->quote(encode('UTF-8', join (',', keys %{$list->{WL}})) || '');
-	my $blist = $dbh->quote(encode('UTF-8', join (',', keys %{$list->{BL}})) || '');
+	my $wlist = $dbh->quote(encode('UTF-8', join (',', sort keys %{$list->{WL}})) || '');
+	my $blist = $dbh->quote(encode('UTF-8', join (',', sort keys %{$list->{BL}})) || '');
 
 	if (!$delete) {
 	    my $maxlen = 200000;
@@ -81,7 +81,7 @@ sub add_to_blackwhite {
 	$dbh->do($queries);
     }
 
-    my $values =  [ keys %{$list->{$name}} ];
+    my $values =  [ sort keys %{$list->{$name}} ];
 
     return $values;
 }
