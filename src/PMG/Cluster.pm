@@ -532,8 +532,6 @@ sub sync_ruledb_from_master {
 	$ldb->do("DELETE FROM ObjectGroup");
 	$ldb->do("DELETE FROM Object");
 	$ldb->do("DELETE FROM Attribut");
-	$ldb->do("DELETE FROM Objectgroup_Attributes");
-	$ldb->do("DELETE FROM Rule_Attributes");
 
 	eval {
 	    $rdb->begin_work;

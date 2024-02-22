@@ -276,9 +276,6 @@ sub delete_group {
 	$self->{dbh}->do("DELETE FROM RuleGroup " .
 			 "WHERE Objectgroup_ID = ?", undef, $groupid);
 
-	$self->{dbh}->do("DELETE FROM Objectgroup_Attributes " .
-			 "WHERE Objectgroup_ID = ?", undef, $groupid);
-
 	$sth = $self->{dbh}->prepare("SELECT * FROM Object " .
 				      "where Objectgroup_ID = ?");
 	$sth->execute($groupid);
@@ -772,9 +769,6 @@ sub delete_rule {
 			 "WHERE ID = ?", undef, $ruleid);
 	$self->{dbh}->do("DELETE FROM RuleGroup " .
 			 "WHERE Rule_ID = ?", undef, $ruleid);
-	$self->{dbh}->do("DELETE FROM Rule_Attributes " .
-			 "WHERE Rule_ID = ?", undef, $ruleid);
-
 	$self->{dbh}->commit;
     };
     if (my $err = $@) {

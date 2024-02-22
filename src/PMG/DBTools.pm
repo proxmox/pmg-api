@@ -297,7 +297,7 @@ __EOD
 
 my $rule_attributes_cmd = <<__EOD;
     CREATE TABLE Rule_Attributes (
-      Rule_ID INTEGER NOT NULL,
+      Rule_ID INTEGER NOT NULL REFERENCES Rule (ID) ON DELETE CASCADE,
       Name VARCHAR(20) NOT NULL,
       Value BYTEA NULL,
       PRIMARY KEY (Rule_ID, Name)
@@ -309,7 +309,7 @@ __EOD
 
 my $object_group_attributes_cmd = <<__EOD;
     CREATE TABLE Objectgroup_Attributes (
-      Objectgroup_ID INTEGER NOT NULL,
+      Objectgroup_ID INTEGER NOT NULL REFERENCES Objectgroup (ID) ON DELETE CASCADE,
       Name VARCHAR(20) NOT NULL,
       Value BYTEA NULL,
       PRIMARY KEY (Objectgroup_ID, Name)
@@ -635,8 +635,6 @@ sub init_ruledb {
 	$dbh->do(
 	    "DELETE FROM Rule;"
 	    ." DELETE FROM RuleGroup;"
-	    ." DELETE FROM Rule_Attributes;"
-	    ." DELETE FROM Objectgroup_Attributes;"
 	    ." DELETE FROM Attribut WHERE Object_ID NOT IN ($glids);"
 	    ." DELETE FROM Object WHERE ID NOT IN ($glids);"
 	    ." DELETE FROM Objectgroup WHERE class != 'greylist';"
