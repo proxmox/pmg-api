@@ -1,3 +1,44 @@
+pmg-api (8.0.12) bookworm; urgency=medium
+
+  * fix #4818: utils: don't require minimum length for username
+
+  * fix #4811: rule db: test regex validity on submit
+
+  * system report: add content of /etc/pmg/dkim/domains
+
+  * rule cache: reorganize how we gather marks and spaminfo and unnecessary
+    copying of marks
+
+  * smtp-filter: log pre-fork worker settings on start-up
+
+  * config: rework heurisitic for calculating the maximzm smtp-filter process
+    workers to better reflect modern setups w.r.t. total system memory
+
+  * add objectgroup and rule attributes for 'and' and 'invert' logical
+    operators
+
+  * rule cache: implement 'and' and 'invert' for the 'when', 'from', 'to' and
+    what objects
+
+  * pmg-smtp-filter: rename proxtest.com to pmg.example in demo code paths to
+    avoid potential name squatting
+
+  * database: use foreign keys for rule and object group attributes
+
+  * fix #4392: keep empty user blocklist and wantlist in the database to
+    ensure they get synced correctly to other nodes
+
+  * templates: postfix: set same timeouts for before and after-queue (10
+    minutes)
+
+  * config: postfix: make smtp-filter-timeout configurable
+
+  * fix #2606: ruledb disclaimer: add ability to set position to start or end
+
+  * fix #2430: ruledb disclaimer: make adding the separator configurable
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 22 Feb 2024 17:26:12 +0100
+
 pmg-api (8.0.11) bookworm; urgency=medium
 
   * fix invalid whitespaces in master.cf template introduced in 8.0.10
