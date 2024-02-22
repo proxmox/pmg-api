@@ -227,7 +227,7 @@ pmg7to8.1: bin/pmg7to8
 	printf ".TH PMGTO8 1\n.SH NAME\npmg7to8 \- Proxmox Mail Gateway upgrade checker script for 7.3+ to current 8.x\n" > $@.tmp
 	printf ".SH DESCRIPTION\nThis tool will help you to detect common pitfalls and misconfguration\
 	 before, and during the upgrade of a Proxmox Mail Gateway system\n" >> $@.tmp
-	printf "Any failure must be addressed before the upgrade, and any waring must be addressed, \
+	printf "Any failure must be addressed before the upgrade, and any warning must be addressed, \
 	 or at least carefully evaluated, if a false-positive is suspected\n" >> $@.tmp
 	printf ".SH SYNOPSIS\npmg7to8\n" >> $@.tmp
 	mv $@.tmp $@

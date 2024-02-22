@@ -678,7 +678,7 @@ sub properties {
 	    default => 0,
 	},
 	verifyreceivers => {
-	    description => "Enable receiver verification. The value spefifies the numerical reply"
+	    description => "Enable receiver verification. The value specifies the numerical reply"
 	        ." code when the Postfix SMTP server rejects a recipient address."
 	        ." (postfix options `reject_unknown_recipient_domain`, `reject_unverified_recipient`,"
 	        ." and `unverified_recipient_reject_code`)",

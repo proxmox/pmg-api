@@ -215,7 +215,7 @@ sender=xyz\@$testdomain
 recipient=testspf\@maurer-it.com
 _EOD
 
-# we currently hav no backup mx, so we can't test this
+# we currently have no backup mx, so we can't test this
 #gltest ($data_ok, $testtime, 'dunno'); # mail from backup mx
 
 $testdomain = "openspf.org"; # rejects everything

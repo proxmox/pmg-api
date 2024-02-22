@@ -76,7 +76,7 @@ if (scalar (@ARGV) != 0) {
     exit(-1);
 }
 
-# only set up once actually required allows calling verifyapi in restriced clean sbuild env
+# only set up once actually required allows calling verifyapi in restricted clean sbuild env
 PMG::RESTEnvironment->setup_default_cli_env();
 initlog($ENV{PVE_LOG_ID} || 'pmgsh');
 
@@ -140,7 +140,7 @@ $attribs->{attempted_completion_function} = sub {
     my ($text, $line, $start) = @_;
 
     my $prefix = substr($line, 0, $start);
-    if ($prefix =~ /^\s*$/) { # first word (command completeion)
+    if ($prefix =~ /^\s*$/) { # first word (command completion)
 	$attribs->{completion_word} = [qw(help ls cd get set create delete quit)];
 	return $term->completion_matches($text, $attribs->{list_completion_function});
     }

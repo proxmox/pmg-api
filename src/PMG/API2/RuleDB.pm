@@ -168,7 +168,7 @@ __PACKAGE__->register_method({
 		type => 'string',
 	    },
 	    priority => {
-		description => "Rule priotity.",
+		description => "Rule priority.",
 		type => 'integer',
 		minimum => 0,
 		maximum => 100,

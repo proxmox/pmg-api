@@ -90,7 +90,7 @@ sub explode {
     my $ea = $self->{ea};
     my $res;
 
-    # TODO: implment it more direclty with less overhead!
+    # TODO: implement it more directly with less overhead!
     for my $target ($targets->@*) {
 	$self->subgroups([$target]);
     }
@@ -148,5 +148,5 @@ modification have to call:
 That way we seamlessly hide the fact that mails are delivered to more
 than one recipient, without the requirement to make a copy for each
 recipient (which would lead to many unnecessays notification
-mail). Insead we only make a minimum number of copies for specific
+mail). Instead we only make a minimum number of copies for specific
 target groups.

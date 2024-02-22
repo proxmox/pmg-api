@@ -135,7 +135,7 @@ sub read_fetchmail_conf {
 
 	my $get_token_argument = sub {
 	    my ($token, $string) = $get_next_token->();
-	    die "line $linenr: missing token arguemnt\n" if !$token;
+	    die "line $linenr: missing token argument\n" if !$token;
 	    return $string // $token;
 	};
 

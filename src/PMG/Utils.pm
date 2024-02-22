@@ -3,7 +3,7 @@ package PMG::Utils;
 use strict;
 use warnings;
 use utf8;
-# compat for older perl code which allows arbitray binary data (including invalid UTF-8)
+# compat for older perl code which allows arbitrary binary data (including invalid UTF-8)
 # TODO: can we remove this (as our perl source texts should be all UTF-8 compatible)?
 no utf8;
 
@@ -972,13 +972,13 @@ my $rrd_def_node = [
     "RRA:AVERAGE:0.5:30:70", # 30 min avg - one day
     "RRA:AVERAGE:0.5:180:70", # 3 hour avg - one week
     "RRA:AVERAGE:0.5:720:70", # 12 hour avg - one month
-    "RRA:AVERAGE:0.5:10080:70", # 7 day avg - ony year
+    "RRA:AVERAGE:0.5:10080:70", # 7 day avg - one year
 
     "RRA:MAX:0.5:1:70", # 1 min max - one hour
     "RRA:MAX:0.5:30:70", # 30 min max - one day
     "RRA:MAX:0.5:180:70", # 3 hour max - one week
     "RRA:MAX:0.5:720:70", # 12 hour max - one month
-    "RRA:MAX:0.5:10080:70", # 7 day max - ony year
+    "RRA:MAX:0.5:10080:70", # 7 day max - one year
 ];
 
 sub cond_create_rrd_file {
