@@ -289,6 +289,8 @@ sub register_object_group_config_api {
 
 	    $rdb->save_group($og);
 
+	    PMG::DBTools::reload_ruledb();
+
 	    return undef;
 	}});
 }
