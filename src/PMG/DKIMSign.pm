@@ -97,18 +97,17 @@ sub parse_headers_for_signing {
     # [1] https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.1
     my ($entity) = @_;
 
-    my $from_count = 0;
     my $domain;
 
     my @from_headers = $entity->head->get('from');
     foreach my $from_header (@from_headers) {
 	my @addresses = Email::Address::XS::parse_email_addresses($from_header);
-	$from_count += scalar(@addresses);
-	$domain = $addresses[0]->host() if scalar(@addresses) > 0;
+	die "there is more than one sender in the header\n"
+	    if defined($domain) || scalar(@addresses) > 1;
+	$domain = $addresses[0]->host();
     }
 
-    die "there is more than one sender in the header\n" if $from_count > 1;
-    die "there is no sender in the header\n" if $from_count == 0;
+    die "there is no sender in the header\n" if !defined($domain);
     return $domain;
 }
 
