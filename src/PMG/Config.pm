@@ -134,6 +134,12 @@ EODESC
 	    description => "Default DKIM selector",
 	    type => 'string', format => 'dns-name', #see RFC6376 3.1
 	},
+	'dkim-use-domain' => {
+	    description => "Whether to sign using the address from the header or the envelope.",
+	    type => 'string',
+	    enum => [qw(header envelope)],
+	    default => 'envelope',
+	},
     };
 }
 
@@ -152,6 +158,7 @@ sub options {
 	dkim_sign => { optional => 1 },
 	dkim_sign_all_mail => { optional => 1 },
 	dkim_selector => { optional => 1 },
+	'dkim-use-domain' => { optional => 1 },
     };
 }
 
@@ -1808,6 +1815,7 @@ my $pmg_service_params = {
 	dkim_selector => 1,
 	dkim_sign => 1,
 	dkim_sign_all_mail => 1,
+	'dkim-use-domain' => 1,
     },
 };
 

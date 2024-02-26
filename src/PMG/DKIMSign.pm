@@ -2,6 +2,8 @@ package PMG::DKIMSign;
 
 use strict;
 use warnings;
+use Email::Address::XS qw(parse_email_addresses);
+use Email::Address::XS;
 use Mail::DKIM::Signer;
 use Mail::DKIM::TextWrap;
 use Crypt::OpenSSL::RSA;
@@ -53,11 +55,16 @@ sub create_signature {
 
 #determines which domain should be used for signing based on the e-mailaddress
 sub signing_domain {
-    my ($self, $sender_email) = @_;
+    my ($self, $sender_email, $entity, $use_domain) = @_;
 
-    my @parts = split('@', $sender_email);
-    die "no domain in sender e-mail\n" if scalar(@parts) < 2;
-    my $input_domain = $parts[-1];
+    my $input_domain;
+    if ($use_domain eq 'header') {
+	$input_domain = parse_headers_for_signing($entity);
+    } else {
+	my @parts = split('@', $sender_email);
+	die "no domain in sender e-mail\n" if scalar(@parts) < 2;
+	$input_domain = $parts[-1];
+    }
 
     if ($self->{sign_all}) {
 	    $self->domain($input_domain) if $self->{sign_all};
@@ -84,8 +91,35 @@ sub signing_domain {
 }
 
 
+sub parse_headers_for_signing {
+    # Following RFC 7489 [1], we only sign emails with exactly one sender in the
+    # From header.
+    #
+    # [1] https://datatracker.ietf.org/doc/html/rfc7489#section-6.6.1
+    my ($entity) = @_;
+
+    my $from_count = 0;
+    my $domain;
+
+    my @from_headers = $entity->head->get('from');
+    foreach my $from_header (@from_headers) {
+	my @addresses = parse_email_addresses($from_header);
+	$from_count += scalar(@addresses);
+	$domain = $addresses[0]->host() if scalar(@addresses) > 0;
+    }
+
+    die "there is more than one sender in the header" if $from_count > 1;
+    die "there is no sender in the header" if $from_count == 0;
+    return $domain;
+}
+
+
 sub sign_entity {
-    my ($entity, $selector, $sender, $sign_all) = @_;
+    my ($entity, $dkim, $sender) = @_;
+
+    my $sign_all = $dkim->{sign_all};
+    my $use_domain = $dkim->{use_domain};
+    my $selector = $dkim->{selector};
 
     die "no selector provided\n" if ! $selector;
 
@@ -110,7 +144,7 @@ sub sign_entity {
 
     $signer->extended_headers($extended_headers);
 
-    if ($signer->signing_domain($sender)) {
+    if ($signer->signing_domain($sender, $entity, $use_domain)) {
 	$entity->print($signer);
 	my $signature = $signer->create_signature();
 	$entity->head->add('DKIM-Signature', $signature, 0);

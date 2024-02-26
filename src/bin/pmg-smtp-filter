@@ -636,6 +636,7 @@ sub handle_smtp {
 	my $dkim_sign = $msginfo->{trusted} && $pmg_cfg->get('admin', 'dkim_sign');
 	if ($dkim_sign) {
 	    $msginfo->{dkim}->{sign} = $dkim_sign;
+	    $msginfo->{dkim}->{use_domain} = $pmg_cfg->get('admin', 'dkim-use-domain');
 	    $msginfo->{dkim}->{sign_all} = $pmg_cfg->get('admin', 'dkim_sign_all_mail');
 	    $msginfo->{dkim}->{selector} = $pmg_cfg->get('admin', 'dkim_selector');
 	}
