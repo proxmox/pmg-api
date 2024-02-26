@@ -679,6 +679,19 @@ __PACKAGE__->register_method({
 	return undef;
     }});
 
+my sub get_current_kernel_info {
+    my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+
+    my $kernel_version_string = "$sysname $release $version"; # for legacy compat
+    my $current_kernel = {
+	sysname => $sysname,
+	release => $release,
+	version => $version,
+	machine => $machine,
+    };
+    return ($current_kernel, $kernel_version_string);
+}
+
 __PACKAGE__->register_method({
     name => 'status',
     path => 'status',
@@ -711,6 +724,28 @@ __PACKAGE__->register_method({
 		description => "Database is synced with other nodes.",
 		type => 'boolean',
 	    },
+	    'current-kernel' => {
+		description => "Meta-information about the currently booted kernel.",
+		type => 'object',
+		properties => {
+		    sysname => {
+			description => 'OS kernel name (e.g., "Linux")',
+			type => 'string',
+		    },
+		    release => {
+			description => 'OS kernel release (e.g., "6.8.0")',
+			type => 'string',
+		    },
+		    version => {
+			description => 'OS kernel version with build info',
+			type => 'string',
+		    },
+		    machine => {
+			description => 'Hardware (architecture) type',
+			type => 'string',
+		    },
+		},
+	    },
         },
     },
     code => sub {
@@ -737,9 +772,9 @@ __PACKAGE__->register_method({
 	my ($avg1, $avg5, $avg15) = PVE::ProcFSTools::read_loadavg();
 	$res->{loadavg} = [ $avg1, $avg5, $avg15];
 
-	my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
-
-	$res->{kversion} = "$sysname $release $version";
+	my ($current_kernel_info, $kversion_string) = get_current_kernel_info();
+	$res->{kversion} = $kversion_string;
+	$res->{'current-kernel'} = $current_kernel_info;
 
 	$res->{cpuinfo} = PVE::ProcFSTools::read_cpuinfo();
 
