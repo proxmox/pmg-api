@@ -1,3 +1,27 @@
+pmg-api (8.0.13) UNRELEASED; urgency=medium
+
+  * pmgdb: add object type text to output
+
+  * fix #5189: cluster: avoid sync errors for statistics and quarantine
+
+  * pmgdb: highlight active rules
+
+  * pmgdb: drop "found" prefixes for each rule and group
+
+  * pmgdb: add active parameter to dump
+
+  * quarantine: userlists: sort result
+
+  * templates: postfix: adapt to current default setting for smtpsmuggling
+
+  * d/control: record versioned dependency on postfix >= 3.7.10
+
+  * MailTracker: remove timezone offset
+
+  * d/control: record versioned dependency on pmg-log-tracker >= 2.4.2
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 26 Feb 2024 15:10:57 +0100
+
 pmg-api (8.0.12) bookworm; urgency=medium
 
   * fix #4818: utils: don't require minimum length for username
