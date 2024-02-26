@@ -107,8 +107,8 @@ sub parse_headers_for_signing {
 	$domain = $addresses[0]->host() if scalar(@addresses) > 0;
     }
 
-    die "there is more than one sender in the header" if $from_count > 1;
-    die "there is no sender in the header" if $from_count == 0;
+    die "there is more than one sender in the header\n" if $from_count > 1;
+    die "there is no sender in the header\n" if $from_count == 0;
     return $domain;
 }
 
