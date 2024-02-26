@@ -13,6 +13,7 @@ use PVE::JSONSchema qw(get_standard_option);
 use PMG::RESTEnvironment;
 use PVE::SafeSyslog;
 use PVE::ProcFSTools;
+use PVE::Tools;
 
 use PMG::pmgcfg;
 use PMG::Ticket;
@@ -705,7 +706,7 @@ my sub get_boot_mode_info {
     my $efi_var = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c";
 
     if ($is_efi_booted && -e $efi_var) {
-	my $efi_var_sec_boot_entry = eval { file_get_contents($efi_var) };
+	my $efi_var_sec_boot_entry = eval { PVE::Tools::file_get_contents($efi_var) };
 	if ($@) {
 	    warn "Failed to read secure boot state: $@\n";
 	} else {
