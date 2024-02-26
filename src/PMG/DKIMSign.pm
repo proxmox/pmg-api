@@ -2,7 +2,6 @@ package PMG::DKIMSign;
 
 use strict;
 use warnings;
-use Email::Address::XS qw(parse_email_addresses);
 use Email::Address::XS;
 use Mail::DKIM::Signer;
 use Mail::DKIM::TextWrap;
@@ -103,7 +102,7 @@ sub parse_headers_for_signing {
 
     my @from_headers = $entity->head->get('from');
     foreach my $from_header (@from_headers) {
-	my @addresses = parse_email_addresses($from_header);
+	my @addresses = Email::Address::XS::parse_email_addresses($from_header);
 	$from_count += scalar(@addresses);
 	$domain = $addresses[0]->host() if scalar(@addresses) > 0;
     }
