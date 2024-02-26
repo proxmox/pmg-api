@@ -692,6 +692,30 @@ my sub get_current_kernel_info {
     return ($current_kernel, $kernel_version_string);
 }
 
+my $boot_mode_info_cache;
+my sub get_boot_mode_info {
+    return $boot_mode_info_cache if defined($boot_mode_info_cache);
+
+    my $is_efi_booted = -d "/sys/firmware/efi";
+
+    $boot_mode_info_cache = {
+	mode => $is_efi_booted ? 'efi' : 'legacy-bios',
+    };
+
+    my $efi_var = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c";
+
+    if ($is_efi_booted && -e $efi_var) {
+	my $efi_var_sec_boot_entry = eval { file_get_contents($efi_var) };
+	if ($@) {
+	    warn "Failed to read secure boot state: $@\n";
+	} else {
+	    my @secureboot = unpack("CCCCC", $efi_var_sec_boot_entry);
+	    $boot_mode_info_cache->{secureboot} = $secureboot[4] == 1 ? 1 : 0;
+	}
+    }
+    return $boot_mode_info_cache;
+}
+
 __PACKAGE__->register_method({
     name => 'status',
     path => 'status',
@@ -723,6 +747,22 @@ __PACKAGE__->register_method({
 	    insync => {
 		description => "Database is synced with other nodes.",
 		type => 'boolean',
+	    },
+	    'boot-info' => {
+		description => "Meta-information about the boot mode.",
+		type => 'object',
+		properties => {
+		    mode => {
+			description => 'Through which firmware the system got booted.',
+			type => 'string',
+			enum => [qw(efi legacy-bios)],
+		    },
+		    secureboot => {
+			description => 'System is booted in secure mode, only applicable for the "efi" mode.',
+			type => 'boolean',
+			optional => 1,
+		    },
+		},
 	    },
 	    'current-kernel' => {
 		description => "Meta-information about the currently booted kernel.",
@@ -775,6 +815,8 @@ __PACKAGE__->register_method({
 	my ($current_kernel_info, $kversion_string) = get_current_kernel_info();
 	$res->{kversion} = $kversion_string;
 	$res->{'current-kernel'} = $current_kernel_info;
+
+	$res->{'boot-info'} = get_boot_mode_info();
 
 	$res->{cpuinfo} = PVE::ProcFSTools::read_cpuinfo();
 
