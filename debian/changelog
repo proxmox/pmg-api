@@ -1,26 +1,35 @@
-pmg-api (8.0.13) UNRELEASED; urgency=medium
+pmg-api (8.1.0) bookworm; urgency=medium
 
-  * pmgdb: add object type text to output
+  * fix #5189: cluster: avoid sync errors for statistics and quarantine due to
+    existing data on fresh nodes, which can happen, for example, when
+    restoring a backup.
 
-  * fix #5189: cluster: avoid sync errors for statistics and quarantine
+  * pmgdb dump:
+    - print the type of an object to better differentiate, e.g., an domain
+       entry from a regex entry with the same value.
+    - better highlight active rules over inactive ones
+    - drop "found" prefixes for each rule and group as that conveyed little
+      information, still clutters the output.
+    - add `active` CLI options to control if only active rules should be
+      printed
 
-  * pmgdb: highlight active rules
+  * quarantine: sort the per-user want- and block-lists entries when saving
+    them to the DB
 
-  * pmgdb: drop "found" prefixes for each rule and group
+  * postfix template: update to current default setting (name) for the SMTP
+    Smuggling vulnerability  in postfix version 3.7.10 and newer.
 
-  * pmgdb: add active parameter to dump
+  * api: tracking center: drop timezone offset as new log-tracker does time
+    calculations directly in UTC
 
-  * quarantine: userlists: sort result
+  * fix #2971: DKIM: Add a setting to specify whether to use the from-header
+    for signing instead of the current default envelope-from-address.
 
-  * templates: postfix: adapt to current default setting for smtpsmuggling
+  * api: node status: return structured info about current kernel
 
-  * d/control: record versioned dependency on postfix >= 3.7.10
+  * api: node status: return info about current boot mode
 
-  * MailTracker: remove timezone offset
-
-  * d/control: record versioned dependency on pmg-log-tracker >= 2.4.2
-
- -- Proxmox Support Team <support@proxmox.com>  Mon, 26 Feb 2024 15:10:57 +0100
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 26 Feb 2024 20:26:57 +0100
 
 pmg-api (8.0.12) bookworm; urgency=medium
 
