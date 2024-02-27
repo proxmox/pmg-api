@@ -39,11 +39,13 @@ sub print_objects {
 }
 
 sub print_rule {
-    my ($ruledb, $rule, $active_only) = @_;
+    my ($ruledb, $rule, $rule_status) = @_;
 
     $ruledb->load_rule_attributes($rule);
 
-    return if !$rule->{active} && $active_only;
+    return if !$rule->{active} && $rule_status eq 'active';
+    return if $rule->{active} && $rule_status eq 'inactive';
+
     my $direction = {
 	0 => 'in',
 	1 => 'out',
@@ -114,11 +116,12 @@ __PACKAGE__->register_method ({
     parameters => {
 	additionalProperties => 0,
 	properties => {
-	    active => {
-		type => 'boolean',
-		description => "Print only active rules",
+	    rules => {
+		description => "Which rules should be printed",
+		type => 'string',
+		enum => [qw(all active inactive)],
+		default => 'all',
 		optional => 1,
-		default => 0,
 	    },
 	},
     },
@@ -126,13 +129,14 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
+	my $rule_status = $param->{rules} // '';
 	my $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb");
 	my $ruledb = PMG::RuleDB->new($dbh);
 
 	my $rules = $ruledb->load_rules();
 
 	foreach my $rule (@$rules) {
-	    print_rule($ruledb, $rule, $param->{active});
+	    print_rule($ruledb, $rule, $rule_status);
 	}
 
 	$ruledb->close();
