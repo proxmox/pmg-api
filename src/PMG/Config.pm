@@ -135,7 +135,7 @@ EODESC
 	    type => 'string', format => 'dns-name', #see RFC6376 3.1
 	},
 	'dkim-use-domain' => {
-	    description => "Whether to sign using the address from the header or the envelope.",
+	    description => "Whether to sign using the domain found in the header or the envelope.",
 	    type => 'string',
 	    enum => [qw(header envelope)],
 	    default => 'envelope',
