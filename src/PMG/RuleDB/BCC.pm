@@ -144,8 +144,12 @@ sub execute {
 	    eval {
 		$entity = PMG::DKIMSign::sign_entity($entity, $dkim, $msginfo->{sender});
 	    };
-	    syslog('warning',
-		"Could not create DKIM-Signature - disabling Signing: $@") if $@;
+	    if ($@) {
+		syslog('warning',
+		    "%s: Could not create DKIM-Signature - disabling Signing: $@",
+		    $queue->{logid}
+		);
+	    }
 	}
 
 	if ($msginfo->{testmode}) {
