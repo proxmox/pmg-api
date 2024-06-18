@@ -383,7 +383,7 @@ sub analyze_custom_check {
 		$customcheck_output_apiver = $line;
 		die "api version mismatch - expected $customcheck_apiver, got $customcheck_output_apiver !\n"
 		    if ($customcheck_output_apiver ne $customcheck_apiver);
-	    } elsif ($line =~ /^SCORE: (-?[0-9]+|.[0-9]+|[0-9]+.[0-9]+)$/) {
+	    } elsif ($line =~ /^SCORE: (-?(?:[0-9]+|.[0-9]+|[0-9]+.[0-9]+))$/) {
 		$spam_score = $1;
 		$result_flag = 1;
 	    } elsif ($line =~ /^VIRUS: (.+)$/) {
