@@ -174,13 +174,13 @@ __PACKAGE__->register_method ({
 	},
     },
     download => 1,
-    returns => { type => "string" },
+    returns => { type => "object" },
     code => sub {
 	my ($param) = @_;
 
 	my $filename = "${backup_dir}/$param->{filename}";
 
-	return $filename;
+	return { download => { path => $filename } };
     }});
 
 __PACKAGE__->register_method ({

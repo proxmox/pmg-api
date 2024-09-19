@@ -167,17 +167,7 @@ sub rest_handler {
 	    status => HTTP_OK,
 	};
 
-	if ($info->{download}) {
-	    my $type =  $info->{returns}->{type};
-	    if ($type eq 'string' || $type eq 'object') {
-		$resp->{download} = $result;
-	    } else {
-		die "API calls which trigger downloads need to have return type 'string' or 'object' - internal error"
-	    }
-
-	} else {
-	    $resp->{data} = $result;
-	}
+	$resp->{data} = $result;
 
 	if (my $count = $rpcenv->get_result_attrib('total')) {
 	    $resp->{total} = $count;

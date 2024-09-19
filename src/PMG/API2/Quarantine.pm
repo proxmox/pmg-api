@@ -1105,8 +1105,9 @@ __PACKAGE__->register_method ({
 
 	if ($attachmentid) {
 	    my $attachments = $get_attachments->($mailid, $dumpdir, 1);
-	    $res = $attachments->[$attachmentid];
-	    if (!$res) {
+	    if (my $attachment = $attachments->[$attachmentid]) {
+		$res->{download} = $attachment;
+	    } else {
 		raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail."});
 	    }
 	} else {
@@ -1114,14 +1115,14 @@ __PACKAGE__->register_method ({
 	    my $ref = $get_and_check_mail->($mailid, $rpcenv);
 	    my $spooldir = $PMG::MailQueue::spooldir;
 
-	    $res = {
+	    $res->{download} = {
 		'content-type' => 'message/rfc822',
 		path => "$spooldir/$ref->{file}",
 	    };
 	}
 
-	$res->{fh} = IO::File->new($res->{path}, '<') ||
-	    die "unable to open file '$res->{path}' - $!\n";
+	$res->{download}->{fh} = IO::File->new($res->{download}->{path}, '<') ||
+	    die "unable to open file '$res->{download}->{path}' - $!\n";
 
 	rmtree $dumpdir if -e $dumpdir;
 
