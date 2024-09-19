@@ -1074,7 +1074,7 @@ __PACKAGE__->register_method ({
     method => 'GET',
     permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
     description => "Download E-Mail or Attachment from Quarantine.",
-    download => 1,
+    download_allowed => 1,
     parameters => {
 	additionalProperties => 0,
 	properties => {

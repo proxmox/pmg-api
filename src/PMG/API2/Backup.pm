@@ -173,7 +173,7 @@ __PACKAGE__->register_method ({
 	    filename => $backup_filename_property,
 	},
     },
-    download => 1,
+    download_allowed => 1,
     returns => { type => "object" },
     code => sub {
 	my ($param) = @_;
