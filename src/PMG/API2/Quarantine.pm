@@ -1123,6 +1123,9 @@ __PACKAGE__->register_method ({
 	$res->{download}->{fh} = IO::File->new($res->{download}->{path}, '<') ||
 	    die "unable to open file '$res->{download}->{path}' - $!\n";
 
+	# we've opened a FH above, we no longer need a path (it might be invalid later)
+	delete $res->{download}->{path};
+
 	rmtree $dumpdir if -e $dumpdir;
 
 	return $res;
