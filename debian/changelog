@@ -1,3 +1,11 @@
+pmg-api (7.3-12) bullseye; urgency=medium
+
+  * api: adapt download return value handling
+
+  * api: journal/task: annotate as download endpoint
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 20 Sep 2024 13:21:18 +0200
+
 pmg-api (7.3-11) bullseye; urgency=medium
 
   * address smtp-smuggling vulnerability (CVE-2023-51764) with the fix
