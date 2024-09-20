@@ -291,6 +291,7 @@ __PACKAGE__->register_method({
     proxyto => 'node',
     permissions => { check => [ 'admin', 'audit' ] },
     protected => 1,
+    download => 1,
     parameters => {
 	additionalProperties => 0,
 	properties => {

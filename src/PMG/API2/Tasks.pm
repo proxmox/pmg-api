@@ -226,6 +226,7 @@ __PACKAGE__->register_method({
     path => '{upid}/log',
     method => 'GET',
     protected => 1,
+    download => 1,
     description => "Read task log.",
     proxyto => 'node',
     permissions => { check => [ 'admin', 'audit' ] },
