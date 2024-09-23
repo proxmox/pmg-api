@@ -1,3 +1,10 @@
+pmg-api (8.1.4) bookworm; urgency=medium
+
+  * api: add missing schema annotations for download endpoints and adapt
+    existing ones to renaming the respective property to 'download_allowed'.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 23 Sep 2024 11:54:30 +0200
+
 pmg-api (8.1.3) bookworm; urgency=medium
 
   * config: improve description of dkim-use-domain
@@ -6,7 +13,6 @@ pmg-api (8.1.3) bookworm; urgency=medium
     them in the tracking center
 
   * pmg7to8: allow arbitrary newer running -pve kernels after upgrade
-  * -
 
  -- Proxmox Support Team <support@proxmox.com>  Mon, 23 Sep 2024 10:37:07 +0200
 
