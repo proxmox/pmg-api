@@ -1,3 +1,15 @@
+pmg-api (8.1.3) bookworm; urgency=medium
+
+  * config: improve description of dkim-use-domain
+
+  * dkim: add QID in warnings to allow the log-tracker to pick them up an show
+    them in the tracking center
+
+  * pmg7to8: allow arbitrary newer running -pve kernels after upgrade
+  * -
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 23 Sep 2024 10:37:07 +0200
+
 pmg-api (8.1.2) bookworm; urgency=medium
 
   * pmgdb: dump: replace 'active' flag with 'rules' option, which is a
