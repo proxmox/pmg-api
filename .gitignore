@@ -1,0 +1,4 @@
+/pmg-api-[0-9]*/
+*.deb
+*.buildinfo
+*.changes
