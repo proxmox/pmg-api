@@ -1,4 +1,9 @@
 /pmg-api-[0-9]*/
+/pmg-api_[0-9]*
 *.deb
 *.buildinfo
 *.changes
+/*.adoc
+/*.1
+/*.8
+/*.5
