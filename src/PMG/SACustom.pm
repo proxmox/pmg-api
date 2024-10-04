@@ -6,15 +6,17 @@ use warnings;
 use PVE::INotify;
 use Digest::SHA;
 
-my $shadow_path = "/var/cache/pmg-scores.cf";
 my $conf_path = "/etc/mail/spamassassin/pmg-scores.cf";
+my $shadow_path = "$conf_path.new";
 
 sub get_shadow_path {
     return $shadow_path;
 }
 
 sub apply_changes {
-    rename($shadow_path, $conf_path) if -f $shadow_path;
+    if (-f $shadow_path) {
+	rename($shadow_path, $conf_path) || die 'failed to apply custom scores - $!\n';
+    }
 }
 
 sub calc_digest {
