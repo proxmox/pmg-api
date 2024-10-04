@@ -125,6 +125,17 @@ case "$1" in
                 migrate_apt_auth_conf
             fi
         fi
+
+        old_score_location=/var/cache/pmg-scores.cf
+        new_score_location=/etc/mail/spamassassin/pmg-scores.cf.new
+        if test -e "$old_score_location"; then
+            if ! test -e "$new_score_location"; then
+                echo "moving $old_score_location to $new_score_location"
+                mv "$old_score_location" "$new_score_location"
+            else
+                echo "both $old_score_location and $new_score_location exist - please review manually"
+            fi
+        fi
     ;;
 
     abort-upgrade)
