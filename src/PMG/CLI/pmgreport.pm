@@ -359,7 +359,7 @@ __PACKAGE__->register_method ({
 	}
 
 	my $mailfrom = "Proxmox Mail Gateway <postmaster>";
-	PMG::Utils::finalize_report($tt, 'pmgreport.tt', $vars, $mailfrom, $email, $param->{debug});
+	PMG::Utils::finalize_report($tt, 'pmgreport', $vars, $mailfrom, $email, $param->{debug});
 
 	return undef;
     }});

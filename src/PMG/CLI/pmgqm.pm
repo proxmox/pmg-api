@@ -261,14 +261,14 @@ __PACKAGE__->register_method ({
 	my $domains = PVE::INotify::read_file('domains');
 	my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
 
-	my $template = "spamreport-${reportstyle}.tt";
+	my $template = "spamreport-${reportstyle}";
 	my $found = 0;
 	foreach my $path (@$PMG::Config::tt_include_path) {
-	    if (-f "$path/$template") { $found = 1; last; }
+	    if (-f "$path/$template.tt") { $found = 1; last; }
 	}
 	if (!$found) {
 	    warn "unable to find template '$template' - using default\n";
-	    $template = "spamreport-verbose.tt";
+	    $template = "spamreport-verbose";
 	}
 
 	my $sth = $dbh->prepare(

@@ -1248,32 +1248,85 @@ sub format_uptime {
     }
 }
 
+# Sends a report to the given receiver, building the body from templates.
+# if either html or plain template is empty that part is not added.
+# The subject of the mail is derived from the title tag of the HTML template, with a fallback to
+# the value after `subject:` on a line of its own in the plaintext template.
+#
+# The resulting mail is then reinjected with an empty envelope sender.
+#
+# Parameters:
+#   * `tt` - The template toolkit instance to use
+#   * `template_base` - base name of the template. suffixed with 'tt' yields the HTML template.
+#      suffixed with 'plain.tt' yields the plain text template
+#   * `data` - Template variables to pass to the template processor
+#   * `mailfrom` - Sender address
+#   * `receiver` - Recipient address
+#   * `debug` - whether to enable debug mode, resulting mail is only     printed, not reinjected
 sub finalize_report {
-    my ($tt, $template, $data, $mailfrom, $receiver, $debug) = @_;
+    my ($tt, $template_base, $data, $mailfrom, $receiver, $debug) = @_;
+
+    my $html_template;
+    my $html_path;
+    for my $path (@$PMG::Config::tt_include_path) {
+	if (-f "$path/$template_base.tt") {
+	    $html_template = "$template_base.tt";
+	    $html_path = "$path/$template_base.tt";
+	    last;
+	}
+    }
 
     my $html = '';
 
-    $tt->process($template, $data, \$html) ||
-	die $tt->error() . "\n";
-
+    if (defined($html_template) && -s $html_path) {
+	$tt->process($html_template, $data, \$html) ||
+	    die $tt->error() . "\n";
+    }
     my $title;
     if ($html =~ m|^\s*<title>(.*)</title>|m) {
 	$title = $1;
-    } else {
-	die "unable to extract template title\n";
     }
 
+    my $plain_template;
+    my $plain_path;
+    for my $path (@$PMG::Config::tt_include_path) {
+	if (-f "$path/$template_base.plain.tt") {
+	    $plain_template = "$template_base.plain.tt";
+	    $plain_path = "$path/$template_base.plain.tt";
+	    last;
+	}
+    }
+
+    my $plaintext = '';
+    if (defined($plain_template) && -s $plain_path) {
+	$tt->process($plain_template, $data, \$plaintext) ||
+	    die $tt->error() . "\n";
+    }
+
+    if ($plaintext =~ s/^subject: (.+)$//m) {
+	$title //= $1;
+    }
+
+    die "unable to extract template title\n" if !defined($title);
+
     my $top = MIME::Entity->build(
-	Type    => "multipart/related",
+	Type    => ($html && $plaintext) ? 'multipart/alternative' : 'multipart/related',
 	To      => $data->{pmail_raw},
 	From    => $mailfrom,
 	Subject => bencode_header(decode_entities($title)));
 
-    $top->attach(
-	Data     => $html,
-	Type     => "text/html",
-	Encoding => $debug ? 'binary' : 'quoted-printable');
-
+    if ($html) {
+	$top->attach(
+	    Data     => $html,
+	    Type     => "text/html",
+	    Encoding => $debug ? 'binary' : 'quoted-printable');
+    }
+    if ($plaintext) {
+	$top->attach(
+	    Data     => $plaintext,
+	    Type     => 'text/plain; charset=utf-8',
+	    Encoding => '8-bit');
+    }
     if ($debug) {
 	$top->print();
 	return;
