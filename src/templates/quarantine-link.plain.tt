@@ -1,0 +1,6 @@
+subject: Proxmox Mail Gateway - Quarantine Link
+Here is your link for the spam quarantine on [% fqdn %]:
+
+[% link %]
+
+Powered by http://www.proxmox.com

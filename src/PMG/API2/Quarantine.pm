@@ -1235,18 +1235,13 @@ my sub send_link_mail {
     my $esc_ticket = uri_escape($ticket);
     my $link = "$protocol_fqdn_port/quarantine?ticket=${esc_ticket}";
 
-    my $text = "Here is your Link for the Spam Quarantine on $fqdn:\n\n$link\n";
+    my $tt = PMG::Config::get_template_toolkit();
+    my $vars = {
+	fqdn => $fqdn,
+	link => $link,
+    };
 
-    my $mail = MIME::Entity->build(
-	Type    => "text/plain",
-	To      => $receiver,
-	From    => $mailfrom,
-	Subject => "Proxmox Mail Gateway - Quarantine Link",
-	Data    => $text,
-    );
-
-    # we use an empty envelope sender (we don't want to receive NDRs)
-    PMG::Utils::reinject_local_mail ($mail, '', [$receiver], undef, $fqdn);
+    PMG::Utils::finalize_report($tt, 'quarantine-link', $vars, $mailfrom, $receiver);
 }
 
 __PACKAGE__->register_method ({

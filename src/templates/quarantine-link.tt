@@ -1,0 +1,13 @@
+[%- SET title = "Proxmox Mail Gateway - Quarantine Link" -%]
+<html>
+  <head>
+    <title>[% title %]</title>
+  </head>
+  <body>
+    <p>
+      Here is your link for the spam quarantine on <code>[% fqdn %]</code>: <a href='[% link | url %]'>Spam quarantine</a>
+    </p>
+
+    <p>Powered by <a target=_blank href='http://www.proxmox.com'>Proxmox</a>.</p>
+  </body>
+</html>

@@ -44,6 +44,8 @@ TEMPLATES =				\
 	postgresql.conf.in		\
 	pg_hba.conf.in			\
 	backup-notification.tt		\
+	quarantine-link.tt		\
+	quarantine-link.plain.tt	\
 
 TEMPLATES_FILES = $(addprefix templates/, ${TEMPLATES})
 
