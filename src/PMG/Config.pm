@@ -285,7 +285,7 @@ sub properties {
 	    default => 1,
 	},
 	allowhrefs => {
-	    description => "Allow to view hyperlinks.",
+	    description => "Allow to view hyperlinks. When disabled hyperlinks will be displayed as plain-text.",
 	    type => 'boolean',
 	    default => 1,
 	},
