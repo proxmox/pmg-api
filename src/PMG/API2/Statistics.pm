@@ -622,7 +622,7 @@ __PACKAGE__->register_method ({
 		type => 'integer',
 	    },
 	    pregreet_rejects => {
-		description => "PREGREET recject count.",
+		description => "PREGREET reject count.",
 		type => 'integer',
 	    },
 	    junk_in => {
@@ -922,7 +922,7 @@ __PACKAGE__->register_method ({
 		    type => 'integer',
 		},
 		pregreet_rejects => {
-		    description => "PREGREET recject count.",
+		    description => "PREGREET reject count.",
 		    type => 'integer',
 		},
 		bounces_in => {
@@ -1188,11 +1188,11 @@ __PACKAGE__->register_method ({
 		    type => 'integer',
 		},
 		rbl_rejects => {
-		    description => "RBL recject count.",
+		    description => "RBL reject count.",
 		    type => 'integer',
 		},
 		pregreet_rejects => {
-		    description => "PREGREET recject count.",
+		    description => "PREGREET reject count.",
 		    type => 'integer',
 		},
 	    },

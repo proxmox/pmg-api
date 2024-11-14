@@ -545,7 +545,7 @@ sub properties {
 	    default => 0,
 	},
 	smarthost => {
-	    description => "When set, all outgoing mails are deliverd to the specified smarthost."
+	    description => "When set, all outgoing mails are delivered to the specified smarthost."
 	        ." (postfix option `default_transport`)",
 	    type => 'string', format => 'address',
 	},

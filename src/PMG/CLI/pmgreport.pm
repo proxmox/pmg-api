@@ -273,7 +273,7 @@ __PACKAGE__->register_method ({
 		default => 0,
 	    },
 	    receiver => {
-		description => "Send report to this email address. Default is the administratior email address.",
+		description => "Send report to this email address. Default is the administrator email address.",
 		type => 'string', format => 'email',
 		optional => 1,
 	    },

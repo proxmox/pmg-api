@@ -177,7 +177,7 @@ sub update {
     my $ldapcache = PMG::LDAPCache->new(
 	id => $profile, syncmode => 1, %$config);
 
-    die "LDAP acoount '$account' does not exist\n"
+    die "LDAP account '$account' does not exist\n"
 	if !$ldapcache->account_exists($account);
 
     $self->{ldapuser} = $account;
