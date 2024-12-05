@@ -261,8 +261,10 @@ sub execute {
 	}
 
 	# handle singlepart mails
+	# if no content-type header is set head->mime_type defaults to text/plain
 	my $ctype = $entity->head->mime_type;
-	if (!$entity->is_multipart && (!$self->{all} || $ctype !~ m|text/.*|i)) {
+	my $disposition = $entity->head->mime_attr('content-disposition');
+	if (!$entity->is_multipart && (!$self->{all} || $ctype !~ m|text/.*|i || $disposition =~ /attachment/i)) {
 	    $entity->make_multipart();
 	    my $first_part = $entity->parts(0);
 	    $first_part->head->mime_attr('x-proxmox-tmp-aid' => $entity->head->mime_attr('x-proxmox-tmp-aid'));
