@@ -132,6 +132,7 @@ sub delete_marked_parts {
 	    chomp $id;
 
 	    if ($self->{all}) {
+		$found = 1 if ($part->head->mime_attr('content-disposition') =~ /attachment/i);
 		my $ctype_part = $part->head->mime_type;
 		if ($self->{message_seen}) {
 		    $found = 1;
