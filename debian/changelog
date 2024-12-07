@@ -1,3 +1,18 @@
+pmg-api (8.1.5) bookworm; urgency=medium
+
+  * system report: add ip route information to output.
+
+  * config: expand description for the `allowhrefs` option to better convey
+    that disabling it will render hyperlinks as plain-text.
+
+  * utils: custom check: fix error in spamscore regex to cope with negative
+    scores.
+
+  * removal rules: fix handling odd mails where the first, and potentially
+    only part, consists of an attachment.
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 07 Dec 2024 15:18:29 +0100
+
 pmg-api (8.1.4) bookworm; urgency=medium
 
   * api: add missing schema annotations for download endpoints and adapt
