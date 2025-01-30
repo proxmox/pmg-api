@@ -128,12 +128,12 @@ sub deliver_quarantined_mail {
     };
     my $err = $@;
     if ($err) {
-	my $msg = "deliver quarantined mail '$id' ($path) failed: $err";
+	my $msg = "deliver quarantined mail '$id' ($path) to $receiver failed: $err";
 	syslog('err', $msg);
 	die "$msg\n";
     }
 
-    syslog('info', "delivered quarantined mail '$id' ($path)");
+    syslog('info', "delivered quarantined mail '$id' ($path) to $receiver");
 
     return 1;
 }
@@ -141,6 +141,7 @@ sub deliver_quarantined_mail {
 sub delete_quarantined_mail {
     my ($dbh, $ref) = @_;
 
+    my $pmail = $ref->{pmail};
     my $filename = $ref->{file};
     my $spooldir = $PMG::MailQueue::spooldir;
     my $path = "$spooldir/$filename";
@@ -155,12 +156,12 @@ sub delete_quarantined_mail {
 	$sth->finish;
     };
     if (my $err = $@) {
-	my $msg = "delete quarantined mail '$id' ($path) failed: $err";
+	my $msg = "delete quarantined mail '$id' ($path) for $pmail failed: $err";
 	syslog ('err', $msg);
 	die "$msg\n";
     }
 
-    syslog ('info', "marked quarantined mail '$id' as deleted ($path)");
+    syslog ('info', "marked quarantined mail '$id' as deleted ($path) for $pmail");
 
     return 1;
 }
