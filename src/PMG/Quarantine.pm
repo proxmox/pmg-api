@@ -95,6 +95,12 @@ sub deliver_quarantined_mail {
 
     my $id = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};;
 
+    if ($ref->{status} eq 'D') {
+	syslog('info', "quarantined mail '$id' ($path) has already been delivered or marked as " .
+	    "deleted for $receiver!");
+	return 1;
+    }
+
     my $parser = PMG::MIMEUtils::new_mime_parser({
 	nested => 1,
 	decode_bodies => 0,
@@ -147,6 +153,12 @@ sub delete_quarantined_mail {
     my $path = "$spooldir/$filename";
 
     my $id = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};;
+
+    if ($ref->{status} eq 'D') {
+	syslog('info', "quarantined mail '$id' ($path) has already been delivered or marked as " .
+	    "deleted for $pmail");
+	return 1;
+    }
 
     eval {
 	my $sth = $dbh->prepare(
