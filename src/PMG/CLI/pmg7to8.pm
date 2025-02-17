@@ -13,6 +13,7 @@ use PMG::API2::APT;
 use PMG::API2::Certificates;
 use PMG::API2::Cluster;
 use PMG::RESTEnvironment;
+use PMG::RuleDB;
 use PMG::Utils;
 
 use Term::ANSIColor;
@@ -526,6 +527,25 @@ sub check_dkms_modules {
     }
 }
 
+sub check_ruledb {
+    log_info("Check the rulesystem...");
+
+    my $rdb = PMG::RuleDB->new();
+    my $ogroups = $rdb->load_objectgroups("who");
+    for my $who ($ogroups->@*) {
+	my $group_name = $who->{name};
+	next if ($group_name ne 'Blacklist' && $group_name ne 'Whitelist');
+	my $objects = $rdb->load_group_objects($who->{id});
+	for my $obj ($objects->@*) {
+	    if ($obj->{address} =~ m/(?:no)?mail\@fromthisdomain.com/) {
+		log_warn("deprecated default entry in '$group_name' present: $obj->{address}\n"
+		    ."      Consider removing it");
+	    }
+	}
+    }
+    return;
+}
+
 sub check_misc {
     print_header("MISCELLANEOUS CHECKS");
     my $ssh_config = eval { PVE::Tools::file_get_contents('/root/.ssh/config') };
@@ -637,6 +657,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
+	check_ruledb();
 	check_pmg_packages();
 	check_cluster_status();
 	my $upgraded_db = check_running_postgres();
