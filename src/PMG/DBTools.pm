@@ -644,12 +644,12 @@ sub init_ruledb {
     # WHO Objects
 
      # Blacklist
-    my $obj =  PMG::RuleDB::EMail->new ('nomail@fromthisdomain.com');
+    my $obj =  PMG::RuleDB::EMail->new ('nomail@fromthisdomain.example');
     my $blacklist = $ruledb->create_group_with_obj(
 	$obj, 'Blacklist', 'Global blacklist');
 
     # Whitelist
-    $obj = PMG::RuleDB::EMail->new('mail@fromthisdomain.com');
+    $obj = PMG::RuleDB::EMail->new('mail@fromthisdomain.example');
     my $whitelist = $ruledb->create_group_with_obj($obj, 'Whitelist', 'Global whitelist');
 
     # WHEN Objects

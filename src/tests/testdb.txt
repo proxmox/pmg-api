@@ -1,6 +1,6 @@
 Found RULE 4: Blacklist
   FOUND FROM GROUP 1: Blacklist
-    OBJECT 1: nomail@fromthisdomain.com
+    OBJECT 1: nomail@fromthisdomain.example
   FOUND ACTION GROUP 17: Block
     OBJECT 30: block message
 Found RULE 2: Block Viruses
@@ -49,7 +49,7 @@ Found RULE 11: Block Multimedia Files
     OBJECT 27: remove matching attachments
 Found RULE 5: Whitelist
   FOUND FROM GROUP 2: Whitelist
-    OBJECT 2: mail@fromthisdomain.com
+    OBJECT 2: mail@fromthisdomain.example
   FOUND ACTION GROUP 16: Accept
     OBJECT 29: accept message
 Found RULE 8: Block Spam (Level 10)
