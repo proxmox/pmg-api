@@ -598,7 +598,7 @@ sub magic_mime_type_for_file {
     my $bufsize = Xdgmime::xdg_mime_get_max_buffer_extents();
     die "got strange value for max_buffer_extents" if $bufsize > 4096*10;
 
-    my $ct = "application/octet-stream";
+    my $ct;
 
     my $fh = IO::File->new("<$filename") ||
 	die "unable to open file '$filename' - $!";
@@ -611,6 +611,7 @@ sub magic_mime_type_for_file {
 
     die "unable to read file '$filename' - $!" if ($len < 0);
 
+    $ct ||= "application/octet-stream";
     return $ct;
 }
 
@@ -619,14 +620,9 @@ sub add_ct_marks {
 
     if (my $path = $entity->{PMX_decoded_path}) {
 
-	# set a reasonable default if magic does not give a result
-	$entity->{PMX_magic_ct} = $entity->head->mime_attr('content-type');
+	$entity->{PMX_header_ct} = $entity->head->mime_attr('content-type');
 
-	if (my $ct = magic_mime_type_for_file($path)) {
-	    if ($ct ne 'application/octet-stream' || !$entity->{PMX_magic_ct}) {
-		$entity->{PMX_magic_ct} = $ct;
-	    }
-	}
+	$entity->{PMX_magic_ct} = magic_mime_type_for_file($path);
 
 	my $filename = $entity->head->recommended_filename;
 	$filename = basename($path) if !defined($filename) || $filename eq '';

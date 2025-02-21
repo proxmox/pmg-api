@@ -59,7 +59,7 @@ sub parse_entity {
     if (my $id = $entity->head->mime_attr ('x-proxmox-tmp-aid')) {
 	chomp $id;
 
-	my $header_ct = $entity->head->mime_attr ('content-type');
+	my $header_ct = $entity->{PMX_header_ct};
 
 	my $magic_ct = $entity->{PMX_magic_ct};
 

@@ -561,9 +561,15 @@ sub run_dequeue {
 sub unpack_entity {
     my ($self, $unpack, $entity, $msginfo, $queue) = @_;
 
-    my ($magic, $path) = $entity->@{'PMX_magic_ct', 'PMX_decoded_path'};
+    my ($magic, $headerct, $path) = $entity->@{'PMX_magic_ct', 'PMX_header_ct', 'PMX_decoded_path'};
 
     if ($magic && $path) {
+	# in order to not miss information from a misdetected archive use information provided in the
+	# header here as well
+	if ($headerct && ($magic && $magic eq 'application/octet-stream')) {
+	    $magic = $headerct;
+	}
+
 	my $filename = basename ($path);
 
 	if (PMG::Unpack::is_archive ($magic)) {
