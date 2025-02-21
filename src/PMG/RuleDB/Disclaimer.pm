@@ -113,11 +113,9 @@ sub save {
 	    "UPDATE Object SET Value = ? WHERE ID = ?",
 	    undef, $value, $self->{id});
 
-	for my $prop (qw(top separator)) {
-	    $ruledb->{dbh}->do(
-		"DELETE FROM Attribut WHERE Name = ? and Object_ID = ?",
-		undef, $prop,  $self->{id});
-	}
+	$ruledb->{dbh}->do(
+	    "DELETE FROM Attribut WHERE Object_ID = ?",
+		undef, $self->{id});
     } else {
 	# insert
 
