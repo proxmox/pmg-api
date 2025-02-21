@@ -1,3 +1,38 @@
+pmg-api (8.1.7) bookworm; urgency=medium
+
+  * fix #5972: ruledb: default ruleset: use the RFC 2606 conform .example as
+    TLD.
+
+  * pmg7to8: add check for deprecated default entries in ruledb
+
+  * quarantine: add receiver to delivery/delete log-messages for convenience.
+
+  * fix #6126: do not allow user to deliver/delete quarantined mails multiple
+    times, which could happen as mails are delivered and then deleted
+    asynchronously from the mail gateway system after being marked for
+    delivery. By checking if a mail is already pending for deletion due to
+    having been handled by the user already we can avoid this confusing edge
+    case.
+
+  * utils: content-type: don't fallback to header information for magic to
+    ensure file-type detection can never be directly controlled by the sender.
+
+  * ruledb: content-type: add flag for matching only based on the actual file
+    content, and not metadata like headers or the file ending. This allows to
+    more definitively match some specific contents while blocking all others
+    as some generic headers like for example "application/octet-stream", which
+    one might want to block, does not influences the actual detection of the
+    file, which could be for example a PDF that one might want to allow.
+    This is related to enhancement request #5618
+
+  * fix #2709: ruledb: match-field: add flag to optionally restrict to top
+    mime-part to avoid that, for example, as forwarded mail that is attached
+    as separate part can influence the matching. While that might be often
+    wanted it occasionally is not, so allow the user to configure the behavior
+    for their specific use case.
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 21 Feb 2025 18:22:19 +0100
+
 pmg-api (8.1.6) bookworm; urgency=medium
 
   * fix some typos in user-visible strings
