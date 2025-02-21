@@ -110,18 +110,15 @@ sub save {
 	# update
 
 	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?",
-	    undef, $value, $self->{id});
+	    "UPDATE Object SET Value = ? WHERE ID = ?", undef, $value, $self->{id});
 
 	$ruledb->{dbh}->do(
-	    "DELETE FROM Attribut WHERE Object_ID = ?",
-		undef, $self->{id});
+	    "DELETE FROM Attribut WHERE Object_ID = ?", undef, $self->{id});
     } else {
 	# insert
 
 	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) VALUES (?, ?, ?);");
 
 	$sth->execute($self->ogroup, $self->otype, $value);
 
@@ -132,7 +129,11 @@ sub save {
 	if (defined($self->{$prop})) {
 	    $ruledb->{dbh}->do(
 		"INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
-		undef, $self->{$prop}, $prop,  $self->{id});
+		undef,
+		$self->{$prop},
+		$prop,
+		$self->{id},
+	    );
 	}
     }
 
@@ -279,8 +280,8 @@ sub properties {
 	    default => 'end',
 	},
 	'add-separator' => {
-	    description => "If set to 1, adds a '--' separator between the disclaimer and the".
-		" content. Set to 0 to prevent that.",
+	    description => "If set to 1, adds a '--' separator between the disclaimer and the"
+		." content. Set to 0 to prevent that.",
 	    type => 'boolean',
 	    optional => 1,
 	    default => 1,
