@@ -35,7 +35,7 @@ sub new {
 	$fvalue = $nt;
     }
 
-    my $self = $class->SUPER::new('content-type', $fvalue, $ogroup);
+    my $self = $class->SUPER::new('content-type', $fvalue, $ogroup, undef);
     $self->{only_content} = $only_content;
 
     return $self;

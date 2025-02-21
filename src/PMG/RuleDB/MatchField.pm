@@ -27,7 +27,7 @@ sub otype_text {
 }
 
 sub new {
-    my ($type, $field, $field_value, $ogroup) = @_;
+    my ($type, $field, $field_value, $ogroup, $top_part_only) = @_;
 
     my $class = ref($type) || $type;
 
@@ -35,6 +35,7 @@ sub new {
 
     $self->{field} = $field;
     $self->{field_value} = $field_value;
+    $self->{top_part_only} = $top_part_only;
 
     return $self;
 }
@@ -54,12 +55,28 @@ sub load_attr {
     my $decoded_field_value = PMG::Utils::try_decode_utf8($field_value);
     # use known constructor, bless afterwards (because sub class can have constructor
     # with other parameter signature).
-    my $obj =  PMG::RuleDB::MatchField->new($field, $decoded_field_value, $ogroup);
+    my $obj =  PMG::RuleDB::MatchField->new($field, $decoded_field_value, $ogroup, undef);
     bless $obj, $class;
+
+    my $sth = $ruledb->{dbh}->prepare(
+	"SELECT * FROM Attribut WHERE Object_ID = ?");
+
+    $sth->execute($id);
+
+    $obj->{top_part_only} = 0;
+
+    while (my $ref = $sth->fetchrow_hashref()) {
+	if ($ref->{name} eq 'top_part_only') {
+	    $obj->{top_part_only} = $ref->{value};
+	}
+    }
+
+    $sth->finish();
 
     $obj->{id} = $id;
 
-    $obj->{digest} = Digest::SHA::sha1_hex($id, $field, $field_value, $ogroup);
+    $obj->{digest} = Digest::SHA::sha1_hex(
+	$id, $field, $field_value, $ogroup, $obj->{top_part_only});
 
     return $obj;
 }
@@ -79,6 +96,9 @@ sub save {
 
     if (defined ($self->{id})) {
 	# update
+	$ruledb->{dbh}->do(
+	    "DELETE FROM Attribut WHERE Object_ID = ?",
+	    undef, $self->{id});
 
 	$ruledb->{dbh}->do(
 	    "UPDATE Object SET Value = ? WHERE ID = ?",
@@ -94,6 +114,12 @@ sub save {
 	$sth->execute($self->ogroup, $self->otype, $new_value);
 
 	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+    }
+
+    if (defined($self->{top_part_only})) {
+	$ruledb->{dbh}->do(
+	    "INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, 'top_part_only', ?)",
+	    undef, $self->{top_part_only}, $self->{id});
     }
 
     return $self->{id};
@@ -123,6 +149,8 @@ sub parse_entity {
 	    warn "invalid regex: $@\n" if $@;
 	}
     }
+
+    return $res if $self->{top_part_only};
 
     foreach my $part ($entity->parts)  {
 	if (my $match = $self->parse_entity($part)) {
@@ -160,6 +188,12 @@ sub properties {
 	    type => 'string',
 	    maxLength => 1024,
 	},
+	'top-part-only' => {
+	    description => "only match the headers in the first MIME-Part",
+	    type => 'boolean',
+	    optional => 1,
+	    default => 0,
+	},
     };
 }
 
@@ -169,6 +203,7 @@ sub get {
     return {
 	field => $self->{field},
 	value => $self->{field_value},
+	'top-part-only' => $self->{top_part_only},
     };
 }
 
@@ -177,6 +212,12 @@ sub update {
 
     $self->{field_value} = $param->{value};
     $self->{field} = $param->{field};
+
+    if (defined($param->{'top-part-only'}) && $param->{'top-part-only'} == 1) {
+	$self->{top_part_only} = 1;
+    } else {
+	delete $self->{top_part_only};
+    }
 }
 
 1;
