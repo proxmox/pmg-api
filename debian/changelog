@@ -18,12 +18,12 @@ pmg-api (8.1.7) bookworm; urgency=medium
     ensure file-type detection can never be directly controlled by the sender.
 
   * ruledb: content-type: add flag for matching only based on the actual file
-    content, and not metadata like headers or the file ending. This allows to
-    more definitively match some specific contents while blocking all others
-    as some generic headers like for example "application/octet-stream", which
-    one might want to block, does not influences the actual detection of the
-    file, which could be for example a PDF that one might want to allow.
-    This is related to enhancement request #5618
+    content, and not metadata like headers or the file ending. This allows
+    users to more definitively match some specific contents while blocking all
+    others as some generic headers like, e.g., "application/octet-stream",
+    which one might want to block, does not influences the actual detection of
+    the file, which could be for example a PDF that one might want to allow.
+    This is related to enhancement request #5618.
 
   * fix #2709: ruledb: match-field: add flag to optionally restrict to top
     mime-part to avoid that, for example, as forwarded mail that is attached
