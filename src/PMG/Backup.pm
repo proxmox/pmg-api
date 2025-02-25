@@ -417,7 +417,7 @@ sub send_backup_notification {
 
     my $tt = PMG::Config::get_template_toolkit();
 
-    my $mailfrom = "Proxmox Mail Gateway <postmaster>";
+    my $mailfrom = $cfg->get('admin', 'admin-mail-from');
     PMG::Utils::finalize_report($tt, 'backup-notification', $vars, $mailfrom, $email);
 
 }

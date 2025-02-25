@@ -358,7 +358,7 @@ __PACKAGE__->register_method ({
 	    return undef;
 	}
 
-	my $mailfrom = "Proxmox Mail Gateway <postmaster>";
+	my $mailfrom = $cfg->get('admin', 'admin-mail-from');
 	PMG::Utils::finalize_report($tt, 'pmgreport', $vars, $mailfrom, $email, $param->{debug});
 
 	return undef;
