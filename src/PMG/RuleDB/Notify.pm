@@ -206,8 +206,6 @@ sub execute {
 
     my $original;
 
-    my $from = 'postmaster';
-
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     my $body = PMG::Utils::subst_values($self->{body}, $vars);
@@ -224,10 +222,12 @@ sub execute {
     $to =~ s/[;,]/ /g;
     $to =~ s/\s+/,/g;
 
+    my $from_header = $msginfo->{admin_mail_from};
+
     my $top = MIME::Entity->build(
 	Encoding    => 'quoted-printable',
 	Charset => 'UTF-8',
-	From    => $from,
+	From    => $from_header,
 	To      => $to,
 	Subject => encode_mimewords(encode('UTF-8', $subject), "Charset" => "UTF-8"),
 	Data => encode('UTF-8', $body));
@@ -257,7 +257,7 @@ sub execute {
     } else {
 	my @targets = split(/\s*,\s*/, $to);
 	my $qid = PMG::Utils::reinject_local_mail(
-	    $top, $from, \@targets, undef, $msginfo->{fqdn});
+	    $top, 'postmaster', \@targets, undef, $msginfo->{fqdn});
 	foreach (@targets) {
 	    my $target = encode('UTF-8', $_);
 	    if ($qid) {

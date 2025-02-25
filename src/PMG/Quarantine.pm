@@ -116,6 +116,7 @@ sub deliver_quarantined_mail {
     $entity->head->delete('Delivered-To');
     $entity->head->delete('Return-Path');
 
+    # mail delivered from quarantine will not be DKIM signed as locally originating mails
     my $sender = 'postmaster'; # notify postmaster if something fails
 
     eval {

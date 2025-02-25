@@ -648,6 +648,7 @@ sub handle_smtp {
 	    $msginfo->{dkim}->{sign_all} = $pmg_cfg->get('admin', 'dkim_sign_all_mail');
 	    $msginfo->{dkim}->{selector} = $pmg_cfg->get('admin', 'dkim_selector');
 	}
+	$msginfo->{admin_mail_from} = $pmg_cfg->get('admin', 'admin-mail-from');
 
 	$msginfo->{hostname} = PVE::INotify::nodename();
 	my $resolv = PVE::INotify::read_file('resolvconf');
