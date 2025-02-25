@@ -247,6 +247,21 @@ sub reinject_local_mail {
 	$params->{mail}->{smtputf8} = $needs_smtputf8;
     }
 
+    my $dkim_sign = $cfg->get('admin', 'dkim_sign');
+    if ($dkim_sign) {
+	my $dkim = {};
+	$dkim->{sign} = $dkim_sign;
+	$dkim->{use_domain} = $cfg->get('admin', 'dkim-use-domain');
+	$dkim->{sign_all} = $cfg->get('admin', 'dkim_sign_all_mail');
+	$dkim->{selector} = $cfg->get('admin', 'dkim_selector');
+	eval {
+	    $entity = PMG::DKIMSign::sign_entity($entity, $dkim, $sender);
+	};
+	if ($@) {
+	    syslog('warning', "Could not DKIM-Sign local mail: $@");
+	}
+    }
+
     return reinject_mail($entity, $sender, $targets, $xforward, $me, $params);
 }
 
