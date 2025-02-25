@@ -620,8 +620,6 @@ sub add_ct_marks {
 
     if (my $path = $entity->{PMX_decoded_path}) {
 
-	$entity->{PMX_header_ct} = $entity->head->mime_attr('content-type');
-
 	$entity->{PMX_magic_ct} = magic_mime_type_for_file($path);
 
 	my $filename = $entity->head->recommended_filename;
