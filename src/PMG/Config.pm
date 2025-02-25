@@ -140,6 +140,12 @@ EODESC
 	    enum => [qw(header envelope)],
 	    default => 'envelope',
 	},
+	'admin-mail-from' => {
+	    description => "Text for 'From' header in admin mails and bounces.",
+	    type => 'string',
+	    pattern => '^\p{PosixPrint}{1,998}$',
+	    default => 'Proxmox Mail Gateway <postmaster>',
+	},
     };
 }
 
@@ -159,6 +165,7 @@ sub options {
 	dkim_sign_all_mail => { optional => 1 },
 	dkim_selector => { optional => 1 },
 	'dkim-use-domain' => { optional => 1 },
+	'admin-mail-from' => { optional => 1 },
     };
 }
 
