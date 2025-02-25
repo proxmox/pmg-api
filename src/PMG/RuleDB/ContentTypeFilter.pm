@@ -120,7 +120,7 @@ sub parse_entity {
 
 	my $glob_ct = $entity->{PMX_glob_ct};
 
-	my $check_only_content = ${self}->{only_content} // 1;
+	my $check_only_content = ${self}->{only_content};
 
 	if ($magic_ct && $magic_ct =~ m|$self->{field_value}|) {
 	    push @$res, $id;
