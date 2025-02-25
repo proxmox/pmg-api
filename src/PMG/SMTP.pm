@@ -185,7 +185,8 @@ sub loop {
 			$self->reply ("250 2.5.0 OK ($queueid)");
 			if ($cfg->get('mail', 'ndr_on_block')) {
 			    my $dnsinfo = $cfg->get_host_dns_info();
-			    generate_ndr($self->{from}, [ @reject_rec ], $dnsinfo->{fqdn}, $queueid) if scalar(@reject_rec);
+			    my $from_header = $cfg->get('admin', 'admin-mail-from');
+			    generate_ndr($self->{from}, [ @reject_rec ], $dnsinfo->{fqdn}, $queueid, $from_header) if scalar(@reject_rec);
 			}
 		    } else {
 			$self->reply ("451 4.4.0 detected undelivered mail ($queueid)");
@@ -265,7 +266,7 @@ sub save_data {
 }
 
 sub generate_ndr {
-    my ($sender, $receivers, $hostname, $queueid) = @_;
+    my ($sender, $receivers, $hostname, $queueid, $from_header) = @_;
 
     my $ndr_text = <<EOF
 This is the mail system at host $hostname.
@@ -284,7 +285,7 @@ EOF
     my $ndr = MIME::Entity->build(
 	Type => 'multipart/report; report-type=delivery-status;',
 	To => $sender,
-	From => 'postmaster',
+	From => $from_header,
 	Subject => 'Undelivered Mail');
 
     $ndr->attach(
