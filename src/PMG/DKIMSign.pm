@@ -59,9 +59,16 @@ sub signing_domain {
     my $input_domain;
     if ($use_domain eq 'header') {
 	$input_domain = parse_headers_for_signing($entity);
+	if (!defined($input_domain)) {
+	    syslog('info', "DKIM signing: no domain found in the headers from '$sender_email'");
+	    return 0;
+	}
     } else {
 	my @parts = split('@', $sender_email);
-	die "no domain in sender e-mail\n" if scalar(@parts) < 2;
+	if (scalar(@parts) < 2) {
+	    syslog('info', "DKIM signing: no domain found in '$sender_email'");
+	    return 0;
+	}
 	$input_domain = $parts[-1];
     }
 
@@ -107,7 +114,6 @@ sub parse_headers_for_signing {
 	$domain = $addresses[0]->host();
     }
 
-    die "there is no sender in the header\n" if !defined($domain);
     return $domain;
 }
 
