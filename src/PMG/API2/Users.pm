@@ -111,9 +111,6 @@ __PACKAGE__->register_method ({
 	    die "User '$param->{userid}' already exists\n"
 		if $cfg->{$param->{userid}};
 
-	    die "Currently you cannot create user in the PAM realm\n"
-		if $param->{realm} && $param->{realm} eq 'pam';
-
 	    my $entry = {};
 	    foreach my $k (keys %$param) {
 		my $v = $param->{$k};
@@ -124,10 +121,21 @@ __PACKAGE__->register_method ({
 		}
 	    }
 
+	    my ($userid, $username, $realm) = PMG::Utils::verify_username($entry->{userid});
+	    my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+	    die "invalid realm in userid\n" if $realm !~ /$realm_regex/;
+
+	    if ($entry->{realm}) {
+		die "realm parameter does not fit userid\n" if ($entry->{realm} ne $realm);
+	    } else {
+		$entry->{realm} = $realm;
+	    }
+
+	    die "Currently you cannot create user in the PAM realm\n" if $entry->{realm} eq 'pam';
+
 	    $entry->{enable} //= 0;
 	    $entry->{expire} //= 0;
 	    $entry->{role} //= 'audit';
-	    $entry->{realm} //= 'pmg';
 
 	    $cfg->{$param->{userid}} = $entry;
 
