@@ -58,8 +58,8 @@ sub lock_realm_config {
 
 sub valid_pmg_realm_regex {
     my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin::realm_conf_id());
-    my $realms = ['pam', 'quarantine', sort keys $cfg->{ids}->%* ];
-    return join('|', @$realms);
+    my $allowed_realm_re = join('|', ('pam', 'quarantine', sort keys $cfg->{ids}->%*));
+    return qr/(?:$allowed_realm_re)/;
 }
 
 sub is_valid_realm {
