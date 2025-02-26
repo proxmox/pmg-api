@@ -461,6 +461,7 @@ sub sync_config_from_master {
 	'pmg-csrf.key',
 	'ldap.conf',
 	'user.conf',
+	'realms.conf',
 	'tfa.json',
 	'domains',
 	'mynetworks',
