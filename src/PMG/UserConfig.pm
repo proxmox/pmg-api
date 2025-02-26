@@ -11,6 +11,7 @@ use PVE::INotify;
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::Exception qw(raise);
 
+use PMG::Auth::Plugin;
 use PMG::Utils;
 
 my $inotify_file_id = 'pmg-user.conf';
@@ -277,7 +278,7 @@ sub write_user_conf {
 	$verify_entry->($d);
 	$cfg->{$d->{userid}} = $d;
 
-	my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
 	if ($d->{userid} ne 'root@pam') {
 	    die "role 'root' is reserved\n" if $d->{role} eq 'root';
 	    die "unable to add users for realm '$d->{realm}'\n"

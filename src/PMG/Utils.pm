@@ -34,7 +34,6 @@ use Time::Local;
 use Xdgmime;
 
 use PMG::AtomicFile;
-use PMG::Auth::Plugin;
 use PMG::MIMEUtils;
 use PMG::MailQueue;
 use PMG::SMTPPrinter;
@@ -51,13 +50,6 @@ try_decode_utf8
 );
 
 my $user_regex = qr![^\s:/]+!;
-
-sub valid_pmg_realm_regex {
-    my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin::realm_conf_id());
-    my $ids = $cfg->{ids};
-    my $realms = ['pam', 'quarantine', sort keys $cfg->{ids}->%* ];
-    return join('|', @$realms);
-}
 
 PVE::JSONSchema::register_standard_option('pmg-starttime', {
     description => "Only consider entries newer than 'starttime' (unix epoch). Default is 'now - 1day'.",

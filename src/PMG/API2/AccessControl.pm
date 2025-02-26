@@ -9,6 +9,7 @@ use PMG::RESTEnvironment;
 use PVE::RESTHandler;
 use PVE::JSONSchema qw(get_standard_option);
 
+use PMG::Auth::Plugin;
 use PMG::Utils;
 use PMG::UserConfig;
 use PMG::AccessControl;
@@ -262,7 +263,7 @@ __PACKAGE__->register_method ({
 
 	my $username = $param->{username};
 
-	my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
 	if ($username !~ m/\@(${realm_regex})$/) {
 	    my $realm = $param->{realm} // 'quarantine';
 	    $username .= "\@$realm";

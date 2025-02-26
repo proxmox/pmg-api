@@ -49,7 +49,7 @@ sub authenticate_user : prototype($$$) {
 
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
-    my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm eq 'pam') {
 	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 	authenticate_pam_user($ruid, $password);
@@ -93,10 +93,10 @@ sub set_user_password {
     my ($username, $password) = @_;
 
     my ($ruid, $realm);
-    
+
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
-    my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm eq 'pam') {
 	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 
@@ -129,7 +129,7 @@ sub check_user_enabled {
 
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username, 1);
 
-    my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm && $ruid) {
 	if ($realm eq 'pam') {
 	    return 'root' if $ruid eq 'root';
