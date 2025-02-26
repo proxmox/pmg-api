@@ -49,12 +49,30 @@ postgres_admin_cmd
 try_decode_utf8
 );
 
-my $valid_pmg_realms = ['pam', 'pmg', 'quarantine'];
+my $user_regex = qr![^\s:/]+!;
+
+sub valid_pmg_realm_regex {
+    my $cfg = PVE::INotify::read_file('realms.cfg');
+    my $ids = $cfg->{ids};
+    my $realms = ['pam', 'quarantine', sort keys $cfg->{ids}->%* ];
+    return join('|', @$realms);
+}
+
+sub is_valid_realm {
+    my ($realm) = @_;
+    return 0 if !$realm;
+    return 1 if $realm eq 'pam' || $realm eq 'quarantine'; # built-in ones
+
+    my $cfg = PVE::INotify::read_file('realms.cfg');
+    return exists($cfg->{ids}->{$realm}) ? 1 : 0;
+}
+
+PVE::JSONSchema::register_format('pmg-realm', \&is_valid_realm);
 
 PVE::JSONSchema::register_standard_option('realm', {
     description => "Authentication domain ID",
     type => 'string',
-    enum => $valid_pmg_realms,
+    format => 'pmg-realm',
     maxLength => 32,
 });
 
@@ -82,16 +100,15 @@ sub verify_username {
 	die "user name '$username' is too short\n" if !$noerr;
 	return undef;
     }
-    if ($len > 64) {
-	die "user name '$username' is too long ($len > 64)\n" if !$noerr;
+    if ($len > 128) {
+	die "user name '$username' is too long ($len > 128)\n" if !$noerr;
 	return undef;
     }
 
     # we only allow a limited set of characters. Colons aren't allowed, because we store usernames
     # with colon separated lists! slashes aren't allowed because it is used as pve API delimiter
     # also see "man useradd"
-    my $realm_list = join('|', @$valid_pmg_realms);
-    if ($username =~ m!^([^\s:/]+)\@(${realm_list})$!) {
+    if ($username =~ m!^(${user_regex})\@([A-Za-z][A-Za-z0-9\.\-_]+)$!) {
 	return wantarray ? ($username, $1, $2) : $username;
     }
 

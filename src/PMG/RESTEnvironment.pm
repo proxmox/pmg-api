@@ -88,6 +88,20 @@ sub get_role {
     return $self->{role};
 }
 
+sub check_user_enabled {
+    my ($self, $user, $noerr) = @_;
+
+    my $cfg = $self->{usercfg};
+    return PMG::AccessControl::check_user_enabled($cfg, $user, $noerr);
+}
+
+sub check_user_exist {
+    my ($self, $user, $noerr) = @_;
+
+    my $cfg = $self->{usercfg};
+    return PMG::AccessControl::check_user_exist($cfg, $user, $noerr);
+}
+
 sub check_node_is_master {
     my ($self, $noerr);
 

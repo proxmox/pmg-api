@@ -124,6 +124,7 @@ __PACKAGE__->register_method ({
 	    $entry->{enable} //= 0;
 	    $entry->{expire} //= 0;
 	    $entry->{role} //= 'audit';
+	    $entry->{realm} //= 'pmg';
 
 	    $cfg->{$param->{userid}} = $entry;
 

@@ -166,6 +166,9 @@ LIBSOURCES =				\
 	PMG/API2/ACMEPlugin.pm		\
 	PMG/API2/NodeConfig.pm		\
 	PMG/API2.pm			\
+	PMG/Auth/Plugin.pm		\
+	PMG/Auth/PAM.pm			\
+	PMG/Auth/PMG.pm			\
 
 SOURCES = ${LIBSOURCES} ${CLI_BINARIES} ${TEMPLATES_FILES} ${CONF_MANS} ${CLI_MANS} ${SERVICE_MANS} ${SERVICE_UNITS} ${TIMER_UNITS} pmg-sources.list pmg-initramfs.conf
 

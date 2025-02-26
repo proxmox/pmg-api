@@ -80,7 +80,7 @@ my $schema = {
 	realm => {
 	    description => "Authentication realm.",
 	    type => 'string',
-	    enum => ['pam', 'pmg'],
+	    format => 'pmg-realm',
 	    default => 'pmg',
 	    optional => 1,
 	},
@@ -219,10 +219,13 @@ sub read_user_conf {
                (?<keys>(?:[^:]*)) :
                $/x
 	    ) {
+		my @username_parts = split('@', $+{userid});
+		my $username = $username_parts[0];
+		my $realm = defined($username_parts[1]) ? $username_parts[1] : "pmg";
 		my $d = {
-		    username => $+{userid},
-		    userid => $+{userid} . '@pmg',
-		    realm => 'pmg',
+		    username => $username,
+		    userid => $username . '@' . $realm,
+		    realm => $realm,
 		    enable => $+{enable} || 0,
 		    expire => $+{expire} || 0,
 		    role => $+{role},
@@ -235,8 +238,9 @@ sub read_user_conf {
 		eval {
 		    $verify_entry->($d);
 		    $cfg->{$d->{userid}} = $d;
-		    die "role 'root' is reserved\n"
-			if $d->{role} eq 'root' && $d->{userid} ne 'root@pmg';
+		    if ($d->{role} eq 'root' && $d->{userid} !~ /^root@(pmg|pam)$/) {
+			die "role 'root' is reserved\n";
+		    }
 		};
 		if (my $err = $@) {
 		    warn "$filename: $err";
@@ -274,22 +278,23 @@ sub write_user_conf {
 	$verify_entry->($d);
 	$cfg->{$d->{userid}} = $d;
 
+	my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
 	if ($d->{userid} ne 'root@pam') {
 	    die "role 'root' is reserved\n" if $d->{role} eq 'root';
 	    die "unable to add users for realm '$d->{realm}'\n"
-		if $d->{realm} && $d->{realm} ne 'pmg';
+		if $d->{realm} && $d->{realm} !~ m!(${realm_regex})!;
 	}
 
 	my $line;
 
 	if ($userid eq 'root@pam') {
-	    $line = 'root:';
+	    $line = 'root@pam:';
 	    $d->{crypt_pass} = '',
 	    $d->{expire} = '0',
 	    $d->{role} = 'root';
 	} else {
-	    next if $userid !~ m/^(?<username>.+)\@pmg$/;
-	    $line = "$+{username}:";
+	    next if $userid !~ m/^(?<username>.+)\@(${realm_regex})$/;
+	    $line = "$d->{userid}:";
 	}
 
 	for my $k (qw(enable expire crypt_pass role email firstname lastname keys)) {
