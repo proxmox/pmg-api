@@ -51,7 +51,7 @@ __PACKAGE__->register_method ({
 
 	my $res = [];
 
-	my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+	my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 	my $ids = $cfg->{ids};
 
 	for my $realm (keys %$ids) {
@@ -82,7 +82,7 @@ __PACKAGE__->register_method ({
 
 	PMG::Auth::Plugin::lock_realm_config(
 	    sub {
-		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 		my $ids = $cfg->{ids};
 
 		my $realm = extract_param($param, 'realm');
@@ -117,7 +117,7 @@ __PACKAGE__->register_method ({
 		}
 		$plugin->on_add_hook($realm, $config, password => $password);
 
-		PVE::INotify::write_file(PMG::Auth::Plugin->realm_cfg_id(), $cfg);
+		PVE::INotify::write_file(PMG::Auth::Plugin->realm_conf_id(), $cfg);
 	    },
 	    "add auth server failed",
 	);
@@ -141,7 +141,7 @@ __PACKAGE__->register_method ({
 
 	PMG::Auth::Plugin::lock_realm_config(
 	    sub {
-		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 		my $ids = $cfg->{ids};
 
 		my $digest = extract_param($param, 'digest');
@@ -184,7 +184,7 @@ __PACKAGE__->register_method ({
 		    $plugin->on_update_hook($realm, $config);
 		}
 
-		PVE::INotify::write_file(PMG::Auth::Plugin->realm_cfg_id(), $cfg);
+		PVE::INotify::write_file(PMG::Auth::Plugin->realm_conf_id(), $cfg);
 	    },
 	    "update auth server failed"
 	);
@@ -208,7 +208,7 @@ __PACKAGE__->register_method ({
     code => sub {
 	my ($param) = @_;
 
-	my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+	my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 
 	my $realm = $param->{realm};
 
@@ -242,7 +242,7 @@ __PACKAGE__->register_method ({
 
 	PMG::Auth::Plugin::lock_realm_config(
 	    sub {
-		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+		my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 		my $ids = $cfg->{ids};
 		my $realm = $param->{realm};
 
@@ -254,7 +254,7 @@ __PACKAGE__->register_method ({
 
 		delete $ids->{$realm};
 
-		PVE::INotify::write_file(PMG::Auth::Plugin->realm_cfg_id(), $cfg);
+		PVE::INotify::write_file(PMG::Auth::Plugin->realm_conf_id(), $cfg);
 	    },
 	    "delete auth server failed",
 	);

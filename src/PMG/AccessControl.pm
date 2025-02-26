@@ -66,7 +66,7 @@ sub authenticate_user : prototype($$$) {
 	}
 	die "ldap login failed\n";
     } elsif ($realm =~ m!(${realm_regex})!) {
-	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 	my $cfg = $realm_cfg->{ids}->{$realm};
 	my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
 	$plugin->authenticate_user($cfg, $realm, $ruid, $password);
@@ -111,7 +111,7 @@ sub set_user_password {
     } elsif ($realm eq 'pmg') {
 	PMG::UserConfig->set_user_password($username, $password);
     } elsif ($realm =~ m!(${realm_regex})!) {
-	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_cfg_id());
+	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
 	my $cfg = $realm_cfg->{ids}->{$realm};
 	my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
 	$plugin->store_password($cfg, $realm, $username, $password);

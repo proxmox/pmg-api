@@ -10,10 +10,11 @@ use PVE::Exception qw(raise raise_perm_exc raise_param_exc);
 use PVE::SafeSyslog;
 use PVE::INotify;
 use PVE::JSONSchema qw(get_standard_option);
+use PVE::RESTHandler;
 
 use PMG::AccessControl;
+use PMG::Auth::Plugin;
 use PMG::RESTEnvironment;
-use PVE::RESTHandler;
 
 use base qw(PVE::RESTHandler);
 
@@ -22,7 +23,7 @@ my $oidc_state_path = "/var/lib/pmg";
 my $lookup_oidc_auth = sub {
     my ($realm, $redirect_url) = @_;
 
-    my $cfg = PVE::INotify::read_file('realms.cfg');
+    my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin::realm_conf_id());
     my $ids = $cfg->{ids};
 
     die "authentication domain '$realm' does not exist\n" if !$ids->{$realm};

@@ -13,11 +13,12 @@ use PVE::Tools;
 
 use base qw(PVE::SectionConfig);
 
-my $realm_cfg_id = "realms.cfg";
+my $realm_conf_id = "realms.conf";
+my $realm_conf_filename = "/etc/pmg/$realm_conf_id";
 my $lockfile = "/var/lock/pmg-realms.lck";
 
-sub realm_cfg_id {
-    return $realm_cfg_id;
+sub realm_conf_id {
+    return $realm_conf_id;
 }
 
 sub read_realms_conf {
@@ -38,8 +39,8 @@ sub write_realms_conf {
 }
 
 PVE::INotify::register_file(
-    $realm_cfg_id,
-    "/etc/pmg/realms.cfg",
+    $realm_conf_id,
+    $realm_conf_filename,
     \&read_realms_conf,
     \&write_realms_conf,
     undef,
