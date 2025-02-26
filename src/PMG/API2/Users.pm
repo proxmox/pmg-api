@@ -111,6 +111,9 @@ __PACKAGE__->register_method ({
 	    die "User '$param->{userid}' already exists\n"
 		if $cfg->{$param->{userid}};
 
+	    die "Currently you cannot create user in the PAM realm\n"
+		if $param->{realm} && $param->{realm} eq 'pam';
+
 	    my $entry = {};
 	    foreach my $k (keys %$param) {
 		my $v = $param->{$k};

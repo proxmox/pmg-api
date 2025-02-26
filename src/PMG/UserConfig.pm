@@ -141,7 +141,6 @@ my $schema = {
 
 our $create_schema = clone($schema);
 delete $create_schema->{properties}->{username};
-delete $create_schema->{properties}->{realm};
 $create_schema->{properties}->{password} = {
     description => "Password",
     type => 'string',
