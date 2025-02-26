@@ -15,9 +15,11 @@ use PMG::LDAPSet;
 use PMG::TFAConfig;
 
 use PMG::Auth::Plugin;
+use PMG::Auth::OIDC;
 use PMG::Auth::PAM;
 use PMG::Auth::PMG;
 
+PMG::Auth::OIDC->register();
 PMG::Auth::PAM->register();
 PMG::Auth::PMG->register();
 PMG::Auth::Plugin->init();

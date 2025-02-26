@@ -169,6 +169,7 @@ LIBSOURCES =				\
 	PMG/Auth/Plugin.pm		\
 	PMG/Auth/PAM.pm			\
 	PMG/Auth/PMG.pm			\
+	PMG/Auth/OIDC.pm		\
 
 SOURCES = ${LIBSOURCES} ${CLI_BINARIES} ${TEMPLATES_FILES} ${CONF_MANS} ${CLI_MANS} ${SERVICE_MANS} ${SERVICE_UNITS} ${TIMER_UNITS} pmg-sources.list pmg-initramfs.conf
 
