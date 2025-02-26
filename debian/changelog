@@ -1,3 +1,19 @@
+pmg-api (8.1.9) bookworm; urgency=medium
+
+  * config: watch admin-mail-from parameter and triggers a pmg-smtp-filter
+    reload on change.
+
+  * user config: password: unify length constraints and set minimum length to
+    8 characters, following the change in the installer and other projects to
+    adhere to current NIST 800-63B recommendation.
+
+  * add plugin system for authentication realms and implement API endpoints to
+    manage them.
+
+  * add authentication realm implementation for OpenID Connect (OIDC)
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 26 Feb 2025 22:14:52 +0100
+
 pmg-api (8.1.8) bookworm; urgency=medium
 
   * record interest in SpamAssassin updates to ensure all our daemons get
