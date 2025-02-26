@@ -12,6 +12,7 @@ use PVE::JSONSchema qw(get_standard_option);
 use PMG::Utils;
 use PMG::UserConfig;
 use PMG::AccessControl;
+use PMG::API2::AuthRealm;
 use PMG::API2::Users;
 use PMG::API2::TFA;
 use PMG::TFAConfig;
@@ -28,6 +29,11 @@ __PACKAGE__->register_method ({
 __PACKAGE__->register_method ({
     subclass => "PMG::API2::TFA",
     path => 'tfa',
+});
+
+__PACKAGE__->register_method ({
+    subclass => "PMG::API2::AuthRealm",
+    path => 'auth-realm',
 });
 
 __PACKAGE__->register_method ({
@@ -57,6 +63,7 @@ __PACKAGE__->register_method ({
 
 	my $res = [
 	    { subdir => 'ticket' },
+	    { subdir => 'auth-realm' },
 	    { subdir => 'password' },
 	    { subdir => 'users' },
 	];
@@ -248,7 +255,8 @@ __PACKAGE__->register_method ({
 
 	my $username = $param->{username};
 
-	if ($username !~ m/\@(pam|pmg|quarantine)$/) {
+	my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
+	if ($username !~ m/\@(${realm_regex})$/) {
 	    my $realm = $param->{realm} // 'quarantine';
 	    $username .= "\@$realm";
 	}
