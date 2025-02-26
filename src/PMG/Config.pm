@@ -1823,6 +1823,7 @@ my $pmg_service_params = {
 	dkim_sign => 1,
 	dkim_sign_all_mail => 1,
 	'dkim-use-domain' => 1,
+	'admin-mail-from' => 1,
     },
 };
 
