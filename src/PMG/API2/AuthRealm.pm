@@ -94,7 +94,7 @@ __PACKAGE__->register_method ({
 		    if $ids->{$realm};
 
 		die "unable to use reserved name '$realm'\n"
-		    if ($realm eq 'pam' || $realm eq 'pmg');
+		    if ($realm eq 'pam' || $realm eq 'pmg' || $realm eq 'quarantine');
 
 		die "unable to create builtin type '$type'\n"
 		    if ($type eq 'pam' || $type eq 'pmg');
