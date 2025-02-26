@@ -49,7 +49,6 @@ sub authenticate_user : prototype($$$) {
 
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
-    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm eq 'pam') {
 	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 	authenticate_pam_user($ruid, $password);
@@ -65,13 +64,16 @@ sub authenticate_user : prototype($$$) {
 	    return ($pmail . '@quarantine', undef);
 	}
 	die "ldap login failed\n";
-    } elsif ($realm =~ m!(${realm_regex})!) {
-	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
-	my $cfg = $realm_cfg->{ids}->{$realm};
-	my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
-	$plugin->authenticate_user($cfg, $realm, $ruid, $password);
     } else {
-	die "no such realm '$realm'\n";
+	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+	if ($realm =~ m!(${realm_regex})!) {
+	    my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
+	    my $cfg = $realm_cfg->{ids}->{$realm};
+	    my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
+	    $plugin->authenticate_user($cfg, $realm, $ruid, $password);
+	} else {
+	    die "no such realm '$realm'\n";
+	}
     }
 
     return ($username, undef) if $skip_tfa;
@@ -96,7 +98,6 @@ sub set_user_password {
 
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
-    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm eq 'pam') {
 	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 
@@ -110,13 +111,16 @@ sub set_user_password {
 
     } elsif ($realm eq 'pmg') {
 	PMG::UserConfig->set_user_password($username, $password);
-    } elsif ($realm =~ m!(${realm_regex})!) {
-	my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
-	my $cfg = $realm_cfg->{ids}->{$realm};
-	my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
-	$plugin->store_password($cfg, $realm, $username, $password);
     } else {
-	die "no such realm '$realm'\n";
+	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+	if ($realm =~ m!(${realm_regex})!) {
+	    my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
+	    my $cfg = $realm_cfg->{ids}->{$realm};
+	    my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
+	    $plugin->store_password($cfg, $realm, $username, $password);
+	} else {
+	    die "no such realm '$realm'\n";
+	}
     }
 }
 
@@ -129,7 +133,6 @@ sub check_user_enabled {
 
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username, 1);
 
-    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
     if ($realm && $ruid) {
 	if ($realm eq 'pam') {
 	    return 'root' if $ruid eq 'root';
@@ -139,10 +142,13 @@ sub check_user_enabled {
 	    return $data->{role} if $data && $data->{enable};
 	} elsif ($realm eq 'quarantine') {
 	    return 'quser';
-	} elsif ($realm =~ m!(${realm_regex})!) {
-	    my $usercfg = PMG::UserConfig->new();
-	    my $data = $usercfg->lookup_user_data($username, $noerr);
-	    return $data->{role} if $data && $data->{enable};
+	} else {
+	    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+	    if ($realm =~ m!(${realm_regex})!) {
+		my $usercfg = PMG::UserConfig->new();
+		my $data = $usercfg->lookup_user_data($username, $noerr);
+		return $data->{role} if $data && $data->{enable};
+	    }
 	}
     }
 
