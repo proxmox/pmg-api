@@ -6,7 +6,6 @@ use warnings;
 use Digest::SHA;
 use Encode;
 
-use PMG::Utils;
 use PVE::INotify;
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::SectionConfig;
@@ -55,6 +54,24 @@ sub lock_realm_config {
 	$errmsg ? die "$errmsg: $err" : die $err;
     }
 }
+
+sub is_valid_realm {
+    my ($realm) = @_;
+    return 0 if !$realm;
+    return 1 if $realm eq 'pam' || $realm eq 'quarantine'; # built-in ones
+
+    my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin::realm_conf_id());
+    return exists($cfg->{ids}->{$realm}) ? 1 : 0;
+}
+
+PVE::JSONSchema::register_format('pmg-realm', \&is_valid_realm);
+
+PVE::JSONSchema::register_standard_option('realm', {
+    description => "Authentication domain ID",
+    type => 'string',
+    format => 'pmg-realm',
+    maxLength => 32,
+});
 
 my $realm_regex = qr/[A-Za-z][A-Za-z0-9\.\-_]+/;
 

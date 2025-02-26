@@ -34,6 +34,7 @@ use Time::Local;
 use Xdgmime;
 
 use PMG::AtomicFile;
+use PMG::Auth::Plugin;
 use PMG::MIMEUtils;
 use PMG::MailQueue;
 use PMG::SMTPPrinter;
@@ -52,29 +53,11 @@ try_decode_utf8
 my $user_regex = qr![^\s:/]+!;
 
 sub valid_pmg_realm_regex {
-    my $cfg = PVE::INotify::read_file('realms.cfg');
+    my $cfg = PVE::INotify::read_file(PMG::Auth::Plugin::realm_conf_id());
     my $ids = $cfg->{ids};
     my $realms = ['pam', 'quarantine', sort keys $cfg->{ids}->%* ];
     return join('|', @$realms);
 }
-
-sub is_valid_realm {
-    my ($realm) = @_;
-    return 0 if !$realm;
-    return 1 if $realm eq 'pam' || $realm eq 'quarantine'; # built-in ones
-
-    my $cfg = PVE::INotify::read_file('realms.cfg');
-    return exists($cfg->{ids}->{$realm}) ? 1 : 0;
-}
-
-PVE::JSONSchema::register_format('pmg-realm', \&is_valid_realm);
-
-PVE::JSONSchema::register_standard_option('realm', {
-    description => "Authentication domain ID",
-    type => 'string',
-    format => 'pmg-realm',
-    maxLength => 32,
-});
 
 PVE::JSONSchema::register_standard_option('pmg-starttime', {
     description => "Only consider entries newer than 'starttime' (unix epoch). Default is 'now - 1day'.",
