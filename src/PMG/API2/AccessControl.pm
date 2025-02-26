@@ -13,6 +13,7 @@ use PMG::Utils;
 use PMG::UserConfig;
 use PMG::AccessControl;
 use PMG::API2::AuthRealm;
+use PMG::API2::OIDC;
 use PMG::API2::Users;
 use PMG::API2::TFA;
 use PMG::TFAConfig;
@@ -34,6 +35,11 @@ __PACKAGE__->register_method ({
 __PACKAGE__->register_method ({
     subclass => "PMG::API2::AuthRealm",
     path => 'auth-realm',
+});
+
+__PACKAGE__->register_method ({
+    subclass => "PMG::API2::OIDC",
+    path => 'oidc',
 });
 
 __PACKAGE__->register_method ({
@@ -64,6 +70,7 @@ __PACKAGE__->register_method ({
 	my $res = [
 	    { subdir => 'ticket' },
 	    { subdir => 'auth-realm' },
+	    { subdir => 'oidc' },
 	    { subdir => 'password' },
 	    { subdir => 'users' },
 	];

@@ -152,6 +152,7 @@ LIBSOURCES =				\
 	PMG/API2/Quarantine.pm		\
 	PMG/API2/AccessControl.pm	\
 	PMG/API2/AuthRealm.pm		\
+	PMG/API2/OIDC.pm		\
 	PMG/API2/TFA.pm			\
 	PMG/API2/TFAConfig.pm		\
 	PMG/API2/ObjectGroupHelpers.pm	\
