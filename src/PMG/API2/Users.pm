@@ -11,8 +11,10 @@ use PVE::RESTHandler;
 use PVE::INotify;
 use PVE::Exception qw(raise_perm_exc);
 
+use PMG::Auth::Plugin;
 use PMG::RESTEnvironment;
 use PMG::UserConfig;
+use PMG::Utils;
 use PMG::TFAConfig;
 
 use base qw(PVE::RESTHandler);
@@ -122,16 +124,16 @@ __PACKAGE__->register_method ({
 	    }
 
 	    my ($userid, $username, $realm) = PMG::Utils::verify_username($entry->{userid});
-	    my $realm_regex = PMG::Utils::valid_pmg_realm_regex();
-	    die "invalid realm in userid\n" if $realm !~ /$realm_regex/;
+	    die "invalid realm '$realm' in userid\n" if !PMG::Auth::Plugin::is_valid_realm($realm);
 
 	    if ($entry->{realm}) {
-		die "realm parameter does not fit userid\n" if ($entry->{realm} ne $realm);
+		die "realm parameter does not fit userid ('$entry->{realm}' != '$realm')\n"
+		    if $entry->{realm} ne $realm;
 	    } else {
 		$entry->{realm} = $realm;
 	    }
 
-	    die "Currently you cannot create user in the PAM realm\n" if $entry->{realm} eq 'pam';
+	    die "You cannot create user in the PAM realm\n" if $entry->{realm} eq 'pam';
 
 	    $entry->{enable} //= 0;
 	    $entry->{expire} //= 0;
