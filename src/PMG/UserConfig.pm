@@ -145,8 +145,8 @@ delete $create_schema->{properties}->{realm};
 $create_schema->{properties}->{password} = {
     description => "Password",
     type => 'string',
-    maxLength => 32,
-    minLength => 5,
+    maxLength => 64,
+    minLength => 8,
     optional => 1,
 };
 
