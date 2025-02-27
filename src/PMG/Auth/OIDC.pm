@@ -31,6 +31,7 @@ my $autocreate_role_assignment_format = {
     'role-claim' => {
 	description => "OIDC claim used to assign the unique username.",
 	type => 'string',
+	format_description => 'Role claim.',
 	default => 'role',
 	optional => 1,
 	pattern => qr/^[a-zA-Z0-9._:-]+$/,
