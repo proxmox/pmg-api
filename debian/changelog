@@ -1,3 +1,13 @@
+pmg-api (8.2.0) bookworm; urgency=medium
+
+  * oidc realm: add more flexiple access-role assignment
+
+  * utils: allow quarantine logins again
+
+  * oidc realm: only allow auto-creation of users on primary cluster-node
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 27 Feb 2025 12:10:58 +0100
+
 pmg-api (8.1.9) bookworm; urgency=medium
 
   * config: watch admin-mail-from parameter and triggers a pmg-smtp-filter
