@@ -126,7 +126,7 @@ __PACKAGE__->register_method ({
 	    my ($userid, $username, $realm) = PMG::Utils::verify_username($entry->{userid});
 	    die "invalid realm '$realm' in userid\n" if !PMG::Auth::Plugin::is_valid_realm($realm);
 
-	    die "'@' forbidden in username\n" if $username =~/@/;
+	    die "'\@' forbidden in username\n" if $username =~ /@/;
 
 	    if ($entry->{realm}) {
 		die "realm parameter does not fit userid ('$entry->{realm}' != '$realm')\n"
