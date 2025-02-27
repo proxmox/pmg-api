@@ -49,7 +49,7 @@ postgres_admin_cmd
 try_decode_utf8
 );
 
-my $user_regex = qr![^\s:@/]+!;
+my $user_regex = qr![^\s:/]+!;
 
 PVE::JSONSchema::register_standard_option('pmg-starttime', {
     description => "Only consider entries newer than 'starttime' (unix epoch). Default is 'now - 1day'.",
