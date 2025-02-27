@@ -47,7 +47,7 @@ sub parse_autocreate_role_assignment {
 	if $role_assignment->{'source'} eq 'fixed' && !defined($role_assignment->{'fixed-role'});
 
     $role_assignment->{'role-claim'} = 'role'
-	if $role_assignment->{'source'} eq 'from-clain' && !defined($role_assignment->{'role-claim'});
+	if $role_assignment->{'source'} eq 'from-claim' && !defined($role_assignment->{'role-claim'});
 
     return $role_assignment;
 }
@@ -79,9 +79,9 @@ sub properties {
 	    type => 'boolean',
 	    default => 0,
 	},
-	'autocreate-role' => { # NOTE: depreacated since the beginning, just here for compat
+	'autocreate-role' => { # NOTE: deprecated since the beginning, just here for compat
 	    description => "Automatically create users with a specific role."
-		." NOTE: Depreacated, favor 'autocreate-role-assignment'",
+		." NOTE: Deprecated, favor 'autocreate-role-assignment'",
 	    type => 'string',
 	    enum => ['admin', 'qmanager', 'audit', 'helpdesk'],
 	    default => 'audit',
@@ -131,7 +131,7 @@ sub options {
 	'client-id' => {},
 	'client-key' => { optional => 1 },
 	autocreate => { optional => 1 },
-	'autocreate-role' => { optional => 1 }, # NOTE: depreacated in favor of 'autocreate-role-assignment'
+	'autocreate-role' => { optional => 1 }, # NOTE: deprecated in favor of 'autocreate-role-assignment'
 	'autocreate-role-assignment' => { optional => 1 },
 	'username-claim' => { optional => 1, fixed => 1 },
 	prompt => { optional => 1 },

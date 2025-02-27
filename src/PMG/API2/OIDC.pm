@@ -226,7 +226,7 @@ __PACKAGE__->register_method ({
 				die "required '$role_attr' role-claim attribute not found, cannot autocreate user\n";
 			    }
 			} else {
-			    die "unkown role assignment source '$role_assignment->{source}' - implement me";
+			    die "unknown role assignment source '$role_assignment->{source}' - implement me";
 			}
 		    }
 		    $entry->{userid} = $username;

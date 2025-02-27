@@ -127,11 +127,9 @@ sub set_user_password {
 # test if user exists and is enabled
 # returns: role
 sub check_user_enabled {
-    my ($usercfg, $username, $noerr) = @_;
+    my ($usercfg, $username_raw, $noerr) = @_;
 
-    my ($ruid, $realm);
-
-    ($username, $ruid, $realm) = PMG::Utils::verify_username($username, 1);
+    my ($username, $ruid, $realm) = PMG::Utils::verify_username($username_raw, 1);
 
     if ($realm && $ruid) {
 	if ($realm eq 'pam') {
@@ -152,7 +150,7 @@ sub check_user_enabled {
 	}
     }
 
-    raise_perm_exc("user '$username' is disabled") if !$noerr;
+    raise_perm_exc("user '$username_raw' is disabled") if !$noerr;
 
     return undef;
 }
