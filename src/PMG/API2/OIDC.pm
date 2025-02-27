@@ -192,6 +192,8 @@ __PACKAGE__->register_method ({
 	    # first, check if $username respects our naming conventions
 	    PMG::Utils::verify_username($username);
 	    if ($config->{'autocreate'} && !$rpcenv->check_user_exist($username, 1)) {
+		die "cannot auto-create users on stand-by nodes, please log in to the active master\n"
+		    if !$rpcenv->check_node_is_master(1);
 		my $code = sub {
 		    my $usercfg = PMG::UserConfig->new();
 
