@@ -4,12 +4,52 @@ use strict;
 use warnings;
 
 use PVE::Tools;
+use PVE::JSONSchema qw(parse_property_string);
+
 use PMG::Auth::Plugin;
 
 use base qw(PMG::Auth::Plugin);
 
 sub type {
     return 'oidc';
+}
+
+my $autocreate_role_assignment_format = {
+    source => {
+	type => 'string',
+	enum => ['fixed', 'from-claim'],
+	default => 'fixed',
+	description => "How the access role for a newly auto-created user should be selected.",
+    },
+    'fixed-role' => {
+	type => 'string',
+	enum => ['admin', 'qmanager', 'audit', 'helpdesk'],
+	default => 'audit',
+	optional => 1,
+	description => "The fixed role that should be assigned to auto-created users.",
+    },
+    'role-claim' => {
+	description => "OIDC claim used to assign the unique username.",
+	type => 'string',
+	default => 'role',
+	optional => 1,
+	pattern => qr/^[a-zA-Z0-9._:-]+$/,
+    },
+};
+
+
+sub parse_autocreate_role_assignment {
+    my ($raw) = @_;
+    return undef if !$raw or !length($raw);
+
+    my $role_assignment = parse_property_string($autocreate_role_assignment_format, $raw);
+    $role_assignment->{'fixed-role'} = 'audit'
+	if $role_assignment->{'source'} eq 'fixed' && !defined($role_assignment->{'fixed-role'});
+
+    $role_assignment->{'role-claim'} = 'role'
+	if $role_assignment->{'source'} eq 'from-clain' && !defined($role_assignment->{'role-claim'});
+
+    return $role_assignment;
 }
 
 sub properties {
@@ -39,11 +79,18 @@ sub properties {
 	    type => 'boolean',
 	    default => 0,
 	},
-	'autocreate-role' => {
-	    description => "Automatically create users with a specific role.",
+	'autocreate-role' => { # NOTE: depreacated since the beginning, just here for compat
+	    description => "Automatically create users with a specific role."
+		." NOTE: Depreacated, favor 'autocreate-role-assignment'",
 	    type => 'string',
 	    enum => ['admin', 'qmanager', 'audit', 'helpdesk'],
 	    default => 'audit',
+	    optional => 1,
+	},
+	'autocreate-role-assignment' => {
+	    description => "Defines which role should be assigned to auto-created users.",
+	    type => 'string', format => $autocreate_role_assignment_format,
+	    default => 'source=fixed,fixed-role=auditor',
 	    optional => 1,
 	},
 	'username-claim' => {
@@ -84,7 +131,8 @@ sub options {
 	'client-id' => {},
 	'client-key' => { optional => 1 },
 	autocreate => { optional => 1 },
-	'autocreate-role' => { optional => 1 },
+	'autocreate-role' => { optional => 1 }, # NOTE: depreacated in favor of 'autocreate-role-assignment'
+	'autocreate-role-assignment' => { optional => 1 },
 	'username-claim' => { optional => 1, fixed => 1 },
 	prompt => { optional => 1 },
 	scopes => { optional => 1 },

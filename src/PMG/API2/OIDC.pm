@@ -13,6 +13,7 @@ use PVE::JSONSchema qw(get_standard_option);
 use PVE::RESTHandler;
 
 use PMG::AccessControl;
+use PMG::Auth::OIDC;
 use PMG::Auth::Plugin;
 use PMG::RESTEnvironment;
 
@@ -204,7 +205,30 @@ __PACKAGE__->register_method ({
 		    if (defined(my $family_name = $info->{'family_name'})) {
 			$entry->{lastname} = $family_name;
 		    }
-		    $entry->{role} = $config->{'autocreate-role'} // 'audit';
+
+		    # NOTE: 'autocreate-role' is deprecated and has less priority than the more
+		    # flexible 'autocreate-role-assignment'
+		    $entry->{role} = $config->{'autocreate-role'} // 'audit'; # default
+		    if (my $role_assignment_raw = $config->{'autocreate-role-assignment'}) {
+			my $role_assignment =
+			    PMG::Auth::OIDC::parse_autocreate_role_assignment($role_assignment_raw);
+
+			if ($role_assignment->{source} eq 'fixed') {
+			    $entry->{role} = $role_assignment->{'fixed-role'};
+			} elsif ($role_assignment->{source} eq 'from-claim') {
+			    my $role_attr = $role_assignment->{'role-claim'};
+			    if (my $role = $info->{$role_attr}) {
+				$role = lc($role); # normalize to lower-case
+				die "required '$role_attr' role-claim attribute not found, cannot autocreate user\n"
+				    if $role !~ /^(?:admin|qmanager|audit|helpdesk)$/;
+				$entry->{role} = $role;
+			    } else {
+				die "required '$role_attr' role-claim attribute not found, cannot autocreate user\n";
+			    }
+			} else {
+			    die "unkown role assignment source '$role_assignment->{source}' - implement me";
+			}
+		    }
 		    $entry->{userid} = $username;
 		    $entry->{username} = $unique_name;
 		    $entry->{realm} = $realm;
