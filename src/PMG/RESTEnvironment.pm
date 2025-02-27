@@ -103,7 +103,7 @@ sub check_user_exist {
 }
 
 sub check_node_is_master {
-    my ($self, $noerr);
+    my ($self, $noerr) = @_;
 
     my $master = PMG::Cluster::get_master_node($self->{cinfo});
 
