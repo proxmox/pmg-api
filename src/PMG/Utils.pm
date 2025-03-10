@@ -1313,6 +1313,7 @@ sub finalize_report {
 	Type    => ($html && $plaintext) ? 'multipart/alternative' : 'multipart/related',
 	To      => $data->{pmail_raw},
 	From    => $mailfrom,
+	Date    => strftime("%a, %d %b %Y %T %z", localtime()),
 	Subject => bencode_header(decode_entities($title)));
 
     if ($html) {
