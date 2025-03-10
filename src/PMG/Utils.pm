@@ -1328,6 +1328,9 @@ sub finalize_report {
 	    Type     => 'text/plain; charset=utf-8',
 	    Encoding => '8-bit');
     }
+
+    $top->head()->add('Auto-Submitted', 'auto-generated');
+
     if ($debug) {
 	$top->print();
 	return;

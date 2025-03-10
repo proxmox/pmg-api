@@ -290,6 +290,8 @@ EOF
 	Date => strftime("%a, %d %b %Y %T %z", localtime()),
 	Subject => 'Undelivered Mail');
 
+    $ndr->head()->add('Auto-Submitted', 'auto-replied');
+
     $ndr->attach(
 	Data => $ndr_text,
 	Type => 'text/plain; charset=utf-8',

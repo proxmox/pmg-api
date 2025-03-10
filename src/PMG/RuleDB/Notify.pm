@@ -244,6 +244,8 @@ sub execute {
 	    Type => "message/rfc822",);
     }
 
+    $top->head()->add('Auto-Submitted', 'auto-generated');
+
     if ($msginfo->{testmode}) {
 	my $fh = $msginfo->{test_fh};
 	print $fh "notify: $self->{to}\n";
