@@ -61,18 +61,22 @@ sub properties {
 	    maxLength => 256,
 	    pattern => qr/^(https?):\/\/([a-zA-Z0-9.-]+)(:[0-9]{1,5})?(\/[^\s]*)?$/,
 	},
+	# See RFC 6749, Appendix A for the allowed pattern for `client-id` and
+	# `client-key`.
+	# https://www.rfc-editor.org/rfc/rfc6749#appendix-A
+	# tl;dr: anything ASCII in the (inclusive) range 0x20-0x7E
 	'client-id' => {
 	    description => "OpenID Connect Client ID",
 	    type => 'string',
 	    maxLength => 256,
-	    pattern => qr/^[a-zA-Z0-9._:-]+$/,
+	    pattern => qr/^[\x20-\x7E]+$/,
 	},
 	'client-key' => {
 	    description => "OpenID Connect Client Key",
 	    type => 'string',
 	    optional => 1,
 	    maxLength => 256,
-	    pattern => qr/^[a-zA-Z0-9._:-]+$/,
+	    pattern => qr/^[\x20-\x7E]+$/,
 	},
 	autocreate => {
 	    description => "Automatically create users if they do not exist.",
