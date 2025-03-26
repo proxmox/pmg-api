@@ -144,8 +144,6 @@ sub parse_config {
     $cfg->{ids}->{pmg}->{type} = 'pmg'; # force type
     $cfg->{ids}->{pmg}->{comment} = "Proxmox Mail Gateway authentication server"
 	if !$cfg->{ids}->{pmg}->{comment};
-    $cfg->{ids}->{pmg}->{default} = 1
-	if !$cfg->{ids}->{pmg}->{default};
 
     $cfg->{ids}->{pam}->{type} = 'pam'; # force type
     $cfg->{ids}->{pam}->{comment} = "Linux PAM standard authentication"
