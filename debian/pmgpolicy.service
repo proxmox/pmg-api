@@ -13,7 +13,10 @@ ExecReload=/bin/kill -HUP $MAINPID
 PIDFile=/run/pmgpolicy/pmgpolicy.pid
 Type=forking
 RuntimeDirectory=pmgpolicy
+User=pmgpolicy
+Group=pmgpolicy
 SupplementaryGroups=systemd-journal
+NoNewPrivileges=yes
 
 [Install]
 WantedBy=multi-user.target
