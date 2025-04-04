@@ -56,7 +56,7 @@ if (!GetOptions(%_opts)) {
     exit(-1);
 }
 
-$opt_pidfile = "/run/pmgpolicy.pid" if !$opt_pidfile;
+$opt_pidfile = $ENV{'PIDFILE'} if !$opt_pidfile;
 $opt_max_dequeue = 0 if $opt_testmode;
 
 initlog('pmgpolicy', 'mail');
@@ -976,7 +976,7 @@ sub run_n_children {
     setup_fork_signal_mask(0); # unblocking signals for parent
 }
 
-# test sig_hup with: for ((;;)) ;do kill -HUP  `cat /run/pmgpolicy.pid`; done;
+# test sig_hup with: for ((;;)) ;do kill -HUP `cat /run/pmgpolicy/pmgpolicy.pid`; done;
 # wrapper to avoid multiple calls to sig_hup
 sub sig_hup {
     my $self = shift;

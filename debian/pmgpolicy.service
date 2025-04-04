@@ -10,8 +10,9 @@ ExecStart=/usr/bin/pmgpolicy
 KillMode=mixed
 TimeoutStopSec=40
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/run/pmgpolicy.pid
+PIDFile=/run/pmgpolicy/pmgpolicy.pid
 Type=forking
+RuntimeDirectory=pmgpolicy
 
 [Install]
 WantedBy=multi-user.target
