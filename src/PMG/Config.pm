@@ -1930,8 +1930,9 @@ my $pmg_service_params = {
     },
 };
 
-my $smtp_filter_cfg = '/run/pmg-smtp-filter.cfg';
-my $smtp_filter_cfg_lock = '/run/pmg-smtp-filter.cfg.lck';
+my $smtp_filter_rundir = '/run/pmg-smtp-filter';
+my $smtp_filter_cfg = "$smtp_filter_rundir/pmg-smtp-filter.cfg";
+my $smtp_filter_cfg_lock = "$smtp_filter_rundir/pmg-smtp-filter.cfg.lck";
 
 sub dump_smtp_filter_config {
     my ($self) = @_;
@@ -1973,6 +1974,14 @@ sub compare_smtp_filter_config {
 # on config change
 sub write_smtp_filter_config {
     my ($self) = @_;
+
+    # pmgconfig can write here before the daemon's runtime dir exists (e.g. on install,
+    # before the service first starts), so create it, matching the tmpfiles entry
+    if (!-d $smtp_filter_rundir) {
+        my ($uid, $gid) = (getpwnam('pmg-smtp-filter'))[2, 3];
+        mkdir($smtp_filter_rundir, 0755);
+        chown($uid, $gid, $smtp_filter_rundir) if defined($uid);
+    }
 
     PVE::Tools::lock_file(
         $smtp_filter_cfg_lock,
