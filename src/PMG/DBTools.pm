@@ -38,7 +38,7 @@ sub cgreylist_merge_sql {
 }
 
 sub open_ruledb {
-    my ($database, $host, $port) = @_;
+    my ($database, $host, $port, $user) = @_;
 
     $port //= 5432;
 
@@ -74,11 +74,21 @@ sub open_ruledb {
         return $rdb;
     } else {
         my $dsn = "DBI:Pg:dbname=$database;host=/var/run/postgresql;port=$port";
-        my $user = $> == 0 ? 'root' : 'www-data';
+        $user //= $> == 0 ? 'root' : 'www-data';
         my $dbh = DBI->connect($dsn, $user, undef, { PrintError => 0, RaiseError => 1 });
 
         return $dbh;
     }
+}
+
+sub open_ruledb_as {
+    my ($database, $user) = @_;
+
+    # a root caller (tests, CLI tooling) can only peer-auth as 'root', not as a daemon
+    # role; the dedicated role is reachable only when the daemon runs under that user
+    $user = undef if $> == 0;
+
+    open_ruledb($database, undef, undef, $user);
 }
 
 sub delete_ruledb {
@@ -659,6 +669,23 @@ sub upgradedb {
         if (my $err = $@) {
             $dbh->rollback;
             die $err;
+        }
+    }
+
+    foreach my $user ('pmgpolicy', 'pmg-smtp-filter') {
+        eval {
+            my $silent_opts = { outfunc => sub { }, errfunc => sub { } };
+            postgres_admin_cmd('createuser', $silent_opts, '-D', $user);
+
+            $dbh->begin_work;
+            $dbh->do("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO \"$user\"");
+            $dbh->do(
+                "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"$user\"");
+            $dbh->commit;
+        };
+        if (my $err = $@) {
+            $dbh->rollback;
+            warn "failed to grant database privileges to '$user': $err";
         }
     }
 

@@ -416,7 +416,7 @@ sub load_config {
     PMG::MailQueue::create_spooldirs($self->{cinfo}->{local}->{cid});
 
     eval {
-        my $dbh = PMG::DBTools::open_ruledb($database);
+        my $dbh = PMG::DBTools::open_ruledb_as($database, 'pmg-smtp-filter');
         $self->{ruledb} = PMG::RuleDB->new($dbh);
 
         # load rulecache
@@ -565,7 +565,7 @@ sub run_dequeue {
 
     my $cinfo = PVE::INotify::read_file("cluster.conf");
 
-    my $dbh = eval { PMG::DBTools::open_ruledb($database) };
+    my $dbh = eval { PMG::DBTools::open_ruledb_as($database, 'pmg-smtp-filter') };
     if ($err = $@) {
         $self->log(0, "ERROR: $err");
         return;

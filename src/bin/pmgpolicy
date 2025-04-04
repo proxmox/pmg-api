@@ -140,7 +140,7 @@ sub run_dequeue {
 
     my $dbh;
 
-    eval { $dbh = PMG::DBTools::open_ruledb($database); };
+    eval { $dbh = PMG::DBTools::open_ruledb_as($database, 'pmgpolicy'); };
     my $err = $@;
 
     if ($err) {
@@ -339,7 +339,7 @@ sub load_config {
     my $dbh;
 
     eval {
-        $dbh = PMG::DBTools::open_ruledb($database);
+        $dbh = PMG::DBTools::open_ruledb_as($database, 'pmgpolicy');
         $self->{ruledb} = PMG::RuleDB->new($dbh);
         $self->{rulecache} = PMG::RuleCache->new($self->{ruledb});
     };
@@ -530,7 +530,7 @@ sub greylist_value {
     if (!$dbh->ping) {
         $self->log(0, 'Database connection broken - trying to reconnect');
         my $dbh;
-        eval { $dbh = PMG::DBTools::open_ruledb($database); };
+        eval { $dbh = PMG::DBTools::open_ruledb_as($database, 'pmgpolicy'); };
         my $err = $@;
         if ($err) {
             $self->log(0, "unable to reconnect to database server: $err");
