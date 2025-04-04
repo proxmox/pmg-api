@@ -131,7 +131,7 @@ sub check_dns_resolution {
         debug => 0,
         local_tests_only => 0,
         home_dir_for_helpers => '/root',
-        userstate_dir => '/root/.spamassassin',
+        userstate_dir => '/var/lib/pmg/spamassassin',
         dont_copy_prefs => 1,
         stop_at_threshold => 0,
     });

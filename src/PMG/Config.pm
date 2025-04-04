@@ -1713,14 +1713,14 @@ sub rewrite_config_spam {
 
     # delete AW and bayes databases if those features are disabled
     if (!$use_awl) {
-        $changes = 1 if unlink '/root/.spamassassin/auto-whitelist';
-        $changes = 1 if unlink '/root/.spamassassin/auto-welcomelist';
+        $changes = 1 if unlink '/var/lib/pmg/spamassassin/auto-whitelist';
+        $changes = 1 if unlink '/var/lib/pmg/spamassassin/auto-welcomelist';
     }
 
     if (!$use_bayes) {
-        $changes = 1 if unlink '/root/.spamassassin/bayes_journal';
-        $changes = 1 if unlink '/root/.spamassassin/bayes_seen';
-        $changes = 1 if unlink '/root/.spamassassin/bayes_toks';
+        $changes = 1 if unlink '/var/lib/pmg/spamassassin/bayes_journal';
+        $changes = 1 if unlink '/var/lib/pmg/spamassassin/bayes_seen';
+        $changes = 1 if unlink '/var/lib/pmg/spamassassin/bayes_toks';
     }
 
     # make sure we have the custom SA files (else cluster sync fails)
