@@ -1576,7 +1576,7 @@ sub get_pg_server_version {
 
 sub reload_smtp_filter {
 
-    my $pid_file = '/run/pmg-smtp-filter.pid';
+    my $pid_file = '/run/pmg-smtp-filter/pmg-smtp-filter.pid';
     my $pid = PVE::Tools::file_read_firstline($pid_file);
 
     return 0 if !$pid;

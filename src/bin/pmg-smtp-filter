@@ -79,7 +79,7 @@ if (!GetOptions(
     exit(-1);
 }
 
-$opt_pidfile = "/run/${prog_name}.pid" if !$opt_pidfile;
+$opt_pidfile = $ENV{'PIDFILE'} if !$opt_pidfile;
 
 my $max_servers = 1;
 my $min_servers = 1;
