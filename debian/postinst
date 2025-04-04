@@ -23,6 +23,14 @@ migrate_pmg_smtp_filter() {
 
     chown :pmg /var/lib/pmg
 
+    chown :pmg /var/spool/pmg/active
+    chown :pmg /var/spool/pmg/virus
+    chown :pmg /var/spool/pmg/spam
+    chown :pmg /var/spool/pmg/attachment
+    chmod g+w /var/spool/pmg/active
+    chmod g+w /var/spool/pmg/virus
+    chmod g+w /var/spool/pmg/spam
+    chmod g+w /var/spool/pmg/attachment
     pmgdb update >/dev/null 2>&1 &
 }
 

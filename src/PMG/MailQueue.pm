@@ -35,9 +35,13 @@ sub create_spooldirs {
     ])
         if $cleanup;
 
-    mkpath([
-        "$spooldir/active", "$spooldir/spam", "$spooldir/virus", "$spooldir/attachment",
-    ]);
+    mkpath(
+        "$spooldir/active",
+        "$spooldir/spam",
+        "$spooldir/virus",
+        "$spooldir/attachment",
+        { group => 'pmg', chmod => 0775 },
+    );
 
     if ($lcid) {
         mkpath "$spooldir/cluster/$lcid/virus";
@@ -67,9 +71,11 @@ sub new_fileid {
     my $uid;
     my $subsubdir = '';
 
-    if (!($fh = IO::File->new($path, 'w+', 0600))) {
+    if (!($fh = IO::File->new($path, 'w+'))) {
         die "unable to create file '$path': $! : ERROR";
     }
+    # the www-data web UI reads these directly, so keep them world-readable regardless of umask
+    chmod(0644, $path);
 
     if (my $st = stat($fh)) {
         $uid = sprintf("%X%X%05X", $st->ino, $sec, $usec);
