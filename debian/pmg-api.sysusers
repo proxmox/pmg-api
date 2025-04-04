@@ -1,1 +1,5 @@
 g pmg             -               -
+u pmg-smtp-filter -               "SMTP filter user"
+u pmgpolicy       -               "Mail policy user"
+m pmg-smtp-filter pmg             -
+m pmgpolicy       pmg             -
