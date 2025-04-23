@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use PVE::SafeSyslog;
+use PVE::Tools qw(trim);
 use MIME::Parser;
 use IO::File;
 use Encode;
@@ -393,8 +394,8 @@ sub parse_mail {
 
     PMG::MIMEUtils::fixup_multipart($entity);
 
-    if ((my $idcount = $entity->head->count ('Message-Id')) > 0) {
-	$self->msgid ($entity->head->get ('Message-Id', $idcount - 1));
+    if ((my $idcount = $entity->head->count('Message-Id')) > 0) {
+	$self->msgid(trim($entity->head->get('Message-Id', $idcount - 1)));
     }
 
     # fixme: add parse_time to statistic database
