@@ -1141,10 +1141,11 @@ sub pmg_verify_transport_domain_or_nexthop {
 	    $nexthop = $1;
 	}
 	return $name if pmg_verify_transport_address($nexthop, 1);
-    } else {
-	   return undef if $noerr;
-	   die "value does not look like a valid domain or next-hop\n";
+	# else fall through, because it is a failure
     }
+
+    return undef if $noerr;
+    die "value does not look like a valid domain or next-hop\n";
 }
 
 sub read_tls_policy {
