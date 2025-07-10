@@ -759,7 +759,6 @@ __PACKAGE__->register_method({
             clamav-daemon
             libarchive-perl
             libjs-extjs
-            libjs-framework7
             libpve-common-perl
             libpve-http-server-perl
             libproxmox-acme-perl

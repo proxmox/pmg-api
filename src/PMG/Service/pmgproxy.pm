@@ -52,7 +52,6 @@ my $mobile_quarantine_ui_base_dir = "/usr/share/pmg-mobile-quarantine-ui/";
 my $extjs_dir = "/usr/share/javascript/extjs/";
 my $fontawesome_dir = "/usr/share/fonts-font-awesome";
 my $xtermjs_dir = '/usr/share/pve-xtermjs';
-my $framework7_dir = '/usr/share/javascript/framework7';
 my $widgettoolkit_dir = '/usr/share/javascript/proxmox-widget-toolkit';
 my $mobile_i18n_dir = '/usr/share/pmg-yew-quarantine-i18n/';
 
@@ -83,9 +82,6 @@ sub init {
     add_dirs($dirs, '/mobile/i18n/' => "$mobile_i18n_dir/");
     add_dirs($dirs, '/fontawesome/css/' => "$fontawesome_dir/css/");
     add_dirs($dirs, '/fontawesome/fonts/' => "$fontawesome_dir/fonts/");
-    add_dirs($dirs, '/framework7/fonts/' => "$framework7_dir/fonts/");
-    add_dirs($dirs, '/framework7/css/' => "$framework7_dir/css/");
-    add_dirs($dirs, '/framework7/js/' => "$framework7_dir/js/");
     add_dirs($dirs, '/xtermjs/' => "$xtermjs_dir/");
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
     add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
