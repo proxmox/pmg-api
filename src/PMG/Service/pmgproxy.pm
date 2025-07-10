@@ -48,11 +48,13 @@ sub add_dirs {
 }
 
 my $gui_base_dir = "/usr/share/javascript/pmg-gui";
+my $mobile_quarantine_ui_base_dir = "/usr/share/pmg-mobile-quarantine-ui/";
 my $extjs_dir = "/usr/share/javascript/extjs/";
 my $fontawesome_dir = "/usr/share/fonts-font-awesome";
 my $xtermjs_dir = '/usr/share/pve-xtermjs';
 my $framework7_dir = '/usr/share/javascript/framework7';
 my $widgettoolkit_dir = '/usr/share/javascript/proxmox-widget-toolkit';
+my $mobile_i18n_dir = '/usr/share/pmg-yew-quarantine-i18n/';
 
 sub init {
     my ($self) = @_;
@@ -74,6 +76,11 @@ sub init {
     add_dirs($dirs, '/pve2/images/' => "$gui_base_dir/images/");
     add_dirs($dirs, '/pve2/css/' => "$gui_base_dir/css/");
     add_dirs($dirs, '/pve2/js/' => "$gui_base_dir/js/");
+    add_dirs($dirs, '/mobile/' => "$mobile_quarantine_ui_base_dir/");
+    add_dirs($dirs, '/mobile/css/' => "$mobile_quarantine_ui_base_dir/css/");
+    add_dirs($dirs, '/mobile/fonts/' => "$mobile_quarantine_ui_base_dir/fonts/");
+    add_dirs($dirs, '/mobile/images/' => "$mobile_quarantine_ui_base_dir/images/");
+    add_dirs($dirs, '/mobile/i18n/' => "$mobile_i18n_dir/");
     add_dirs($dirs, '/fontawesome/css/' => "$fontawesome_dir/css/");
     add_dirs($dirs, '/fontawesome/fonts/' => "$fontawesome_dir/fonts/");
     add_dirs($dirs, '/framework7/fonts/' => "$framework7_dir/fonts/");
@@ -163,7 +170,9 @@ sub get_template_toolkit {
 
     return $template_toolkit if $template_toolkit;
 
-    $template_toolkit = Template->new({ INCLUDE_PATH => [$gui_base_dir, $xtermjs_dir] });
+    $template_toolkit =
+        Template->new(
+            { INCLUDE_PATH => [$gui_base_dir, $mobile_quarantine_ui_base_dir, $xtermjs_dir] });
 
     return $template_toolkit;
 }
@@ -186,6 +195,15 @@ sub is_phone {
     }
 
     return 0;
+}
+
+my sub get_path_mtime {
+    my ($path) = @_;
+
+    my @stat_res = stat($path) or $!{ENOENT} or die "failed to stat '$path' - $!\n";
+    my $mtime = $stat_res[9];
+
+    return $mtime;
 }
 
 sub get_index {
@@ -263,6 +281,9 @@ sub get_index {
 
     my $page = '';
 
+    my $i18n_yew_mtime = get_path_mtime($mobile_i18n_dir);
+    my $ui_yew_mtime = get_path_mtime($mobile_quarantine_ui_base_dir);
+
     my $vars = {
         lang => $lang,
         langfile => $langfile,
@@ -275,6 +296,9 @@ sub get_index {
         wtversion => $wtversion,
         quarantinelink => $quarantinelink,
         theme => $theme,
+        i18n_yew_mobile_mtime => $i18n_yew_mtime,
+        yew_mobile_mtime => $ui_yew_mtime,
+        yew_mobile_base_path => '/mobile',
     };
 
     my $template_name;
