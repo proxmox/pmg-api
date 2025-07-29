@@ -1,3 +1,24 @@
+pmg-api (8.2.1) bookworm; urgency=medium
+
+  * schema: fix verification for transport-domain-or-nexthop type.
+
+  * trim Message-ID when parsing mail.
+
+  * report: output tls_inbound_domains setting.
+
+  * auth: oidc: fix pattern for 'client-id' and 'client-key'.
+
+  * auth: stop forcing the default realm to be the built-in PMG realm by
+    default, to allow configuring another default realm.
+
+  * dkim: local mail: add Date header to ensure better compatibibility with
+    some MUAs.
+
+  * local generated mail: add 'Auto-Submitted' header as recommended per RFC
+    3834.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 29 Jul 2025 22:26:43 +0200
+
 pmg-api (8.2.0) bookworm; urgency=medium
 
   * oidc realm: add more flexiple access-role assignment
