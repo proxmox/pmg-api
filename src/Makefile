@@ -218,6 +218,10 @@ install: ${SOURCES} $(addsuffix .service-bash-completion, ${SERVICES}) $(addsuff
 	for i in ${TIMER_UNITS}; do install -m 0644 $$i ${DESTDIR}/lib/systemd/system/; done
 	install -D -m 0644 pmg-initramfs.conf ${DESTDIR}/etc/initramfs-tools/conf.d/pmg-initramfs.conf
 
+.PHONY: tidy
+tidy: $(CLI_BINARIES) $(addprefix bin/, $(SERVICES))
+	echo $^ | xargs -n4 -P0 proxmox-perltidy
+
 .PHONY: check
 check:
 	make -C tests check

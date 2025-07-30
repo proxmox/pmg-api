@@ -7,6 +7,12 @@ BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION)
 DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 DEB=$(PACKAGE)_$(DEB_VERSION_UPSTREAM_REVISION)_all.deb
 
+all:
+
+tidy:
+	git ls-files ':*.p[ml]'| xargs -n4 -P0 proxmox-perltidy
+	$(MAKE) -C src tidy
+
 $(BUILDDIR): src debian
 	rm -rf $@ $@.tmp
 	cp -a src $@.tmp
