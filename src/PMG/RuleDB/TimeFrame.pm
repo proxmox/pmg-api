@@ -27,7 +27,7 @@ my $hm_to_minutes = sub {
 
     if ($hm =~ m/^(\d+):(\d+)$/) {
         my @tmp = split(/:/, $hm);
-	return $tmp[0]*60+$tmp[1];
+        return $tmp[0] * 60 + $tmp[1];
     }
     return 0;
 };
@@ -35,8 +35,8 @@ my $hm_to_minutes = sub {
 my $minutes_to_hm = sub {
     my ($minutes) = @_;
 
-    my $hour = int($minutes/60);
-    my $rest = int($minutes%60);
+    my $hour = int($minutes / 60);
+    my $rest = int($minutes % 60);
 
     return sprintf("%02d:%02d", $hour, $rest);
 };
@@ -53,10 +53,10 @@ sub new {
 
     # Note: allow H:i or integer format
     if ($start =~ m/:/) {
-	$start = $hm_to_minutes->($start);
+        $start = $hm_to_minutes->($start);
     }
     if ($end =~ m/:/) {
-	$end = $hm_to_minutes->($end);
+        $end = $hm_to_minutes->($end);
     }
 
     $self->{start} = $start;
@@ -74,13 +74,13 @@ sub load_attr {
 
     my ($sh, $sm, $eh, $em) = $value =~ m/(\d+):(\d+)-(\d+):(\d+)/;
 
-    my $start = $sh*60+$sm;
-    my $end = $eh*60+$em;
+    my $start = $sh * 60 + $sm;
+    my $end = $eh * 60 + $em;
 
     my $obj = $class->new($start, $end, $ogroup);
     $obj->{id} = $id;
 
-    $obj->{digest} = Digest::SHA::sha1_hex ($id, $start, $end, $ogroup);
+    $obj->{digest} = Digest::SHA::sha1_hex($id, $start, $end, $ogroup);
 
     return $obj;
 }
@@ -97,23 +97,22 @@ sub save {
 
     my $v = "$start-$end";
 
-    if (defined ($self->{id})) {
-	# update
+    if (defined($self->{id})) {
+        # update
 
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?", undef, $v, $self->{id});
+        $ruledb->{dbh}->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $v, $self->{id});
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object " .
-	    "(Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+        my $sth =
+            $ruledb->{dbh}->prepare("INSERT INTO Object "
+                . "(Objectgroup_ID, ObjectType, Value) "
+                . "VALUES (?, ?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype, $v);
+        $sth->execute($self->ogroup, $self->otype, $v);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
     return $self->{id};
@@ -122,17 +121,17 @@ sub save {
 sub when_match {
     my ($self, $t) = @_;
 
-    my ($sec,$min,$hour) = localtime($t);
+    my ($sec, $min, $hour) = localtime($t);
 
-    my $amin = $hour*60 + $min;
+    my $amin = $hour * 60 + $min;
 
     if ($self->{end} >= $self->{start}) {
 
-	return $amin >= $self->{start} && $amin <= $self->{end};
+        return $amin >= $self->{start} && $amin <= $self->{end};
 
     } else {
 
-	return  ($amin <= $self->{end}) || ($amin >= $self->{start});
+        return ($amin <= $self->{end}) || ($amin >= $self->{start});
     }
 }
 
@@ -149,16 +148,16 @@ sub properties {
     my ($class) = @_;
 
     return {
-	start => {
-	    description => "Start time in `H:i` format (00:00).",
-	    type => 'string',
-	    pattern => '\d?\d:\d?\d',
-	},
-	end => {
-	    description => "End time in `H:i` format (00:00).",
-	    type => 'string',
-	    pattern => '\d?\d:\d?\d',
-	},
+        start => {
+            description => "Start time in `H:i` format (00:00).",
+            type => 'string',
+            pattern => '\d?\d:\d?\d',
+        },
+        end => {
+            description => "End time in `H:i` format (00:00).",
+            type => 'string',
+            pattern => '\d?\d:\d?\d',
+        },
     };
 }
 
@@ -166,8 +165,8 @@ sub get {
     my ($self) = @_;
 
     return {
-	start => $minutes_to_hm->($self->{start}),
-	end => $minutes_to_hm->($self->{end}),
+        start => $minutes_to_hm->($self->{start}),
+        end => $minutes_to_hm->($self->{end}),
     };
 }
 
@@ -177,7 +176,6 @@ sub update {
     $self->{start} = $hm_to_minutes->($param->{start});
     $self->{end} = $hm_to_minutes->($param->{end});
 }
-
 
 1;
 

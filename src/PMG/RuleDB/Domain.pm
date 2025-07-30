@@ -51,10 +51,11 @@ sub properties {
     my ($class) = @_;
 
     return {
-	domain => {
-	    description => "DNS domain name (Sender).",
-	    type => 'string', format => 'dns-name',
-	},
+        domain => {
+            description => "DNS domain name (Sender).",
+            type => 'string',
+            format => 'dns-name',
+        },
     };
 }
 

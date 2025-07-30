@@ -13,12 +13,12 @@ use base qw(PVE::SectionConfig);
 
 my $defaultData = {
     propertyList => {
-	type => { description => "Cluster node type." },
-	cid => {
-	    description => "Cluster Node ID.",
-	    type => 'integer',
-	    minimum => 1,
-	},
+        type => { description => "Cluster node type." },
+        cid => {
+            description => "Cluster Node ID.",
+            type => 'integer',
+            minimum => 1,
+        },
     },
 };
 
@@ -30,10 +30,10 @@ sub parse_section_header {
     my ($class, $line) = @_;
 
     if ($line =~ m/^(node|master):\s*(\d+)\s*$/) {
-	my ($type, $sectionId) = ($1, $2);
-	my $errmsg = undef; # set if you want to skip whole section
-	my $config = {}; # to return additional attributes
-	return ($type, $sectionId, $errmsg, $config);
+        my ($type, $sectionId) = ($1, $2);
+        my $errmsg = undef; # set if you want to skip whole section
+        my $config = {}; # to return additional attributes
+        return ($type, $sectionId, $errmsg, $config);
     }
     return undef;
 }
@@ -52,41 +52,44 @@ sub valid_ssh_pubkey_regex {
 sub type {
     return 'node';
 }
+
 sub properties {
     return {
-	ip => {
-	    description => "IP address.",
-	    type => 'string', format => 'ip',
-	},
-	name => {
-	    description => "Node name.",
-	    type => 'string', format =>'pve-node',
-	},
-	hostrsapubkey => {
-	    description => "Public SSH RSA key for the host.",
-	    type => 'string',
-	    pattern => valid_ssh_pubkey_regex(),
-	},
-	rootrsapubkey => {
-	    description => "Public SSH RSA key for the root user.",
-	    type => 'string',
-	    pattern => valid_ssh_pubkey_regex(),
-	},
-	fingerprint => {
-	    description => "SSL certificate fingerprint.",
-	    type => 'string',
-	    pattern => '^(:?[A-Z0-9][A-Z0-9]:){31}[A-Z0-9][A-Z0-9]$',
-	},
+        ip => {
+            description => "IP address.",
+            type => 'string',
+            format => 'ip',
+        },
+        name => {
+            description => "Node name.",
+            type => 'string',
+            format => 'pve-node',
+        },
+        hostrsapubkey => {
+            description => "Public SSH RSA key for the host.",
+            type => 'string',
+            pattern => valid_ssh_pubkey_regex(),
+        },
+        rootrsapubkey => {
+            description => "Public SSH RSA key for the root user.",
+            type => 'string',
+            pattern => valid_ssh_pubkey_regex(),
+        },
+        fingerprint => {
+            description => "SSL certificate fingerprint.",
+            type => 'string',
+            pattern => '^(:?[A-Z0-9][A-Z0-9]:){31}[A-Z0-9][A-Z0-9]$',
+        },
     };
 }
 
 sub options {
     return {
-	ip => { fixed => 1 },
-	name => { fixed => 1 },
-	hostrsapubkey => {},
-	rootrsapubkey => {},
-	fingerprint => {},
+        ip => { fixed => 1 },
+        name => { fixed => 1 },
+        hostrsapubkey => {},
+        rootrsapubkey => {},
+        fingerprint => {},
     };
 }
 
@@ -103,22 +106,22 @@ sub type {
 
 sub properties {
     return {
-	maxcid => {
-	    description => "Maximum used cluster node ID (used internally, do not modify).",
-	    type => 'integer',
-	    minimum => 1,
-	},
+        maxcid => {
+            description => "Maximum used cluster node ID (used internally, do not modify).",
+            type => 'integer',
+            minimum => 1,
+        },
     };
 }
 
 sub options {
     return {
-	maxcid => { fixed => 1 },
-	ip => { fixed => 1 },
-	name => { fixed => 1 },
-	hostrsapubkey => {},
-	rootrsapubkey => {},
-	fingerprint => {},
+        maxcid => { fixed => 1 },
+        ip => { fixed => 1 },
+        name => { fixed => 1 },
+        hostrsapubkey => {},
+        rootrsapubkey => {},
+        fingerprint => {},
     };
 }
 
@@ -137,7 +140,6 @@ use PMG::Utils;
 PMG::ClusterConfig::Node->register;
 PMG::ClusterConfig::Master->register;
 PMG::ClusterConfig::Base->init();
-
 
 sub new {
     my ($type) = @_;
@@ -162,7 +164,7 @@ sub lock_config {
 
     my $res = PVE::Tools::lock_file($lockfile, undef, $code);
     if (my $err = $@) {
-	$errmsg ? die "$errmsg: $err" : die $err;
+        $errmsg ? die "$errmsg: $err" : die $err;
     }
     return $res;
 }
@@ -180,9 +182,9 @@ sub read_cluster_conf {
     $cinfo->{remnodes} = [];
 
     $cinfo->{local} = {
-	cid => 0,
-	ip => $localip,
-	name => $localname,
+        cid => 0,
+        ip => $localip,
+        name => $localname,
     };
 
     my $maxcid = 0;
@@ -190,30 +192,30 @@ sub read_cluster_conf {
 
     my $errprefix = "unable to parse $filename";
 
-    foreach my $cid (keys %{$cinfo->{ids}}) {
-	my $d = $cinfo->{ids}->{$cid};
+    foreach my $cid (keys %{ $cinfo->{ids} }) {
+        my $d = $cinfo->{ids}->{$cid};
 
-	die "$errprefix: duplicate use of name '$d->{name}'\n" if $names_hash->{$d->{name}};
-	$names_hash->{$d->{name}} = 1;
+        die "$errprefix: duplicate use of name '$d->{name}'\n" if $names_hash->{ $d->{name} };
+        $names_hash->{ $d->{name} } = 1;
 
-	$d->{cid} = $cid;
-	$maxcid = $cid > $maxcid ? $cid : $maxcid;
-	$maxcid = $d->{maxcid} if defined($d->{maxcid}) && $d->{maxcid} > $maxcid;
-	$cinfo->{master} = $d if $d->{type} eq 'master';
-	$cinfo->{'local'} = $d if $d->{name} eq $localname;
+        $d->{cid} = $cid;
+        $maxcid = $cid > $maxcid ? $cid : $maxcid;
+        $maxcid = $d->{maxcid} if defined($d->{maxcid}) && $d->{maxcid} > $maxcid;
+        $cinfo->{master} = $d if $d->{type} eq 'master';
+        $cinfo->{'local'} = $d if $d->{name} eq $localname;
     }
 
     if ($maxcid) {
-	die "$errprefix: cluster without master node\n"
-	    if !defined($cinfo->{master});
-	$cinfo->{master}->{maxcid} = $maxcid;
+        die "$errprefix: cluster without master node\n"
+            if !defined($cinfo->{master});
+        $cinfo->{master}->{maxcid} = $maxcid;
     }
 
     my $local_cid = $cinfo->{local}->{cid};
-    foreach my $cid (sort keys %{$cinfo->{ids}}) {
-	if ($local_cid != $cid) {
-	    push @{$cinfo->{remnodes}}, $cid;
-	}
+    foreach my $cid (sort keys %{ $cinfo->{ids} }) {
+        if ($local_cid != $cid) {
+            push @{ $cinfo->{remnodes} }, $cid;
+        }
     }
 
     return $cinfo;
@@ -227,10 +229,13 @@ sub write_cluster_conf {
     PVE::Tools::safe_print($filename, $fh, $raw);
 }
 
-PVE::INotify::register_file('cluster.conf', "/etc/pmg/cluster.conf",
-			    \&read_cluster_conf,
-			    \&write_cluster_conf,
-			    undef,
-			    always_call_parser => 1);
+PVE::INotify::register_file(
+    'cluster.conf',
+    "/etc/pmg/cluster.conf",
+    \&read_cluster_conf,
+    \&write_cluster_conf,
+    undef,
+    always_call_parser => 1,
+);
 
 1;

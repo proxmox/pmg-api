@@ -28,7 +28,7 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 0;   
+    return 0;
 }
 
 sub final {
@@ -41,22 +41,22 @@ sub priority {
 
 sub new {
     my ($type, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
-   
+
     return $self;
 }
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     my $obj = $class->new($ogroup);
     $obj->{id} = $id;
-    
+
     $obj->{digest} = Digest::SHA::sha1_hex($id, $ogroup);
 
     return $obj;
@@ -68,27 +68,26 @@ sub save {
     defined($self->{ogroup}) || return undef;
 
     if (defined($self->{id})) {
-	# update
-	
-	# nothing to update
+        # update
+
+        # nothing to update
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $sth->execute($self->ogroup, $self->otype);
+
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
     my $dkim = $msginfo->{dkim} // {};
     my $subgroups = $mod_group->subgroups($targets, !$dkim->{sign});
@@ -96,53 +95,69 @@ sub execute {
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
-	PMG::Utils::remove_marks($entity);
+        PMG::Utils::remove_marks($entity);
 
-	if ($dkim->{sign}) {
-	    eval {
-		$entity = PMG::DKIMSign::sign_entity($entity, $dkim, $msginfo->{sender});
-	    };
-	    if ($@) {
-		syslog('warning',
-		    "%s: Could not create DKIM-Signature - disabling Signing: $@",
-		    $queue->{logid}
-		);
-	    }
-	}
+        if ($dkim->{sign}) {
+            eval { $entity = PMG::DKIMSign::sign_entity($entity, $dkim, $msginfo->{sender}); };
+            if ($@) {
+                syslog(
+                    'warning',
+                    "%s: Could not create DKIM-Signature - disabling Signing: $@",
+                    $queue->{logid},
+                );
+            }
+        }
 
+        if ($msginfo->{testmode}) {
+            my $fh = $msginfo->{test_fh};
+            print $fh "accept from: $msginfo->{sender}\n";
+            printf $fh "accept   to: %s\n", join(',', @$tg);
+            print $fh "accept content:\n";
 
-	if ($msginfo->{testmode}) {
-	    my $fh = $msginfo->{test_fh};
-	    print $fh "accept from: $msginfo->{sender}\n";
-	    printf $fh "accept   to: %s\n", join (',', @$tg);
-	    print $fh "accept content:\n";
-
-	    $entity->print($fh);
-	    print $fh "accept end\n";
-	    $queue->set_status($tg, 'delivered');
-	} else {
-	    my ($qid, $code, $mess) = PMG::Utils::reinject_mail(
-		$entity, $msginfo->{sender}, $tg,
-		$msginfo->{xforward}, $msginfo->{fqdn}, $msginfo->{param});
-	    if ($qid) {
-		foreach (@$tg) {
-		    syslog('info', "%s: accept mail to <%s> (%s) (rule: %s)", $queue->{logid}, encode('UTF-8', $_), $qid, $rulename);
-		}
-		$queue->set_status ($tg, 'delivered', $qid);
-	    } else {
-		foreach (@$tg) {
-		    syslog('err', "%s: reinject mail to <%s> (rule: %s) failed", $queue->{logid}, encode('UTF-8', $_), $rulename);
-		}
-		if ($code) {
-		    my $resp = substr($code, 0, 1);
-		    if ($resp eq '4' || $resp eq '5') {
-			$queue->set_status($tg, 'error', $code, $mess);
-		    }
-		}
-	    }
-	}
+            $entity->print($fh);
+            print $fh "accept end\n";
+            $queue->set_status($tg, 'delivered');
+        } else {
+            my ($qid, $code, $mess) = PMG::Utils::reinject_mail(
+                $entity,
+                $msginfo->{sender},
+                $tg,
+                $msginfo->{xforward},
+                $msginfo->{fqdn},
+                $msginfo->{param},
+            );
+            if ($qid) {
+                foreach (@$tg) {
+                    syslog(
+                        'info',
+                        "%s: accept mail to <%s> (%s) (rule: %s)",
+                        $queue->{logid},
+                        encode('UTF-8', $_),
+                        $qid,
+                        $rulename,
+                    );
+                }
+                $queue->set_status($tg, 'delivered', $qid);
+            } else {
+                foreach (@$tg) {
+                    syslog(
+                        'err',
+                        "%s: reinject mail to <%s> (rule: %s) failed",
+                        $queue->{logid},
+                        encode('UTF-8', $_),
+                        $rulename,
+                    );
+                }
+                if ($code) {
+                    my $resp = substr($code, 0, 1);
+                    if ($resp eq '4' || $resp eq '5') {
+                        $queue->set_status($tg, 'error', $code, $mess);
+                    }
+                }
+            }
+        }
     }
 
     # warn if no subgroups

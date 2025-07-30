@@ -13,24 +13,24 @@ sub type {
 
 sub properties {
     return {
-	default => {
-	    description => "Use this as default realm",
-	    type => 'boolean',
-	    optional => 1,
-	},
-	comment => {
-	    description => "Description.",
-	    type => 'string',
-	    optional => 1,
-	    maxLength => 4096,
-	},
+        default => {
+            description => "Use this as default realm",
+            type => 'boolean',
+            optional => 1,
+        },
+        comment => {
+            description => "Description.",
+            type => 'string',
+            optional => 1,
+            maxLength => 4096,
+        },
     };
 }
 
 sub options {
     return {
-	default => { optional => 1 },
-	comment => { optional => 1 },
+        default => { optional => 1 },
+        comment => { optional => 1 },
     };
 }
 

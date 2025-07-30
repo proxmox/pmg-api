@@ -19,9 +19,9 @@ sub otype_text {
 
 sub new {
     my ($type, $address, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     $address //= '127.0.0.1';
 
     my $self = $class->SUPER::new($address, $ogroup);
@@ -41,10 +41,11 @@ sub properties {
     my ($class) = @_;
 
     return {
-	ip => {
-	    description => "IP address",
-	    type => 'string', format => 'ip',
-	},
+        ip => {
+            description => "IP address",
+            type => 'string',
+            format => 'ip',
+        },
     };
 }
 

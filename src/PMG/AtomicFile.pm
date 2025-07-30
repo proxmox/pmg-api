@@ -7,9 +7,9 @@ use base qw(IO::AtomicFile);
 
 sub new {
     my $class = shift;
-    
+
     my $self = $class->SUPER::new(@_);
-    
+
     return $self;
 }
 

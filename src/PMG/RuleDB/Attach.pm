@@ -55,7 +55,7 @@ sub load_attr {
 
     my $class = ref($type) || $type;
 
-    my $obj = $class->new ($ogroup);
+    my $obj = $class->new($ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $ogroup);
@@ -68,41 +68,44 @@ sub save {
 
     defined($self->{ogroup}) || die "undefined object attribute: ERROR";
 
-    if (defined ($self->{id})) {
-	# update not needed
+    if (defined($self->{id})) {
+        # update not needed
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
+        $sth->execute($self->ogroup, $self->otype);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets,
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
-    syslog('warning', "%s: deprecated action 'Attach' will be removed with PMG 8.0.",
-	   $queue->{logid},);
+    syslog(
+        'warning',
+        "%s: deprecated action 'Attach' will be removed with PMG 8.0.",
+        $queue->{logid},
+    );
 
     my $subgroups = $mod_group->subgroups($targets);
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
-	my $spooldir = $PMG::MailQueue::spooldir;
-	my $path = "$spooldir/active/$queue->{uid}";
-	$entity->attach(
-	    Path => $path,
-	    Filename => "original_message.eml",
-	    Disposition => "attachment",
-	    Type => "message/rfc822");
+        my $spooldir = $PMG::MailQueue::spooldir;
+        my $path = "$spooldir/active/$queue->{uid}";
+        $entity->attach(
+            Path => $path,
+            Filename => "original_message.eml",
+            Disposition => "attachment",
+            Type => "message/rfc822",
+        );
     }
 }
 
@@ -111,7 +114,6 @@ sub short_desc {
 
     return "attach original mail";
 }
-
 
 1;
 

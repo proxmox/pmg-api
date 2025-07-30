@@ -14,7 +14,7 @@ use PVE::SafeSyslog;
 
 use PMG::Utils;
 use PMG::ModGroup;
-use PMG::RuleDB::Object;;
+use PMG::RuleDB::Object;
 
 use base qw(PMG::RuleDB::Object);
 
@@ -71,8 +71,7 @@ sub load_attr {
 
     defined($value) || die "undefined object attribute: ERROR";
 
-    my $sth = $ruledb->{dbh}->prepare(
-	"SELECT * FROM Attribut WHERE Object_ID = ?");
+    my $sth = $ruledb->{dbh}->prepare("SELECT * FROM Attribut WHERE Object_ID = ?");
 
     $sth->execute($id);
 
@@ -80,8 +79,8 @@ sub load_attr {
     my $separator = 1;
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	$top = $ref->{value} if $ref->{name} eq 'top';
-	$separator = $ref->{value} if $ref->{name} eq 'separator';
+        $top = $ref->{value} if $ref->{name} eq 'top';
+        $separator = $ref->{value} if $ref->{name} eq 'separator';
     }
 
     $sth->finish();
@@ -103,38 +102,36 @@ sub save {
 
     my $value = encode('UTF-8', $self->{value});
     if ($value =~ /^.{998,}$/m) {
-	die "too long line in disclaimer - breaks RFC 5322!\n";
+        die "too long line in disclaimer - breaks RFC 5322!\n";
     }
 
-    if (defined ($self->{id})) {
-	# update
+    if (defined($self->{id})) {
+        # update
 
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?", undef, $value, $self->{id});
+        $ruledb->{dbh}->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $value, $self->{id});
 
-	$ruledb->{dbh}->do(
-	    "DELETE FROM Attribut WHERE Object_ID = ?", undef, $self->{id});
+        $ruledb->{dbh}->do("DELETE FROM Attribut WHERE Object_ID = ?", undef, $self->{id});
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) VALUES (?, ?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType, Value) VALUES (?, ?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype, $value);
+        $sth->execute($self->ogroup, $self->otype, $value);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
     for my $prop (qw(top separator)) {
-	if (defined($self->{$prop})) {
-	    $ruledb->{dbh}->do(
-		"INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
-		undef,
-		$self->{$prop},
-		$prop,
-		$self->{id},
-	    );
-	}
+        if (defined($self->{$prop})) {
+            $ruledb->{dbh}->do(
+                "INSERT INTO Attribut (Value, Name, Object_ID) VALUES (?, ?, ?)",
+                undef,
+                $self->{$prop},
+                $prop,
+                $self->{id},
+            );
+        }
     }
 
     return $self->{id};
@@ -149,9 +146,9 @@ sub add_data {
 
     # always use the decoded data
     if (my $path = $entity->{PMX_decoded_path}) {
-	$fh = IO::File->new("<$path");
+        $fh = IO::File->new("<$path");
     } else {
-	$fh = $entity->open("r");
+        $fh = $entity->open("r");
     }
 
     return undef if !$fh;
@@ -161,20 +158,20 @@ sub add_data {
     # b.) bad performance
     my $body = new MIME::Body::InCore || return undef;
 
-    my $newfh = $body->open ("w") || return undef;
+    my $newfh = $body->open("w") || return undef;
 
     if ($self->{top}) {
-	$newfh->print($data);
+        $newfh->print($data);
     }
 
     while (defined($_ = $fh->getline())) {
-	$newfh->print($_); # copy contents
+        $newfh->print($_); # copy contents
     }
 
     $newfh->print("\n"); # add final \n
 
     if (!$self->{top}) {
-	$newfh->print($data);
+        $newfh->print($data);
     }
 
     $newfh->close || return undef;
@@ -190,70 +187,69 @@ sub sign {
     my $found = 0;
 
     if ($entity->head->mime_type =~ m{multipart/alternative}) {
-	foreach my $p ($entity->parts) {
-	    $found = 1 if $self->sign ($p, $html, $text, $logid, $rulename);
-	}
+        foreach my $p ($entity->parts) {
+            $found = 1 if $self->sign($p, $html, $text, $logid, $rulename);
+        }
     } elsif ($entity->head->mime_type =~ m{multipart/}) {
-	foreach my $p ($entity->parts) {
-	    if ($self->sign ($p, $html, $text, $logid, $rulename)) {
-		$found = 1;
-		last;
-	    }
-	}
+        foreach my $p ($entity->parts) {
+            if ($self->sign($p, $html, $text, $logid, $rulename)) {
+                $found = 1;
+                last;
+            }
+        }
     } elsif ($entity->head->mime_type =~ m{text/(html|plain)}) {
-	my $type = $1;
-	my $cs = $entity->head->mime_attr("content-type.charset") // 'ascii';
-	eval {
-	    my $encoded = encode($cs, $type eq 'html' ? $html : $text, Encode::FB_CROAK);
-	    $self->add_data($entity, $encoded);
-	};
-	# simply ignore if we can't represent the disclainer
-	# with that encoding
-	if ($@) {
-	    syslog('info', "%s: adding disclaimer failed (rule: %s)", $logid, $rulename);
-	} else {
-	    syslog('info', "%s: added disclaimer (rule: %s)", $logid, $rulename);
-	}
-	$found = 1;
+        my $type = $1;
+        my $cs = $entity->head->mime_attr("content-type.charset") // 'ascii';
+        eval {
+            my $encoded = encode($cs, $type eq 'html' ? $html : $text, Encode::FB_CROAK);
+            $self->add_data($entity, $encoded);
+        };
+        # simply ignore if we can't represent the disclainer
+        # with that encoding
+        if ($@) {
+            syslog('info', "%s: adding disclaimer failed (rule: %s)", $logid, $rulename);
+        } else {
+            syslog('info', "%s: added disclaimer (rule: %s)", $logid, $rulename);
+        }
+        $found = 1;
     } else {
-	# do nothing - unknown format
+        # do nothing - unknown format
     }
 
     return $found;
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets,
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     my $subgroups = $mod_group->subgroups($targets);
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
-	my $html;
-	my $separator = $self->{separator} ? '<br>--<br>' : '<br>';
-	if ($self->{top}) {
-	    $html = PMG::Utils::subst_values ($self->{value}, $vars) . $separator;
-	} else {
-	    $html = $separator . PMG::Utils::subst_values ($self->{value}, $vars);
-	}
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my $html;
+        my $separator = $self->{separator} ? '<br>--<br>' : '<br>';
+        if ($self->{top}) {
+            $html = PMG::Utils::subst_values($self->{value}, $vars) . $separator;
+        } else {
+            $html = $separator . PMG::Utils::subst_values($self->{value}, $vars);
+        }
 
-	my $text = "";
-	my $parser = HTML::Parser->new(
-	    api_version => 3, text_h => [ sub {$text .= shift;}, "dtext" ]);
+        my $text = "";
+        my $parser =
+            HTML::Parser->new(api_version => 3, text_h => [sub { $text .= shift; }, "dtext"]);
 
-	my $tmp = $html;
-	$tmp =~ s/\r?\n//g;
-	$tmp =~ s/<br>/\n/g;
+        my $tmp = $html;
+        $tmp =~ s/\r?\n//g;
+        $tmp =~ s/<br>/\n/g;
 
-	$parser->parse($tmp);
-	$parser->eof;
+        $parser->parse($tmp);
+        $parser->eof;
 
-	$self->sign($entity, "$html\n", "$text\n", $queue->{logid}, $rulename);
+        $self->sign($entity, "$html\n", "$text\n", $queue->{logid}, $rulename);
 
-	return;
+        return;
     }
 }
 
@@ -267,25 +263,25 @@ sub properties {
     my ($class) = @_;
 
     return {
-	disclaimer => {
-	    description => "The Disclaimer",
-	    type => 'string',
-	    maxLength => 2048,
-	},
-	position => {
-	    description => "Put the disclaimer at the specified position.",
-	    type => 'string',
-	    enum => ['start', 'end'],
-	    optional => 1,
-	    default => 'end',
-	},
-	'add-separator' => {
-	    description => "If set to 1, adds a '--' separator between the disclaimer and the"
-		." content. Set to 0 to prevent that.",
-	    type => 'boolean',
-	    optional => 1,
-	    default => 1,
-	},
+        disclaimer => {
+            description => "The Disclaimer",
+            type => 'string',
+            maxLength => 2048,
+        },
+        position => {
+            description => "Put the disclaimer at the specified position.",
+            type => 'string',
+            enum => ['start', 'end'],
+            optional => 1,
+            default => 'end',
+        },
+        'add-separator' => {
+            description => "If set to 1, adds a '--' separator between the disclaimer and the"
+                . " content. Set to 0 to prevent that.",
+            type => 'boolean',
+            optional => 1,
+            default => 1,
+        },
     };
 }
 
@@ -293,9 +289,9 @@ sub get {
     my ($self) = @_;
 
     return {
-	disclaimer => $self->{value},
-	position => $self->{top} ? 'start' : 'end',
-	'add-separator' => $self->{separator} // 1,
+        disclaimer => $self->{value},
+        position => $self->{top} ? 'start' : 'end',
+        'add-separator' => $self->{separator} // 1,
     };
 }
 
@@ -304,15 +300,15 @@ sub update {
 
     $self->{value} = $param->{disclaimer};
     if (defined($param->{position}) && $param->{position} eq 'start') {
-	$self->{top} = 1;
+        $self->{top} = 1;
     } else {
-	delete $self->{top};
+        delete $self->{top};
     }
 
     if (defined($param->{'add-separator'}) && $param->{'add-separator'} == 0) {
-	$self->{separator} = 0;
+        $self->{separator} = 0;
     } else {
-	delete $self->{separator};
+        delete $self->{separator};
     }
 }
 

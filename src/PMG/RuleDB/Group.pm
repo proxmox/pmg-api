@@ -12,9 +12,9 @@ sub new {
     my ($type, $name, $info, $class) = @_;
 
     my $self = {
-	name => PMG::Utils::try_decode_utf8($name),
-	info => PMG::Utils::try_decode_utf8($info),
-	class => $class,
+        name => PMG::Utils::try_decode_utf8($name),
+        info => PMG::Utils::try_decode_utf8($info),
+        class => $class,
     };
 
     bless $self, $type;
@@ -38,8 +38,8 @@ sub gtype {
 sub name {
     my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{name} = $v;
+    if (defined($v)) {
+        $self->{name} = $v;
     }
 
     $self->{name};
@@ -48,8 +48,8 @@ sub name {
 sub info {
     my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{info} = $v;
+    if (defined($v)) {
+        $self->{info} = $v;
     }
 
     $self->{info};
@@ -58,8 +58,8 @@ sub info {
 sub class {
     my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{class} = $v;
+    if (defined($v)) {
+        $self->{class} = $v;
     }
 
     $self->{class};
@@ -68,8 +68,8 @@ sub class {
 sub id {
     my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{id}=$v;
+    if (defined($v)) {
+        $self->{id} = $v;
     }
 
     $self->{id};

@@ -50,7 +50,7 @@ use PMG::RuleDB::ArchiveFilter;
 sub new {
     my ($type, $dbh) = @_;
 
-    $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb")  if !defined ($dbh);
+    $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb") if !defined($dbh);
 
     my $self = bless { dbh => $dbh }, $type;
 
@@ -76,26 +76,30 @@ sub create_group_with_obj {
 
     eval {
 
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-        $self->{dbh}->do("INSERT INTO Objectgroup (Name, Info, Class) " .
-			 "VALUES (?, ?, ?)", undef,
-			 $name, $info, $obj->oclass());
+        $self->{dbh}->do(
+            "INSERT INTO Objectgroup (Name, Info, Class) " . "VALUES (?, ?, ?)",
+            undef,
+            $name,
+            $info,
+            $obj->oclass(),
+        );
 
-	my $lid = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
+        my $lid = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
 
-	$og = PMG::RuleDB::Group->new($name, $info, $obj->oclass());
-	$og->{id} = $lid;
+        $og = PMG::RuleDB::Group->new($name, $info, $obj->oclass());
+        $og->{id} = $lid;
 
-	$obj->{ogroup} = $lid;
-	$id = $obj->save($self, 1);
-	$obj->{id} = $id; # just to be sure
+        $obj->{ogroup} = $lid;
+        $id = $obj->save($self, 1);
+        $obj->{id} = $id; # just to be sure
 
         $self->{dbh}->commit;
     };
     if (my $err = $@) {
-	$self->{dbh}->rollback;
-	die $err;
+        $self->{dbh}->rollback;
+        die $err;
     }
     return $og;
 }
@@ -105,13 +109,13 @@ sub load_groups {
 
     defined($rule->{id}) || die "undefined rule id: ERROR";
 
-    my $sth = $self->{dbh}->prepare(
-	"SELECT RuleGroup.Grouptype, Objectgroup.ID, " .
-	"Objectgroup.Name, Objectgroup.Info " .
-	"FROM Rulegroup, Objectgroup " .
-	"WHERE Rulegroup.Rule_ID = ? and " .
-	"Rulegroup.Objectgroup_ID = Objectgroup.ID " .
-	"ORDER BY RuleGroup.Grouptype");
+    my $sth =
+        $self->{dbh}->prepare("SELECT RuleGroup.Grouptype, Objectgroup.ID, "
+            . "Objectgroup.Name, Objectgroup.Info "
+            . "FROM Rulegroup, Objectgroup "
+            . "WHERE Rulegroup.Rule_ID = ? and "
+            . "Rulegroup.Objectgroup_ID = Objectgroup.ID "
+            . "ORDER BY RuleGroup.Grouptype");
 
     my $groups = ();
 
@@ -120,24 +124,24 @@ sub load_groups {
     my ($from, $to, $when, $what, $action) = ([], [], [], [], []);
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info});
-	$og->{id} = $ref->{id};
+        my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info});
+        $og->{id} = $ref->{id};
 
-	if ($ref->{'grouptype'} == 0) {      #from
-	    push @$from, $og;
-	} elsif ($ref->{'grouptype'} == 1) { # to
-	    push @$to, $og;
-	} elsif ($ref->{'grouptype'} == 2) { # when
-	    push @$when, $og;
-	} elsif ($ref->{'grouptype'} == 3) { # what
-	    push @$what, $og;
-	} elsif ($ref->{'grouptype'} == 4) { # action
-	    my $objects = $self->load_group_objects($og->{id});
-	    my $obj = @$objects[0];
-	    defined($obj) || die "undefined action object: ERROR";
-	    $og->{action} = $obj;
-	    push @$action, $og;
-	}
+        if ($ref->{'grouptype'} == 0) { #from
+            push @$from, $og;
+        } elsif ($ref->{'grouptype'} == 1) { # to
+            push @$to, $og;
+        } elsif ($ref->{'grouptype'} == 2) { # when
+            push @$when, $og;
+        } elsif ($ref->{'grouptype'} == 3) { # what
+            push @$what, $og;
+        } elsif ($ref->{'grouptype'} == 4) { # action
+            my $objects = $self->load_group_objects($og->{id});
+            my $obj = @$objects[0];
+            defined($obj) || die "undefined action object: ERROR";
+            $og->{action} = $obj;
+            push @$action, $og;
+        }
     }
 
     $sth->finish();
@@ -148,15 +152,14 @@ sub load_groups {
 sub load_groups_by_name {
     my ($self, $rule) = @_;
 
-    my ($from, $to, $when, $what, $action) =
-	$self->load_groups($rule);
+    my ($from, $to, $when, $what, $action) = $self->load_groups($rule);
 
     return {
-	from => $from,
-	to => $to,
-	when => $when,
-	what => $what,
-	action => $action,
+        from => $from,
+        to => $to,
+        when => $when,
+        what => $what,
+        action => $action,
     };
 }
 
@@ -166,77 +169,82 @@ sub update_group_attributes {
     my $attributes = [qw(and invert)];
 
     for my $attribute ($attributes->@*) {
-	# only save the values if they're set to 1
-	if ($og->{$attribute}) {
-	    $self->{dbh}->do(
-		"INSERT INTO Objectgroup_Attributes (Objectgroup_ID, Name, Value) " .
-		"VALUES (?, ?, ?) ".
-		"ON CONFLICT (Objectgroup_ID, Name) DO UPDATE SET Value = ?", undef,
-		$og->{id}, $attribute, $og->{$attribute}, $og->{$attribute},
-	    );
-	} else {
-	    $self->{dbh}->do(
-		"DELETE FROM Objectgroup_Attributes " .
-		"WHERE Objectgroup_ID = ? AND Name = ?", undef,
-		$og->{id}, $attribute,
-	    );
-	}
+        # only save the values if they're set to 1
+        if ($og->{$attribute}) {
+            $self->{dbh}->do(
+                "INSERT INTO Objectgroup_Attributes (Objectgroup_ID, Name, Value) "
+                    . "VALUES (?, ?, ?) "
+                    . "ON CONFLICT (Objectgroup_ID, Name) DO UPDATE SET Value = ?",
+                undef,
+                $og->{id},
+                $attribute,
+                $og->{$attribute},
+                $og->{$attribute},
+            );
+        } else {
+            $self->{dbh}->do(
+                "DELETE FROM Objectgroup_Attributes " . "WHERE Objectgroup_ID = ? AND Name = ?",
+                undef,
+                $og->{id},
+                $attribute,
+            );
+        }
     }
 }
 
 sub save_group {
     my ($self, $og) = @_;
 
-    defined($og->{name}) ||
-	die "undefined group attribute - name: ERROR";
-    defined($og->{info}) ||
-	die "undefined group attribute - info: ERROR";
-    defined($og->{class}) ||
-	die "undefined group attribute - class: ERROR";
+    defined($og->{name})
+        || die "undefined group attribute - name: ERROR";
+    defined($og->{info})
+        || die "undefined group attribute - info: ERROR";
+    defined($og->{class})
+        || die "undefined group attribute - class: ERROR";
 
     if (defined($og->{id})) {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	eval {
-	    $self->{dbh}->do("UPDATE Objectgroup " .
-			     "SET Name = ?, Info = ? " .
-			     "WHERE ID = ?", undef,
-			     encode('UTF-8', $og->{name}),
-			     encode('UTF-8', $og->{info}),
-			     $og->{id});
+        eval {
+            $self->{dbh}->do(
+                "UPDATE Objectgroup " . "SET Name = ?, Info = ? " . "WHERE ID = ?",
+                undef,
+                encode('UTF-8', $og->{name}),
+                encode('UTF-8', $og->{info}),
+                $og->{id},
+            );
 
-	    $self->update_group_attributes($og);
+            $self->update_group_attributes($og);
 
-	    $self->{dbh}->commit;
-	};
+            $self->{dbh}->commit;
+        };
 
-	if (my $err = $@) {
-	    $self->{dbh}->rollback;
-	    syslog('err', $err);
-	    return undef;
-	}
+        if (my $err = $@) {
+            $self->{dbh}->rollback;
+            syslog('err', $err);
+            return undef;
+        }
     } else {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	eval {
-	    my $sth = $self->{dbh}->prepare(
-		"INSERT INTO Objectgroup (Name, Info, Class) " .
-		"VALUES (?, ?, ?);");
+        eval {
+            my $sth = $self->{dbh}
+                ->prepare("INSERT INTO Objectgroup (Name, Info, Class) " . "VALUES (?, ?, ?);");
 
-	    $sth->execute(encode('UTF-8', $og->name), encode('UTF-8', $og->info), $og->class);
+            $sth->execute(encode('UTF-8', $og->name), encode('UTF-8', $og->info), $og->class);
 
-	    $og->{id} = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
+            $og->{id} = PMG::Utils::lastid($self->{dbh}, 'objectgroup_id_seq');
 
-	    $self->update_group_attributes($og);
+            $self->update_group_attributes($og);
 
-	    $self->{dbh}->commit;
-	};
+            $self->{dbh}->commit;
+        };
 
-	if (my $err = $@) {
-	    $self->{dbh}->rollback;
-	    syslog('err', $err);
-	    return undef;
-	}
+        if (my $err = $@) {
+            $self->{dbh}->rollback;
+            syslog('err', $err);
+            return undef;
+        }
     }
 
     return $og->{id};
@@ -249,52 +257,49 @@ sub delete_group {
 
     eval {
 
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	# test if group is used in rules
-	$self->{dbh}->do("LOCK TABLE RuleGroup IN EXCLUSIVE MODE");
+        # test if group is used in rules
+        $self->{dbh}->do("LOCK TABLE RuleGroup IN EXCLUSIVE MODE");
 
-	my $sth = $self->{dbh}->prepare(
-	    "SELECT Rule.Name as rulename, ObjectGroup.Name as groupname " .
-	    "FROM RuleGroup, Rule, ObjectGroup WHERE " .
-	    "ObjectGroup.ID = ? AND Objectgroup_ID = ObjectGroup.ID AND " .
-	    "Rule_ID = Rule.ID");
+        my $sth =
+            $self->{dbh}->prepare("SELECT Rule.Name as rulename, ObjectGroup.Name as groupname "
+                . "FROM RuleGroup, Rule, ObjectGroup WHERE "
+                . "ObjectGroup.ID = ? AND Objectgroup_ID = ObjectGroup.ID AND "
+                . "Rule_ID = Rule.ID");
 
-	$sth->execute($groupid);
+        $sth->execute($groupid);
 
-	if (my $ref = $sth->fetchrow_hashref()) {
-	    my $groupname = PMG::Utils::try_decode_utf8($ref->{groupname});
-	    my $rulename = PMG::Utils::try_decode_utf8($ref->{rulename});
-	    die "Group '$groupname' is used by rule '$rulename' - unable to delete\n";
-	}
+        if (my $ref = $sth->fetchrow_hashref()) {
+            my $groupname = PMG::Utils::try_decode_utf8($ref->{groupname});
+            my $rulename = PMG::Utils::try_decode_utf8($ref->{rulename});
+            die "Group '$groupname' is used by rule '$rulename' - unable to delete\n";
+        }
 
         $sth->finish();
 
-	$self->{dbh}->do("DELETE FROM ObjectGroup " .
-			 "WHERE ID = ?", undef, $groupid);
+        $self->{dbh}->do("DELETE FROM ObjectGroup " . "WHERE ID = ?", undef, $groupid);
 
-	$self->{dbh}->do("DELETE FROM RuleGroup " .
-			 "WHERE Objectgroup_ID = ?", undef, $groupid);
+        $self->{dbh}
+            ->do("DELETE FROM RuleGroup " . "WHERE Objectgroup_ID = ?", undef, $groupid);
 
-	$sth = $self->{dbh}->prepare("SELECT * FROM Object " .
-				      "where Objectgroup_ID = ?");
-	$sth->execute($groupid);
+        $sth = $self->{dbh}->prepare("SELECT * FROM Object " . "where Objectgroup_ID = ?");
+        $sth->execute($groupid);
 
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    $self->{dbh}->do("DELETE FROM Attribut " .
-			     "WHERE Object_ID = ?", undef, $ref->{id});
-	}
+        while (my $ref = $sth->fetchrow_hashref()) {
+            $self->{dbh}
+                ->do("DELETE FROM Attribut " . "WHERE Object_ID = ?", undef, $ref->{id});
+        }
 
-	$sth->finish();
+        $sth->finish();
 
-	$self->{dbh}->do("DELETE FROM Object " .
-			 "WHERE Objectgroup_ID = ?", undef, $groupid);
+        $self->{dbh}->do("DELETE FROM Object " . "WHERE Objectgroup_ID = ?", undef, $groupid);
 
-	$self->{dbh}->commit;
+        $self->{dbh}->commit;
     };
     if (my $err = $@) {
-	$self->{dbh}->rollback;
-	die $err;
+        $self->{dbh}->rollback;
+        die $err;
     }
 
     return undef;
@@ -303,12 +308,13 @@ sub delete_group {
 sub load_group_attributes {
     my ($self, $og) = @_;
 
-    my $attribute_sth = $self->{dbh}->prepare("SELECT * FROM Objectgroup_Attributes WHERE Objectgroup_ID = ?");
+    my $attribute_sth =
+        $self->{dbh}->prepare("SELECT * FROM Objectgroup_Attributes WHERE Objectgroup_ID = ?");
     $attribute_sth->execute($og->{id});
 
     while (my $ref = $attribute_sth->fetchrow_hashref()) {
-	$og->{and} = $ref->{value} if $ref->{name} eq 'and';
-	$og->{invert} = $ref->{value} if $ref->{name} eq 'invert';
+        $og->{and} = $ref->{value} if $ref->{name} eq 'and';
+        $og->{invert} = $ref->{value} if $ref->{name} eq 'invert';
     }
 }
 
@@ -324,35 +330,33 @@ sub load_objectgroups {
     my $arr_og = ();
 
     eval {
-	if (!(defined($id))) {
-	    $sth = $self->{dbh}->prepare(
-		"SELECT * FROM Objectgroup where Class = ? ORDER BY name");
-	    $sth->execute($class);
+        if (!(defined($id))) {
+            $sth =
+                $self->{dbh}->prepare("SELECT * FROM Objectgroup where Class = ? ORDER BY name");
+            $sth->execute($class);
 
-	} else {
-	    $sth = $self->{dbh}->prepare(
-		"SELECT * FROM Objectgroup where Class like ? and id = ? " .
-		"order by name");
-	    $sth->execute($class,$id);
-	}
+        } else {
+            $sth = $self->{dbh}->prepare(
+                "SELECT * FROM Objectgroup where Class like ? and id = ? " . "order by name");
+            $sth->execute($class, $id);
+        }
 
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info},
-					     $ref->{class});
-	    $og->{id} = $ref->{id};
+        while (my $ref = $sth->fetchrow_hashref()) {
+            my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info}, $ref->{class});
+            $og->{id} = $ref->{id};
 
-	    if ($class eq 'action') {
-		my $objects = $self->load_group_objects($og->{id});
-		my $obj = @$objects[0];
-		defined($obj) || die "undefined action object: ERROR";
-		$og->{action} = $obj;
-	    } else {
-		$self->load_group_attributes($og);
-	    }
-	    push @$arr_og, $og;
-	}
+            if ($class eq 'action') {
+                my $objects = $self->load_group_objects($og->{id});
+                my $obj = @$objects[0];
+                defined($obj) || die "undefined action object: ERROR";
+                $og->{action} = $obj;
+            } else {
+                $self->load_group_attributes($og);
+            }
+            push @$arr_og, $og;
+        }
 
-	$sth->finish();
+        $sth->finish();
     };
 
     my $err = $@;
@@ -371,109 +375,86 @@ sub get_object {
 
     # FIXME: remove deprecated types and files with PMG 8.0
     my $deprecated_types = {
-	4004 => "Attach",
-	4008 => "ReportSpam",
-	4999 => "Counter",
+        4004 => "Attach",
+        4008 => "ReportSpam",
+        4999 => "Counter",
     };
 
     # WHO OBJECTS
     if ($otype == PMG::RuleDB::Domain::otype()) {
-	$obj = PMG::RuleDB::Domain->new();
-    }
-    elsif ($otype == PMG::RuleDB::ReceiverDomain::otype) {
-	$obj = PMG::RuleDB::ReceiverDomain->new();
-    }
-    elsif ($otype == PMG::RuleDB::WhoRegex::otype) {
-	$obj = PMG::RuleDB::WhoRegex->new();
-    }
-    elsif ($otype == PMG::RuleDB::ReceiverRegex::otype) {
-	$obj = PMG::RuleDB::ReceiverRegex->new();
-    }
-    elsif ($otype == PMG::RuleDB::EMail::otype) {
-	$obj = PMG::RuleDB::EMail->new();
-    }
-    elsif ($otype == PMG::RuleDB::Receiver::otype) {
-	$obj = PMG::RuleDB::Receiver->new();
-    }
-    elsif ($otype == PMG::RuleDB::IPAddress::otype) {
-	$obj = PMG::RuleDB::IPAddress->new();
-    }
-    elsif ($otype == PMG::RuleDB::IPNet::otype) {
-	$obj = PMG::RuleDB::IPNet->new();
-    }
-    elsif ($otype == PMG::RuleDB::LDAP::otype) {
-	$obj = PMG::RuleDB::LDAP->new();
-    }
-    elsif ($otype == PMG::RuleDB::LDAPUser::otype) {
-	$obj = PMG::RuleDB::LDAPUser->new();
+        $obj = PMG::RuleDB::Domain->new();
+    } elsif ($otype == PMG::RuleDB::ReceiverDomain::otype) {
+        $obj = PMG::RuleDB::ReceiverDomain->new();
+    } elsif ($otype == PMG::RuleDB::WhoRegex::otype) {
+        $obj = PMG::RuleDB::WhoRegex->new();
+    } elsif ($otype == PMG::RuleDB::ReceiverRegex::otype) {
+        $obj = PMG::RuleDB::ReceiverRegex->new();
+    } elsif ($otype == PMG::RuleDB::EMail::otype) {
+        $obj = PMG::RuleDB::EMail->new();
+    } elsif ($otype == PMG::RuleDB::Receiver::otype) {
+        $obj = PMG::RuleDB::Receiver->new();
+    } elsif ($otype == PMG::RuleDB::IPAddress::otype) {
+        $obj = PMG::RuleDB::IPAddress->new();
+    } elsif ($otype == PMG::RuleDB::IPNet::otype) {
+        $obj = PMG::RuleDB::IPNet->new();
+    } elsif ($otype == PMG::RuleDB::LDAP::otype) {
+        $obj = PMG::RuleDB::LDAP->new();
+    } elsif ($otype == PMG::RuleDB::LDAPUser::otype) {
+        $obj = PMG::RuleDB::LDAPUser->new();
     }
     # WHEN OBJECTS
     elsif ($otype == PMG::RuleDB::TimeFrame::otype) {
-	$obj = PMG::RuleDB::TimeFrame->new();
+        $obj = PMG::RuleDB::TimeFrame->new();
     }
     # WHAT OBJECTS
     elsif ($otype == PMG::RuleDB::Spam::otype) {
         $obj = PMG::RuleDB::Spam->new();
-    }
-    elsif ($otype == PMG::RuleDB::Virus::otype) {
+    } elsif ($otype == PMG::RuleDB::Virus::otype) {
         $obj = PMG::RuleDB::Virus->new();
-    }
-    elsif ($otype == PMG::RuleDB::MatchField::otype) {
+    } elsif ($otype == PMG::RuleDB::MatchField::otype) {
         $obj = PMG::RuleDB::MatchField->new();
-    }
-    elsif ($otype == PMG::RuleDB::MatchFilename::otype) {
+    } elsif ($otype == PMG::RuleDB::MatchFilename::otype) {
         $obj = PMG::RuleDB::MatchFilename->new();
-    }
-    elsif ($otype == PMG::RuleDB::MatchArchiveFilename::otype) {
+    } elsif ($otype == PMG::RuleDB::MatchArchiveFilename::otype) {
         $obj = PMG::RuleDB::MatchArchiveFilename->new();
-    }
-    elsif ($otype == PMG::RuleDB::ContentTypeFilter::otype) {
+    } elsif ($otype == PMG::RuleDB::ContentTypeFilter::otype) {
         $obj = PMG::RuleDB::ContentTypeFilter->new();
-    }
-    elsif ($otype == PMG::RuleDB::ArchiveFilter::otype) {
+    } elsif ($otype == PMG::RuleDB::ArchiveFilter::otype) {
         $obj = PMG::RuleDB::ArchiveFilter->new();
     }
     # ACTION OBJECTS
     elsif ($otype == PMG::RuleDB::ModField::otype) {
         $obj = PMG::RuleDB::ModField->new();
-    }
-    elsif ($otype == PMG::RuleDB::Accept::otype()) {
+    } elsif ($otype == PMG::RuleDB::Accept::otype()) {
         $obj = PMG::RuleDB::Accept->new();
-    }
-    elsif ($otype == PMG::RuleDB::ReportSpam::otype()) {
+    } elsif ($otype == PMG::RuleDB::ReportSpam::otype()) {
         $obj = PMG::RuleDB::ReportSpam->new();
-    }
-    elsif ($otype == PMG::RuleDB::Attach::otype) {
+    } elsif ($otype == PMG::RuleDB::Attach::otype) {
         $obj = PMG::RuleDB::Attach->new();
-    }
-    elsif ($otype == PMG::RuleDB::Disclaimer::otype) {
+    } elsif ($otype == PMG::RuleDB::Disclaimer::otype) {
         $obj = PMG::RuleDB::Disclaimer->new();
-    }
-    elsif ($otype == PMG::RuleDB::BCC::otype) {
+    } elsif ($otype == PMG::RuleDB::BCC::otype) {
         $obj = PMG::RuleDB::BCC->new();
-    }
-    elsif ($otype == PMG::RuleDB::Quarantine::otype) {
+    } elsif ($otype == PMG::RuleDB::Quarantine::otype) {
         $obj = PMG::RuleDB::Quarantine->new();
-    }
-    elsif ($otype == PMG::RuleDB::Block::otype) {
+    } elsif ($otype == PMG::RuleDB::Block::otype) {
         $obj = PMG::RuleDB::Block->new();
-    }
-    elsif ($otype == PMG::RuleDB::Counter::otype) {
+    } elsif ($otype == PMG::RuleDB::Counter::otype) {
         $obj = PMG::RuleDB::Counter->new();
-    }
-    elsif ($otype == PMG::RuleDB::Remove::otype) {
+    } elsif ($otype == PMG::RuleDB::Remove::otype) {
         $obj = PMG::RuleDB::Remove->new();
-    }
-    elsif ($otype == PMG::RuleDB::Notify::otype) {
+    } elsif ($otype == PMG::RuleDB::Notify::otype) {
         $obj = PMG::RuleDB::Notify->new();
-    }
-    else {
-	    die "proxmox: unknown object type: ERROR";
+    } else {
+        die "proxmox: unknown object type: ERROR";
     }
 
-    if ( grep( $_ == $otype, keys %$deprecated_types)) {
-	syslog('warning', "proxmox: deprecated object of type %s found!",
-	    $deprecated_types->{$otype});
+    if (grep($_ == $otype, keys %$deprecated_types)) {
+        syslog(
+            'warning',
+            "proxmox: deprecated object of type %s found!",
+            $deprecated_types->{$otype},
+        );
     }
     return $obj;
 }
@@ -482,19 +463,19 @@ sub get_object {
 sub load_counters_data {
     my ($self) = @_;
 
-    my $sth = $self->{dbh}->prepare(
-	"SELECT Object.id, Objectgroup.name, Object.Value, Objectgroup.info " .
-	"FROM Object, Objectgroup " .
-	"WHERE objectgroup.id = object.objectgroup_id and ObjectType = ? " .
-	"order by Objectgroup.name, Value");
+    my $sth =
+        $self->{dbh}->prepare("SELECT Object.id, Objectgroup.name, Object.Value, Objectgroup.info "
+            . "FROM Object, Objectgroup "
+            . "WHERE objectgroup.id = object.objectgroup_id and ObjectType = ? "
+            . "order by Objectgroup.name, Value");
 
     my @data;
 
     $sth->execute(PMG::RuleDB::Counter->otype());
 
     while (my $ref = $sth->fetchrow_hashref()) {
-    	my $tmp = [$ref->{id},$ref->{name},$ref->{value},$ref->{info}];
-    	push (@data, $tmp);
+        my $tmp = [$ref->{id}, $ref->{name}, $ref->{value}, $ref->{info}];
+        push(@data, $tmp);
     }
 
     $sth->finish();
@@ -520,9 +501,8 @@ sub load_object {
         $value = $ref->{'value'};
     }
 
-    if (!(defined($ref->{'objecttype'}) &&
-	  defined($ref->{'objectgroup_id'}))) {
-	return undef;
+    if (!(defined($ref->{'objecttype'}) && defined($ref->{'objectgroup_id'}))) {
+        return undef;
     }
 
     my $ogroup = $ref->{'objectgroup_id'};
@@ -541,10 +521,10 @@ sub load_object_full {
 
     my $otype = $obj->otype();
     die "wrong object type ($otype != $exp_otype)\n"
-	if defined($exp_otype) && $otype != $exp_otype;
+        if defined($exp_otype) && $otype != $exp_otype;
 
     die "wrong object group ($obj->{ogroup} != $gid)\n"
-	if $obj->{ogroup} != $gid;
+        if $obj->{ogroup} != $gid;
 
     return $obj;
 }
@@ -553,26 +533,24 @@ sub load_group_by_name {
     my ($self, $name) = @_;
 
     $name = encode('UTF-8', $name);
-    my $sth = $self->{dbh}->prepare("SELECT * FROM Objectgroup " .
-				    "WHERE name = ?");
+    my $sth = $self->{dbh}->prepare("SELECT * FROM Objectgroup " . "WHERE name = ?");
 
     $sth->execute($name);
 
     while (my $ref = $sth->fetchrow_hashref()) {
-   	my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info},
-					 $ref->{class});
-    	$og->{id} = $ref->{id};
+        my $og = PMG::RuleDB::Group->new($ref->{name}, $ref->{info}, $ref->{class});
+        $og->{id} = $ref->{id};
 
-	$sth->finish();
+        $sth->finish();
 
-	if ($ref->{'class'} eq 'action') {
-	    my $objects = $self->load_group_objects($og->{id});
-	    my $obj = @$objects[0];
-	    defined($obj) || die "undefined action object: ERROR";
-	    $og->{action} = $obj;
-	}
+        if ($ref->{'class'} eq 'action') {
+            my $objects = $self->load_group_objects($og->{id});
+            my $obj = @$objects[0];
+            defined($obj) || die "undefined action object: ERROR";
+            $og->{action} = $obj;
+        }
 
-	return $og;
+        return $og;
     }
 
     $sth->finish();
@@ -583,8 +561,7 @@ sub load_group_by_name {
 sub greylistexclusion_groupid {
     my ($self) = @_;
 
-    my $sth = $self->{dbh}->prepare(
-	"select id from objectgroup where class='greylist' limit 1;");
+    my $sth = $self->{dbh}->prepare("select id from objectgroup where class='greylist' limit 1;");
 
     $sth->execute();
 
@@ -598,24 +575,22 @@ sub load_group_objects {
 
     defined($ogid) || die "undefined group id: ERROR";
 
-    my $sth = $self->{dbh}->prepare(
-	"SELECT * FROM Object " .
-	"WHERE Objectgroup_ID = ? order by ObjectType,Value");
+    my $sth = $self->{dbh}
+        ->prepare("SELECT * FROM Object " . "WHERE Objectgroup_ID = ? order by ObjectType,Value");
 
     my $objects = ();
 
     $sth->execute($ogid);
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $obj = $self->load_object($ref->{id});
-	push @$objects, $obj;
+        my $obj = $self->load_object($ref->{id});
+        push @$objects, $obj;
     }
 
     $sth->finish();
 
     return $objects;
 }
-
 
 sub save_object {
     my ($self, $obj) = @_;
@@ -628,8 +603,8 @@ sub save_object {
 sub group_add_object {
     my ($self, $group, $obj) = @_;
 
-    ($obj->oclass() eq $group->{class}) ||
-	die "wrong object class: ERROR";
+    ($obj->oclass() eq $group->{class})
+        || die "wrong object class: ERROR";
 
     $obj->{ogroup} = $group->{id};
 
@@ -643,21 +618,18 @@ sub delete_object {
 
     eval {
 
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	$self->{dbh}->do("DELETE FROM Attribut " .
-			  "WHERE Object_ID = ?", undef, $obj->{id});
+        $self->{dbh}->do("DELETE FROM Attribut " . "WHERE Object_ID = ?", undef, $obj->{id});
 
-	$self->{dbh}->do("DELETE FROM Object " .
-			  "WHERE ID = ?",
-			  undef, $obj->{id});
+        $self->{dbh}->do("DELETE FROM Object " . "WHERE ID = ?", undef, $obj->{id});
 
-	$self->{dbh}->commit;
+        $self->{dbh}->commit;
     };
     if (my $err = $@) {
-	$self->{dbh}->rollback;
-	syslog('err', $err);
-	return undef;
+        $self->{dbh}->rollback;
+        syslog('err', $err);
+        return undef;
     }
 
     $obj->{id} = undef;
@@ -672,86 +644,94 @@ sub update_rule_attributes {
     my $attributes = [qw(and invert)];
 
     for my $type ($types->@*) {
-	for my $attribute ($attributes->@*) {
-	    my $prop = "$type-$attribute";
+        for my $attribute ($attributes->@*) {
+            my $prop = "$type-$attribute";
 
-	    # only save the values if they're set to 1
-	    if ($rule->{$prop}) {
-		$self->{dbh}->do(
-		    "INSERT INTO Rule_Attributes (Rule_ID, Name, Value) " .
-		    "VALUES (?, ?, ?) ".
-		    "ON CONFLICT (Rule_ID, Name) DO UPDATE SET Value = ?", undef,
-		    $rule->{id}, $prop, $rule->{$prop}, $rule->{$prop},
-		);
-	    } else {
-		$self->{dbh}->do(
-		    "DELETE FROM Rule_Attributes " .
-		    "WHERE Rule_ID = ? AND Name = ?", undef,
-		    $rule->{id}, $prop,
-		);
-	    }
-	}
+            # only save the values if they're set to 1
+            if ($rule->{$prop}) {
+                $self->{dbh}->do(
+                    "INSERT INTO Rule_Attributes (Rule_ID, Name, Value) "
+                        . "VALUES (?, ?, ?) "
+                        . "ON CONFLICT (Rule_ID, Name) DO UPDATE SET Value = ?",
+                    undef,
+                    $rule->{id},
+                    $prop,
+                    $rule->{$prop},
+                    $rule->{$prop},
+                );
+            } else {
+                $self->{dbh}->do(
+                    "DELETE FROM Rule_Attributes " . "WHERE Rule_ID = ? AND Name = ?",
+                    undef,
+                    $rule->{id},
+                    $prop,
+                );
+            }
+        }
     }
 }
 
 sub save_rule {
     my ($self, $rule) = @_;
 
-    defined($rule->{name}) ||
-	die "undefined rule attribute - name: ERROR";
-    defined($rule->{priority}) ||
-	die "undefined rule attribute - priority: ERROR";
-    defined($rule->{active}) ||
-	die "undefined rule attribute - active: ERROR";
-    defined($rule->{direction}) ||
-	die "undefined rule attribute - direction: ERROR";
+    defined($rule->{name})
+        || die "undefined rule attribute - name: ERROR";
+    defined($rule->{priority})
+        || die "undefined rule attribute - priority: ERROR";
+    defined($rule->{active})
+        || die "undefined rule attribute - active: ERROR";
+    defined($rule->{direction})
+        || die "undefined rule attribute - direction: ERROR";
 
     my $rulename = encode('UTF-8', $rule->{name});
     if (defined($rule->{id})) {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	eval {
-	    $self->{dbh}->do(
-		"UPDATE Rule " .
-		"SET Name = ?, Priority = ?, Active = ?, Direction = ? " .
-		"WHERE ID = ?", undef,
-		$rulename, $rule->{priority}, $rule->{active},
-		$rule->{direction}, $rule->{id});
+        eval {
+            $self->{dbh}->do(
+                "UPDATE Rule "
+                    . "SET Name = ?, Priority = ?, Active = ?, Direction = ? "
+                    . "WHERE ID = ?",
+                undef,
+                $rulename,
+                $rule->{priority},
+                $rule->{active},
+                $rule->{direction},
+                $rule->{id},
+            );
 
-	    $self->update_rule_attributes($rule);
+            $self->update_rule_attributes($rule);
 
-	    $self->{dbh}->commit;
-	};
+            $self->{dbh}->commit;
+        };
 
-	if (my $err = $@) {
-	    $self->{dbh}->rollback;
-	    syslog('err', $err);
-	    return undef;
-	}
+        if (my $err = $@) {
+            $self->{dbh}->rollback;
+            syslog('err', $err);
+            return undef;
+        }
     } else {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	eval {
-	    my $sth = $self->{dbh}->prepare(
-		"INSERT INTO Rule (Name, Priority, Active, Direction) " .
-		"VALUES (?, ?, ?, ?);");
+        eval {
+            my $sth =
+                $self->{dbh}->prepare("INSERT INTO Rule (Name, Priority, Active, Direction) "
+                    . "VALUES (?, ?, ?, ?);");
 
-	    $sth->execute($rulename, $rule->priority, $rule->active,
-		$rule->direction);
+            $sth->execute($rulename, $rule->priority, $rule->active, $rule->direction);
 
+            $rule->{id} = PMG::Utils::lastid($self->{dbh}, 'rule_id_seq');
 
-	    $rule->{id} = PMG::Utils::lastid($self->{dbh}, 'rule_id_seq');
+            $self->update_rule_attributes($rule);
 
-	    $self->update_rule_attributes($rule);
+            $self->{dbh}->commit;
+        };
 
-	    $self->{dbh}->commit;
-	};
-
-	if (my $err = $@) {
-	    $self->{dbh}->rollback;
-	    syslog('err', $err);
-	    return undef;
-	}
+        if (my $err = $@) {
+            $self->{dbh}->rollback;
+            syslog('err', $err);
+            return undef;
+        }
     }
 
     return $rule->{id};
@@ -763,18 +743,16 @@ sub delete_rule {
     defined($ruleid) || die "undefined rule id: ERROR";
 
     eval {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	$self->{dbh}->do("DELETE FROM Rule " .
-			 "WHERE ID = ?", undef, $ruleid);
-	$self->{dbh}->do("DELETE FROM RuleGroup " .
-			 "WHERE Rule_ID = ?", undef, $ruleid);
-	$self->{dbh}->commit;
+        $self->{dbh}->do("DELETE FROM Rule " . "WHERE ID = ?", undef, $ruleid);
+        $self->{dbh}->do("DELETE FROM RuleGroup " . "WHERE Rule_ID = ?", undef, $ruleid);
+        $self->{dbh}->commit;
     };
     if (my $err = $@) {
-	$self->{dbh}->rollback;
-	syslog('err', $err);
-	return undef;
+        $self->{dbh}->rollback;
+        syslog('err', $err);
+        return undef;
     }
 
     return 1;
@@ -784,25 +762,22 @@ sub delete_testrules {
     my ($self) = @_;
 
     eval {
-	$self->{dbh}->begin_work;
+        $self->{dbh}->begin_work;
 
-	my $sth = $self->{dbh}->prepare("Select id FROM Rule " .
-					"WHERE name = 'testrule'");
-	$sth->execute();
+        my $sth = $self->{dbh}->prepare("Select id FROM Rule " . "WHERE name = 'testrule'");
+        $sth->execute();
 
-	while(my $ref = $sth->fetchrow_hashref()) {
-	    $self->{dbh}->do("DELETE FROM Rule " .
-			     "WHERE ID = ?", undef, $ref->{id});
-	    $self->{dbh}->do("DELETE FROM RuleGroup " .
-			     "WHERE Rule_ID = ?", undef, $ref->{id});
-	}
-	$sth->finish();
+        while (my $ref = $sth->fetchrow_hashref()) {
+            $self->{dbh}->do("DELETE FROM Rule " . "WHERE ID = ?", undef, $ref->{id});
+            $self->{dbh}->do("DELETE FROM RuleGroup " . "WHERE Rule_ID = ?", undef, $ref->{id});
+        }
+        $sth->finish();
 
-	$self->{dbh}->commit;
+        $self->{dbh}->commit;
     };
     if (my $err = $@) {
-	$self->{dbh}->rollback;
-	die $err;
+        $self->{dbh}->rollback;
+        die $err;
     }
 
     return 1;
@@ -819,17 +794,19 @@ my $grouptype_hash = {
 sub rule_add_group {
     my ($self, $ruleid, $groupid, $gtype_str) = @_;
 
-    my $gtype = $grouptype_hash->{$gtype_str} //
-	die "unknown group type '$gtype_str'\n";
+    my $gtype = $grouptype_hash->{$gtype_str} // die "unknown group type '$gtype_str'\n";
 
     defined($ruleid) || die "undefined rule id: ERROR";
     defined($groupid) || die "undefined group id: ERROR";
     defined($gtype) || die "undefined group type: ERROR";
 
-    $self->{dbh}->do("INSERT INTO RuleGroup " .
-		     "(Objectgroup_ID, Rule_ID, Grouptype) " .
-		     "VALUES (?, ?, ?)", undef,
-		     $groupid, $ruleid, $gtype);
+    $self->{dbh}->do(
+        "INSERT INTO RuleGroup " . "(Objectgroup_ID, Rule_ID, Grouptype) " . "VALUES (?, ?, ?)",
+        undef,
+        $groupid,
+        $ruleid,
+        $gtype,
+    );
     return 1;
 }
 
@@ -866,16 +843,19 @@ sub rule_add_action {
 sub rule_remove_group {
     my ($self, $ruleid, $groupid, $gtype_str) = @_;
 
-    my $gtype = $grouptype_hash->{$gtype_str} //
-	die "unknown group type '$gtype_str'\n";
+    my $gtype = $grouptype_hash->{$gtype_str} // die "unknown group type '$gtype_str'\n";
 
     defined($ruleid) || die "undefined rule id: ERROR";
     defined($groupid) || die "undefined group id: ERROR";
     defined($gtype) || die "undefined group type: ERROR";
 
-    $self->{dbh}->do("DELETE FROM RuleGroup WHERE " .
-		     "Objectgroup_ID = ? and Rule_ID = ? and Grouptype = ?",
-		     undef, $groupid, $ruleid, $gtype);
+    $self->{dbh}->do(
+        "DELETE FROM RuleGroup WHERE " . "Objectgroup_ID = ? and Rule_ID = ? and Grouptype = ?",
+        undef,
+        $groupid,
+        $ruleid,
+        $gtype,
+    );
     return 1;
 }
 
@@ -889,10 +869,10 @@ sub load_rule_attributes {
     $attribute_sth->execute($rule->{id});
 
     while (my $ref = $attribute_sth->fetchrow_hashref()) {
-	if ($ref->{name} =~ m/^((?:what|when|from|to)-(?:and|invert))$/) {
-	    my $prop = $1;
-	    $rule->{$prop} = $ref->{value};
-	}
+        if ($ref->{name} =~ m/^((?:what|when|from|to)-(?:and|invert))$/) {
+            my $prop = $1;
+            $rule->{$prop} = $ref->{value};
+        }
     }
 }
 
@@ -906,19 +886,23 @@ sub load_rule {
     my $rule;
 
     eval {
-	my $sth = $self->{dbh}->prepare(
-	    "SELECT * FROM Rule where id = ? ORDER BY Priority DESC");
+        my $sth =
+            $self->{dbh}->prepare("SELECT * FROM Rule where id = ? ORDER BY Priority DESC");
 
-	$sth->execute($id);
+        $sth->execute($id);
 
-	my $ref = $sth->fetchrow_hashref();
-	die "rule '$id' does not exist\n" if !defined($ref);
+        my $ref = $sth->fetchrow_hashref();
+        die "rule '$id' does not exist\n" if !defined($ref);
 
-	$rule = PMG::RuleDB::Rule->new($ref->{name}, $ref->{priority},
-					  $ref->{active}, $ref->{direction});
-	$rule->{id} = $ref->{id};
+        $rule = PMG::RuleDB::Rule->new(
+            $ref->{name},
+            $ref->{priority},
+            $ref->{active},
+            $ref->{direction},
+        );
+        $rule->{id} = $ref->{id};
 
-	$self->load_rule_attributes($rule);
+        $self->load_rule_attributes($rule);
     };
     my $err = $@;
 
@@ -932,27 +916,24 @@ sub load_rule {
 sub load_rules {
     my ($self) = @_;
 
-    my $sth = $self->{dbh}->prepare(
-	"SELECT * FROM Rule ORDER BY Priority DESC");
+    my $sth = $self->{dbh}->prepare("SELECT * FROM Rule ORDER BY Priority DESC");
 
     my $rules = ();
 
     $sth->execute();
 
     while (my $ref = $sth->fetchrow_hashref()) {
-	my $rulename = PMG::Utils::try_decode_utf8($ref->{name});
-	my $rule = PMG::RuleDB::Rule->new($rulename, $ref->{priority},
-					  $ref->{active}, $ref->{direction});
-	$rule->{id} = $ref->{id};
-	push @$rules, $rule;
+        my $rulename = PMG::Utils::try_decode_utf8($ref->{name});
+        my $rule =
+            PMG::RuleDB::Rule->new($rulename, $ref->{priority}, $ref->{active}, $ref->{direction});
+        $rule->{id} = $ref->{id};
+        push @$rules, $rule;
     }
 
     $sth->finish();
 
     return $rules;
 }
-
-
 
 1;
 

@@ -25,17 +25,17 @@ my $pmtypes = {
 
 sub new {
     my ($type, $fvalue, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
 
-    my $self = $class->SUPER::new ($fvalue, $ogroup);
-    
+    my $self = $class->SUPER::new($fvalue, $ogroup);
+
     return $self;
 }
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     my $obj = $class->SUPER::load_attr($ruledb, $id, $ogroup, $value);
@@ -51,43 +51,43 @@ sub parse_entity {
     # test regex for validity
     eval { "" =~ m|$self->{field_value}|; };
     if (my $err = $@) {
-	warn "invalid regex: $err\n";
-	return $res;
+        warn "invalid regex: $err\n";
+        return $res;
     }
     # match subtypes? We currently do exact matches only.
 
-    if (my $id = $entity->head->mime_attr ('x-proxmox-tmp-aid')) {
-	chomp $id;
+    if (my $id = $entity->head->mime_attr('x-proxmox-tmp-aid')) {
+        chomp $id;
 
-	my $header_ct = $entity->head->mime_attr ('content-type');
+        my $header_ct = $entity->head->mime_attr('content-type');
 
-	my $magic_ct = $entity->{PMX_magic_ct};
+        my $magic_ct = $entity->{PMX_magic_ct};
 
-	my $glob_ct = $entity->{PMX_glob_ct};
+        my $glob_ct = $entity->{PMX_glob_ct};
 
-	if ($header_ct && $header_ct =~ m|$self->{field_value}|) {
-	    push @$res, $id;
-	} elsif ($magic_ct && $magic_ct =~ m|$self->{field_value}|) {
-	    push @$res, $id;
-	} elsif ($glob_ct && $glob_ct =~ m|$self->{field_value}|) {
-	    push @$res, $id;
-	} else {
-	    # match inside archives 
-	    if (my $cts = $entity->{PMX_content_types}) {
-		foreach my $ct (keys %$cts) {
-		    if ($ct =~ m|$self->{field_value}|) {
-			push @$res, $id;
-			last;
-		    }
-		}
-	    } 
-	}
+        if ($header_ct && $header_ct =~ m|$self->{field_value}|) {
+            push @$res, $id;
+        } elsif ($magic_ct && $magic_ct =~ m|$self->{field_value}|) {
+            push @$res, $id;
+        } elsif ($glob_ct && $glob_ct =~ m|$self->{field_value}|) {
+            push @$res, $id;
+        } else {
+            # match inside archives
+            if (my $cts = $entity->{PMX_content_types}) {
+                foreach my $ct (keys %$cts) {
+                    if ($ct =~ m|$self->{field_value}|) {
+                        push @$res, $id;
+                        last;
+                    }
+                }
+            }
+        }
     }
-    
-    foreach my $part ($entity->parts)  {
-	if (my $match = $self->parse_entity ($part)) {
-	    push @$res, @$match;
-	}
+
+    foreach my $part ($entity->parts) {
+        if (my $match = $self->parse_entity($part)) {
+            push @$res, @$match;
+        }
     }
 
     return $res;
@@ -96,7 +96,7 @@ sub parse_entity {
 sub what_match {
     my ($self, $queue, $entity, $msginfo) = @_;
 
-    return $self->parse_entity ($entity);
+    return $self->parse_entity($entity);
 }
 
 1;

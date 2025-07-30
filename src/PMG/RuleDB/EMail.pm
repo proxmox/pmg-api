@@ -19,7 +19,7 @@ sub otype_text {
 sub new {
     my ($type, $address, $ogroup) = @_;
     my $class = ref($type) || $type;
- 
+
     $address //= 'unknown@domain.tld';
 
     my $self = $class->SUPER::new($address, $ogroup);
@@ -30,15 +30,14 @@ sub new {
 sub who_match {
     my ($self, $addr) = @_;
 
-    return (lc ($addr) eq lc ($self->address));
+    return (lc($addr) eq lc($self->address));
 }
-
 
 sub short_desc {
     my $self = shift;
-    
+
     my $desc = $self->{address};
-    
+
     return $desc;
 }
 
@@ -46,10 +45,11 @@ sub properties {
     my ($class) = @_;
 
     return {
-	email => {
-	    description => "Email address.",
-	    type => 'string', format => 'email',
-	},
+        email => {
+            description => "Email address.",
+            type => 'string',
+            format => 'email',
+        },
     };
 }
 

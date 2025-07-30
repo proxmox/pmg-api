@@ -25,7 +25,7 @@ sub parse_key {
     my ($key, $noerr) = @_;
 
     if ($key =~ m/^${subscription_pattern}$/) {
-	return $1 # subscription level
+        return $1 # subscription level
     }
     return undef if $noerr;
 
@@ -41,102 +41,112 @@ sub read_etc_subscription {
     my $level = parse_key($info->{key});
 
     if ($info->{status} eq 'active') {
-	$info->{level} = $level;
+        $info->{level} = $level;
     }
 
     return $info;
-};
+}
 
 sub write_etc_subscription {
     my ($info) = @_;
 
     my $server_id = PMG::Utils::get_hwaddress();
 
-    Proxmox::RS::Subscription::write_subscription($filename, "/etc/apt/auth.conf.d/pmg.conf", "enterprise.proxmox.com/debian/pmg", $info);
+    Proxmox::RS::Subscription::write_subscription(
+        $filename,
+        "/etc/apt/auth.conf.d/pmg.conf",
+        "enterprise.proxmox.com/debian/pmg",
+        $info,
+    );
 }
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'get',
     path => '',
     method => 'GET',
     description => "Read subscription info.",
     proxyto => 'node',
-    permissions => { check => [ 'admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
     parameters => {
-    	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+        },
     },
-    returns => { type => 'object'},
+    returns => { type => 'object' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $server_id = PMG::Utils::get_hwaddress();
-	my $url = "https://www.proxmox.com/proxmox-mail-gateway/pricing";
-	my $info = read_etc_subscription();
-	if (!$info) {
-	    return {
-		status => "notfound",
-		message => "There is no subscription key",
-		serverid => $server_id,
-		url => $url,
-	    }
-	}
+        my $server_id = PMG::Utils::get_hwaddress();
+        my $url = "https://www.proxmox.com/proxmox-mail-gateway/pricing";
+        my $info = read_etc_subscription();
+        if (!$info) {
+            return {
+                status => "notfound",
+                message => "There is no subscription key",
+                serverid => $server_id,
+                url => $url,
+            };
+        }
 
-	$info->{serverid} = $server_id;
-	$info->{url} = $url;
+        $info->{serverid} = $server_id;
+        $info->{url} = $url;
 
-	return $info
-    }});
+        return $info;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'update',
     path => '',
     method => 'POST',
     description => "Update subscription info.",
     proxyto => 'node',
     protected => 1,
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	    force => {
-		description => "Always connect to server, even if we have up to date info inside local cache.",
-		type => 'boolean',
-		optional => 1,
-		default => 0
-	    }
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            force => {
+                description =>
+                    "Always connect to server, even if we have up to date info inside local cache.",
+                type => 'boolean',
+                optional => 1,
+                default => 0,
+            },
+        },
     },
-    returns => { type => 'null'},
+    returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $info = read_etc_subscription();
-	return undef if !$info;
+        my $info = read_etc_subscription();
+        return undef if !$info;
 
-	my $server_id = PMG::Utils::get_hwaddress();
-	my $key = $info->{key};
+        my $server_id = PMG::Utils::get_hwaddress();
+        my $key = $info->{key};
 
-	# key has been recently checked
-	return undef
-	    if !$param->{force}
-		&& $info->{status} eq 'active'
-		&& Proxmox::RS::Subscription::check_age($info, 1)->{status} eq 'active';
+        # key has been recently checked
+        return undef
+            if !$param->{force}
+            && $info->{status} eq 'active'
+            && Proxmox::RS::Subscription::check_age($info, 1)->{status} eq 'active';
 
-	my $pmg_cfg = PMG::Config->new();
-	my $proxy = $pmg_cfg->get('admin', 'http_proxy');
+        my $pmg_cfg = PMG::Config->new();
+        my $proxy = $pmg_cfg->get('admin', 'http_proxy');
 
-	$info = Proxmox::RS::Subscription::check_subscription($key, $server_id, "", "Proxmox Mail Gateway", $proxy);
+        $info = Proxmox::RS::Subscription::check_subscription(
+            $key, $server_id, "", "Proxmox Mail Gateway", $proxy,
+        );
 
-	write_etc_subscription($info);
+        write_etc_subscription($info);
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'set',
     path => '',
     method => 'PUT',
@@ -144,46 +154,49 @@ __PACKAGE__->register_method ({
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	    key => {
-		description => "Proxmox Mail Gateway subscription key",
-		type => 'string',
-		pattern => $subscription_pattern,
-		maxLength => 32,
-	    },
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            key => {
+                description => "Proxmox Mail Gateway subscription key",
+                type => 'string',
+                pattern => $subscription_pattern,
+                maxLength => 32,
+            },
+        },
     },
-    returns => { type => 'null'},
+    returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $key = PVE::Tools::trim($param->{key});
+        my $key = PVE::Tools::trim($param->{key});
 
-	my $level = parse_key($key);
+        my $level = parse_key($key);
 
-	my $info = {
-	    status => 'new',
-	    key => $key,
-	    checktime => time(),
-	};
+        my $info = {
+            status => 'new',
+            key => $key,
+            checktime => time(),
+        };
 
-	my $server_id = PMG::Utils::get_hwaddress();
+        my $server_id = PMG::Utils::get_hwaddress();
 
-	write_etc_subscription($info);
+        write_etc_subscription($info);
 
-	my $pmg_cfg = PMG::Config->new();
-	my $proxy = $pmg_cfg->get('admin', 'http_proxy');
+        my $pmg_cfg = PMG::Config->new();
+        my $proxy = $pmg_cfg->get('admin', 'http_proxy');
 
-	$info = Proxmox::RS::Subscription::check_subscription($key, $server_id, "", "Proxmox Mail Gateway", $proxy);
+        $info = Proxmox::RS::Subscription::check_subscription(
+            $key, $server_id, "", "Proxmox Mail Gateway", $proxy,
+        );
 
-	write_etc_subscription($info);
+        write_etc_subscription($info);
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'delete',
     path => '',
     method => 'DELETE',
@@ -191,16 +204,17 @@ __PACKAGE__->register_method ({
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+        },
     },
-    returns => { type => 'null'},
+    returns => { type => 'null' },
     code => sub {
-	return if ! -e $filename;
-	unlink($filename) or die "cannot delete subscription key: $!";
-	return undef;
-    }});
+        return if !-e $filename;
+        unlink($filename) or die "cannot delete subscription key: $!";
+        return undef;
+    },
+});
 
 1;

@@ -74,10 +74,10 @@ if (!GetOptions(
     'testmode=s' => \$opt_testmode,
     'pidfile=s' => \$opt_pidfile,
     'untrusted' => \$opt_untrusted,
-    'database=s' => \$opt_database
+    'database=s' => \$opt_database,
 )) {
     die "usage error\n";
-    exit (-1);
+    exit(-1);
 }
 
 $opt_pidfile = "/run/${prog_name}.pid" if !$opt_pidfile;
@@ -94,14 +94,15 @@ if (!$opt_testmode) {
     my $demo = $pmg_cfg->get('admin', 'demo');
 
     if ($demo) {
-	syslog ('info', 'demo mode detected - not starting server');
-	exit (0);
+        syslog('info', 'demo mode detected - not starting server');
+        exit(0);
     }
 
     my $memory = PMG::Config::Mail::physical_memory();
     if ($memory < 3840) {
-	warn "total memory below 4 GiB, consider setting 'max_filters' manually to avoid OOM-kills\n"
-	    if !defined($pmg_cfg->get('mail', 'max_filters', 1));
+        warn
+            "total memory below 4 GiB, consider setting 'max_filters' manually to avoid OOM-kills\n"
+            if !defined($pmg_cfg->get('mail', 'max_filters', 1));
     }
 
     $max_servers = $pmg_cfg->get('mail', 'max_filters') + 2;
@@ -112,17 +113,17 @@ if (!$opt_testmode) {
 }
 
 print "using pre-fork workers with min=$min_servers, max=$max_servers, min_spare=$min_spare_servers"
-    .", max_spare=$max_spare_servers, max_requests=$max_requests\n";
+    . ", max_spare=$max_spare_servers, max_requests=$max_requests\n";
 
 $opt_max_dequeue = 0 if $opt_testmode;
 
 my $daemonize = 1;
-if (defined ($ENV{BOUND_SOCKETS})) {
+if (defined($ENV{BOUND_SOCKETS})) {
     $daemonize = undef;
 }
 
 my $server_attr = {
-    port => [ $opt_int_port, $opt_ext_port ],
+    port => [$opt_int_port, $opt_ext_port],
     host => '127.0.0.1',
     min_servers => $min_servers,
     max_servers => $max_servers,
@@ -161,47 +162,52 @@ sub get_prox_vars {
     my ($self, $queue, $entity, $msginfo, $rule, $targets, $spaminfo) = @_;
 
     $spaminfo = {
-	sa_score => $queue->{sa_score},
-	sa_hits => $queue->{sa_hits},
-	sa_data => $queue->{sa_data},
-	sa_max => $queue->{sa_max}
-    } if !$spaminfo;
+        sa_score => $queue->{sa_score},
+        sa_hits => $queue->{sa_hits},
+        sa_data => $queue->{sa_data},
+        sa_max => $queue->{sa_max},
+        }
+        if !$spaminfo;
 
     my $vars = {
-	'SUBJECT' => PMG::Utils::decode_rfc1522($entity->head->get ('subject', 0) || 'No Subject'),
-	'RULE' => $rule->{name},
-	'RULE_INFO' => $msginfo->{rule_info},
-	'SENDER' => $msginfo->{sender},
-	'SENDER_IP' => $msginfo->{xforward}->{addr},
-	'TARGETS' => join (', ', @$targets),
-	'RECEIVERS' => join (', ', @{$msginfo->{targets}}),
-	'SPAMLEVEL' => $spaminfo->{sa_score},
-	'SPAMSTARS' => '*' x (($spaminfo->{sa_score} || 0) > 100 ? 100 : $spaminfo->{sa_score} || 0),
-	'ADMIN' =>  $self->{pmg_cfg}->get('admin', 'email'),
-	'HOST' =>  $msginfo->{hostname},
-	'DOMAIN' =>  $msginfo->{domain},
-	'FQDN' => $msginfo->{fqdn},
-	'MSGID' => $queue->{msgid},
-	'VERSION' => PMG::pmgcfg::package() . "/" . PMG::pmgcfg::release() . "/" . PMG::pmgcfg::repoid(),
+        'SUBJECT' =>
+            PMG::Utils::decode_rfc1522($entity->head->get('subject', 0) || 'No Subject'),
+        'RULE' => $rule->{name},
+        'RULE_INFO' => $msginfo->{rule_info},
+        'SENDER' => $msginfo->{sender},
+        'SENDER_IP' => $msginfo->{xforward}->{addr},
+        'TARGETS' => join(', ', @$targets),
+        'RECEIVERS' => join(', ', @{ $msginfo->{targets} }),
+        'SPAMLEVEL' => $spaminfo->{sa_score},
+        'SPAMSTARS' => '*' x
+            (($spaminfo->{sa_score} || 0) > 100 ? 100 : $spaminfo->{sa_score} || 0),
+        'ADMIN' => $self->{pmg_cfg}->get('admin', 'email'),
+        'HOST' => $msginfo->{hostname},
+        'DOMAIN' => $msginfo->{domain},
+        'FQDN' => $msginfo->{fqdn},
+        'MSGID' => $queue->{msgid},
+        'VERSION' => PMG::pmgcfg::package() . "/"
+            . PMG::pmgcfg::release() . "/"
+            . PMG::pmgcfg::repoid(),
     };
 
     $vars->{__spaminfo} = $spaminfo;
 
     if ($opt_testmode) {
-	if ($queue->{vinfo_clam} || $queue->{vinfo_avast} || $queue->{vinfo_custom}) {
-	    $vars->{'VIRUS_INFO'} = "Virus Info:";
-	    $vars->{'VIRUS_INFO'} .= " clam: $queue->{vinfo_clam}" if $queue->{vinfo_clam};
-	    $vars->{'VIRUS_INFO'} .= " avast: $queue->{vinfo_avast}" if $queue->{vinfo_avast};
-	    $vars->{'VIRUS_INFO'} .= " custom: $queue->{vinfo_custom}" if $queue->{vinfo_custom};
-	} else {
-	    $vars->{'VIRUS_INFO'} = '';
-	}
+        if ($queue->{vinfo_clam} || $queue->{vinfo_avast} || $queue->{vinfo_custom}) {
+            $vars->{'VIRUS_INFO'} = "Virus Info:";
+            $vars->{'VIRUS_INFO'} .= " clam: $queue->{vinfo_clam}" if $queue->{vinfo_clam};
+            $vars->{'VIRUS_INFO'} .= " avast: $queue->{vinfo_avast}" if $queue->{vinfo_avast};
+            $vars->{'VIRUS_INFO'} .= " custom: $queue->{vinfo_custom}" if $queue->{vinfo_custom};
+        } else {
+            $vars->{'VIRUS_INFO'} = '';
+        }
     } else {
-	if ($queue->{vinfo}) {
-	    $vars->{'VIRUS_INFO'} = "Virus Info: $queue->{vinfo}\n";
-	} else {
-	    $vars->{'VIRUS_INFO'} = '';
-	}
+        if ($queue->{vinfo}) {
+            $vars->{'VIRUS_INFO'} = "Virus Info: $queue->{vinfo}\n";
+        } else {
+            $vars->{'VIRUS_INFO'} = '';
+        }
     }
 
     $vars->{'SPAM_HITS'} = $spaminfo->{sa_hits};
@@ -209,27 +215,27 @@ sub get_prox_vars {
     $vars->{'SPAM_INFO'} = '';
     my $sscores = $spaminfo->{sa_data};
 
-    if (defined ($sscores) && @$sscores != -1) {
-	my $sa_text;
-	if ($opt_testmode) {
-	    $sa_text = "Spam detection results:  100\n";
-	} else {
-	    $sa_text = "Spam detection results:  $spaminfo->{sa_score}\n";
-	}
+    if (defined($sscores) && @$sscores != -1) {
+        my $sa_text;
+        if ($opt_testmode) {
+            $sa_text = "Spam detection results:  100\n";
+        } else {
+            $sa_text = "Spam detection results:  $spaminfo->{sa_score}\n";
+        }
 
-	foreach my $s (@$sscores) {
-	    if ($opt_testmode) {
-		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule}, 1, $s->{desc} || '-');
-	    } else {
-		$sa_text .= sprintf ("%-22s %6s %s\n", $s->{rule}, $s->{score}, $s->{desc} || '-');
-	    }
-	}
-	$vars->{'SPAM_INFO'} = $sa_text;
+        foreach my $s (@$sscores) {
+            if ($opt_testmode) {
+                $sa_text .= sprintf("%-22s %6s %s\n", $s->{rule}, 1, $s->{desc} || '-');
+            } else {
+                $sa_text .= sprintf("%-22s %6s %s\n", $s->{rule}, $s->{score}, $s->{desc} || '-');
+            }
+        }
+        $vars->{'SPAM_INFO'} = $sa_text;
     }
 
     if ($opt_testmode) {
-	delete ($vars->{'ADMIN'});
- 	#delete ($vars->{'SPAM_INFO'});
+        delete($vars->{'ADMIN'});
+        #delete ($vars->{'SPAM_INFO'});
     }
 
     return $vars;
@@ -246,84 +252,88 @@ sub apply_rules {
     my $matching_rules = [];
 
     my $rulecache = $self->{rulecache};
-    my $rules = $rulecache->rules ();
+    my $rules = $rulecache->rules();
     my $dbh = $self->{ruledb}->{dbh};
 
     # first, we remove all conditional written 'X-' header attributes
     foreach my $rule (@$rules) {
-	next if !$rule->{active};
-	next if ($rule->{direction} == 0) &&  $msginfo->{trusted};
-	next if ($rule->{direction} == 1) &&  !$msginfo->{trusted};
+        next if !$rule->{active};
+        next if ($rule->{direction} == 0) && $msginfo->{trusted};
+        next if ($rule->{direction} == 1) && !$msginfo->{trusted};
 
-	my $actions = $rulecache->get_actions ($rule->{id});
-	if ($actions) {
-	    foreach my $action (@$actions) {
-		if ($action->isa ("PMG::RuleDB::ModField")) {
-		    my $fname = $action->{field};
-		    next if $fname !~ m/^X-/i;
-		    $entity->head->delete($fname);
-		}
-	    }
-	}
+        my $actions = $rulecache->get_actions($rule->{id});
+        if ($actions) {
+            foreach my $action (@$actions) {
+                if ($action->isa("PMG::RuleDB::ModField")) {
+                    my $fname = $action->{field};
+                    next if $fname !~ m/^X-/i;
+                    $entity->head->delete($fname);
+                }
+            }
+        }
     }
 
     foreach my $rule (@$rules) {
-	next if !$rule->{active};
-	next if ($rule->{direction} == 0) &&  $msginfo->{trusted};
-	next if ($rule->{direction} == 1) &&  !$msginfo->{trusted};
+        next if !$rule->{active};
+        next if ($rule->{direction} == 0) && $msginfo->{trusted};
+        next if ($rule->{direction} == 1) && !$msginfo->{trusted};
 
-	# match from, when and what classes (not target dependent)
-	if (!($rulecache->from_match ($rule->{id}, $msginfo->{sender}, $msginfo->{xforward}->{addr}, $ldap) &&
-	      $rulecache->when_match ($rule->{id}, time))) {
-	    next;
-	}
+        # match from, when and what classes (not target dependent)
+        if (!(
+            $rulecache->from_match(
+                $rule->{id}, $msginfo->{sender}, $msginfo->{xforward}->{addr}, $ldap,
+            )
+            && $rulecache->when_match($rule->{id}, time)
+        )) {
+            next;
+        }
 
-	my ($marks, $spaminfo) =
-	    $rulecache->what_match ($rule->{id}, $queue, $entity, $msginfo, $dbh);
+        my ($marks, $spaminfo) =
+            $rulecache->what_match($rule->{id}, $queue, $entity, $msginfo, $dbh);
 
-	$rule_marks{$rule->{id}} = $marks;
-	$rule_spaminfo{$rule->{id}} = $spaminfo;
+        $rule_marks{ $rule->{id} } = $marks;
+        $rule_spaminfo{ $rule->{id} } = $spaminfo;
 
-	$rule_actions{$rule->{id}} = $rulecache->get_actions ($rule->{id});
-	my $fin = $rulecache->final ($rule->{id});
+        $rule_actions{ $rule->{id} } = $rulecache->get_actions($rule->{id});
+        my $fin = $rulecache->final($rule->{id});
 
-	# match targets
-	foreach my $target (@{$msginfo->{targets}}) {
-	    next if $final->{$target};
-	    next if !defined ($rule_marks{$rule->{id}});
-	    next if !defined ($rule_marks{$rule->{id}}->{$target});
-	    next if !$rulecache->to_match ($rule->{id}, $target, $ldap);
+        # match targets
+        foreach my $target (@{ $msginfo->{targets} }) {
+            next if $final->{$target};
+            next if !defined($rule_marks{ $rule->{id} });
+            next if !defined($rule_marks{ $rule->{id} }->{$target});
+            next if !$rulecache->to_match($rule->{id}, $target, $ldap);
 
-	    $final->{$target} = $fin;
+            $final->{$target} = $fin;
 
-	    push @{$rule_targets{$rule->{id}}}, $target;
-	}
+            push @{ $rule_targets{ $rule->{id} } }, $target;
+        }
     }
 
     # Compute rule_info (summary about matching rule)
     # this can be used for debugging
     my $rule_info = "";
     foreach my $rule (@$rules) {
-	next if !$rule_targets{$rule->{id}};
+        next if !$rule_targets{ $rule->{id} };
 
-	push @$matching_rules, $rule->{id};
+        push @$matching_rules, $rule->{id};
 
-	$rule_info .= "Rule: $rule->{name}\n";
+        $rule_info .= "Rule: $rule->{name}\n";
 
-	foreach my $target (@{$rule_targets{$rule->{id}}}) {
-	    $rule_info .= "  Receiver: $target\n";
-	}
-	foreach my $action (@{$rule_actions{$rule->{id}}}) {
-	    $rule_info .= "  Action: " . $action->short_desc () . "\n";
-	}
+        foreach my $target (@{ $rule_targets{ $rule->{id} } }) {
+            $rule_info .= "  Receiver: $target\n";
+        }
+        foreach my $action (@{ $rule_actions{ $rule->{id} } }) {
+            $rule_info .= "  Action: " . $action->short_desc() . "\n";
+        }
 
     }
     $msginfo->{rule_info} = $rule_info;
 
     if ($msginfo->{testmode}) {
-	my $vars = $self->get_prox_vars($queue, $entity, $msginfo, undef, [], undef);
-	my $fh = $msginfo->{test_fh};
-	print $fh $rule_info;
+        my $vars = $self->get_prox_vars($queue, $entity, $msginfo, undef, [], undef);
+        my $fh = $msginfo->{test_fh};
+        print $fh $rule_info;
     }
 
     # apply actions
@@ -333,38 +343,58 @@ sub apply_rules {
     my $processing_time = int(tv_interval($msginfo->{starttime}));
     my $filter_timeout = $self->{pmg_cfg}->get('mail', 'filter-timeout');
     die "processing took ${processing_time}s, longer than the timeout (${filter_timeout}s)\n"
-	if $processing_time > $filter_timeout;
+        if $processing_time > $filter_timeout;
 
     foreach my $rule (@$rules) {
-	my $targets = $rule_targets{$rule->{id}};
-	next if !$targets;
+        my $targets = $rule_targets{ $rule->{id} };
+        next if !$targets;
 
-	my $vars = $self->get_prox_vars (
-	    $queue, $entity, $msginfo, $rule, $rule_targets{$rule->{id}}, $rule_spaminfo{$rule->{id}});
+        my $vars = $self->get_prox_vars(
+            $queue,
+            $entity,
+            $msginfo,
+            $rule,
+            $rule_targets{ $rule->{id} },
+            $rule_spaminfo{ $rule->{id} },
+        );
 
-	my @sorted_actions = sort {$a->priority <=> $b->priority} @{$rule_actions{$rule->{id}}};
+        my @sorted_actions =
+            sort { $a->priority <=> $b->priority } @{ $rule_actions{ $rule->{id} } };
 
-	foreach my $action (@sorted_actions) {
-	    $action->execute(
-		$queue, $self->{ruledb}, $mod_group, $rule_targets{$rule->{id}}, $msginfo, $vars,
-		$rule_marks{$rule->{id}}, $ldap
-	    );
-	    last if $action->final;
-	}
+        foreach my $action (@sorted_actions) {
+            $action->execute(
+                $queue,
+                $self->{ruledb},
+                $mod_group,
+                $rule_targets{ $rule->{id} },
+                $msginfo,
+                $vars,
+                $rule_marks{ $rule->{id} },
+                $ldap,
+            );
+            last if $action->final;
+        }
     }
 
     # we deliver all mail not matched by any rule (default action = accept)
     my $unmatched;
-    foreach my $target (@{$msginfo->{targets}}) {
-	next if $final->{$target};
+    foreach my $target (@{ $msginfo->{targets} }) {
+        next if $final->{$target};
 
-	push @$unmatched, $target;
+        push @$unmatched, $target;
     }
 
     if ($unmatched) {
-	my $accept = PMG::RuleDB::Accept->new ();
-	$accept->execute ($queue, $self->{ruledb}, $mod_group, $unmatched,
-			  $msginfo, { RULE => 'default-accept' }, undef);
+        my $accept = PMG::RuleDB::Accept->new();
+        $accept->execute(
+            $queue,
+            $self->{ruledb},
+            $mod_group,
+            $unmatched,
+            $msginfo,
+            { RULE => 'default-accept' },
+            undef,
+        );
     }
 
     return $matching_rules;
@@ -376,8 +406,8 @@ sub load_config {
     my $prop = $self->{server};
 
     if ($self->{ruledb}) {
-	$self->log ('info', "reloading configuration $database");
-	$self->{ruledb}->close ();
+        $self->log('info', "reloading configuration $database");
+        $self->{ruledb}->close();
     }
 
     $self->{pmg_cfg} = PMG::Config->new();
@@ -387,18 +417,18 @@ sub load_config {
     PMG::MailQueue::create_spooldirs($self->{cinfo}->{local}->{cid});
 
     eval {
-	my $dbh = PMG::DBTools::open_ruledb ($database);
-	$self->{ruledb} = PMG::RuleDB->new ($dbh);
+        my $dbh = PMG::DBTools::open_ruledb($database);
+        $self->{ruledb} = PMG::RuleDB->new($dbh);
 
-	# load rulecache
-	$self->{rulecache} = PMG::RuleCache->new ($self->{ruledb});
+        # load rulecache
+        $self->{rulecache} = PMG::RuleCache->new($self->{ruledb});
     };
 
     my $err = $@;
 
     if ($err) {
-	sleep (10); # reduce restart rate when postgres is down
-	die $err;
+        sleep(10); # reduce restart rate when postgres is down
+        die $err;
     }
 
     # create LDAP object
@@ -413,7 +443,7 @@ my $syslog_map = {
     1 => 'warning',
     2 => 'notice',
     3 => 'info',
-    4 => 'debug'
+    4 => 'debug',
 };
 
 sub log {
@@ -426,7 +456,7 @@ sub log {
     if (@therest) {
         syslog($level, $msg, @therest);
     } else {
-	syslog ($level, $msg);
+        syslog($level, $msg);
     }
 }
 
@@ -436,17 +466,17 @@ sub pre_loop_hook {
 
     $prop->{log_level} = 3;
 
-    $self->log ('info', "Filter daemon (re)started (max. $max_servers processes)");
+    $self->log('info', "Filter daemon (re)started (max. $max_servers processes)");
 
-    eval {  PMG::MailQueue::cleanup_active(); };
-    $self->log (0, "Cleanup failures: $@") if $@;
+    eval { PMG::MailQueue::cleanup_active(); };
+    $self->log(0, "Cleanup failures: $@") if $@;
 
     my $sig_set = POSIX::SigSet->new;
-    $sig_set->addset (&POSIX::SIGHUP);
-    $sig_set->addset (&POSIX::SIGCHLD);
+    $sig_set->addset(&POSIX::SIGHUP);
+    $sig_set->addset(&POSIX::SIGCHLD);
     my $old_sig_set = POSIX::SigSet->new();
 
-    sigprocmask (SIG_UNBLOCK, $sig_set, $old_sig_set);
+    sigprocmask(SIG_UNBLOCK, $sig_set, $old_sig_set);
 
     my ($backup_umask) = umask;
 
@@ -456,28 +486,28 @@ sub pre_loop_hook {
     # Note: you need to restart the daemon when you change 'rbl_checks'
     my $rbl_checks = $pmg_cfg->get('spam', 'rbl_checks');
 
-    $self->{sa} = Mail::SpamAssassin->new ({
-	debug => 0,
-	local_tests_only => $opt_testmode || !$rbl_checks,
-	home_dir_for_helpers => '/root',
-	userstate_dir => '/root/.spamassassin',
-	dont_copy_prefs   => 1,
-	stop_at_threshold => 0,
+    $self->{sa} = Mail::SpamAssassin->new({
+        debug => 0,
+        local_tests_only => $opt_testmode || !$rbl_checks,
+        home_dir_for_helpers => '/root',
+        userstate_dir => '/root/.spamassassin',
+        dont_copy_prefs => 1,
+        stop_at_threshold => 0,
     });
 
     $self->{sa}->compile_now;
 
-    alarm (0); # SA forgets to clear alarm in some cases
-    umask ($backup_umask);
-    initlog ($prog_name, 'mail');
+    alarm(0); # SA forgets to clear alarm in some cases
+    umask($backup_umask);
+    initlog($prog_name, 'mail');
 
     $SIG{'USR1'} = sub {
-	# reloading server configuration
-	if (defined $prop->{children}) {
-	    foreach my $pid (keys %{$prop->{children}}) {
-		kill (10, $pid); # SIGUSR1 children
-	    }
-	}
+        # reloading server configuration
+        if (defined $prop->{children}) {
+            foreach my $pid (keys %{ $prop->{children} }) {
+                kill(10, $pid); # SIGUSR1 children
+            }
+        }
     }
 }
 
@@ -488,18 +518,16 @@ sub child_init_hook {
 
     # $self->log (3, "init child");
 
-    eval {
-	$self->load_config ();
-    };
+    eval { $self->load_config(); };
 
     if ($@) {
-	$self->log (0, $@);
-	$self->child_finish_hook;
-	exit;
+        $self->log(0, $@);
+        $self->child_finish_hook;
+        exit;
     }
 
     $SIG{'USR1'} = sub {
-	$self->{reload_config} = 1;
+        $self->{reload_config} = 1;
     }
 }
 
@@ -507,7 +535,7 @@ sub child_finish_hook {
     my $self = shift;
 
     # $self->log (3, "finish child");
-    $self->{ruledb}->close () if $self->{ruledb};
+    $self->{ruledb}->close() if $self->{ruledb};
 }
 
 my $last_dequeue_time = 0;
@@ -521,86 +549,85 @@ sub run_dequeue {
 
     eval { PMG::Utils::update_node_status_rrd() };
     if ($err = $@) {
-	$self->log(0, "ERROR: $err");
-	# continue
+        $self->log(0, "ERROR: $err");
+        # continue
     }
 
     my $ctime = time();
     my $tdiff = $ctime - $last_dequeue_time;
 
     # return if tdiff less than 2 minutes
-    return if $tdiff < 2*60;
+    return if $tdiff < 2 * 60;
     $last_dequeue_time = $ctime;
 
-    $self->log (2, "starting database maintenance");
+    $self->log(2, "starting database maintenance");
 
-    my $starttime = [ gettimeofday() ];
+    my $starttime = [gettimeofday()];
 
     my $cinfo = PVE::INotify::read_file("cluster.conf");
 
     my $dbh = eval { PMG::DBTools::open_ruledb($database) };
     if ($err = $@) {
-	$self->log (0, "ERROR: $err");
-	return;
+        $self->log(0, "ERROR: $err");
+        return;
     }
 
     eval { PMG::Statistic::update_stats($dbh, $cinfo) };
     $err = $@;
 
     if ($err) {
-	$self->log (0, $err);
+        $self->log(0, $err);
     } else {
-	my $ptime = int(tv_interval($starttime) * 1000);
-	$self->log (2, "end database maintenance ($ptime ms)");
+        my $ptime = int(tv_interval($starttime) * 1000);
+        $self->log(2, "end database maintenance ($ptime ms)");
     }
 
     $dbh->disconnect() if $dbh;
 }
 
-
 sub unpack_entity {
     my ($self, $unpack, $entity, $msginfo, $queue) = @_;
 
-    my ($magic, $path) = $entity->@{'PMX_magic_ct', 'PMX_decoded_path'};
+    my ($magic, $path) = $entity->@{ 'PMX_magic_ct', 'PMX_decoded_path' };
 
     if ($magic && $path) {
-	# in order to not miss information from a misdetected archive use information provided in the
-	# header here as well
+        # in order to not miss information from a misdetected archive use information provided in the
+        # header here as well
 
-	my $headerct = $entity->head->mime_attr('content-type');
-	if ($headerct && $magic eq 'application/octet-stream') {
-	    $magic = $headerct;
-	}
+        my $headerct = $entity->head->mime_attr('content-type');
+        if ($headerct && $magic eq 'application/octet-stream') {
+            $magic = $headerct;
+        }
 
-	my $filename = basename ($path);
+        my $filename = basename($path);
 
-	if (PMG::Unpack::is_archive ($magic)) {
-	    $self->log (3, "$queue->{logid}: found archive '$filename' ($magic)");
+        if (PMG::Unpack::is_archive($magic)) {
+            $self->log(3, "$queue->{logid}: found archive '$filename' ($magic)");
 
-	    my $start = [ gettimeofday() ];
+            my $start = [gettimeofday()];
 
-	    $unpack->{mime} = {};
+            $unpack->{mime} = {};
 
-	    eval { $unpack->unpack_archive ($path, $magic) };
-	    $self->log (3, "$queue->{logid}: unpack failed - $@") if $@;
+            eval { $unpack->unpack_archive($path, $magic) };
+            $self->log(3, "$queue->{logid}: unpack failed - $@") if $@;
 
-	    $entity->{PMX_content_types} = $unpack->{mime};
-	    $entity->{PMX_filenames} = $unpack->{filenames};
+            $entity->{PMX_content_types} = $unpack->{mime};
+            $entity->{PMX_filenames} = $unpack->{filenames};
 
-	    if ($opt_testmode) {
-		my $types = join (", ", sort keys (%{$entity->{PMX_content_types}}));
-		my $fh = $msginfo->{test_fh};
-		$filename =~ s/\d+/X/g if $filename =~ m/^msg-\d+-\d+.msg/;
-		print $fh "Types:$filename: $types\n" if $types;
-	    }
+            if ($opt_testmode) {
+                my $types = join(", ", sort keys(%{ $entity->{PMX_content_types} }));
+                my $fh = $msginfo->{test_fh};
+                $filename =~ s/\d+/X/g if $filename =~ m/^msg-\d+-\d+.msg/;
+                print $fh "Types:$filename: $types\n" if $types;
+            }
 
-	    my $elapsed = int(tv_interval($start) * 1000);
-	    $self->log (3, "$queue->{logid}: unpack archive '$filename' done ($elapsed ms)");
-	}
+            my $elapsed = int(tv_interval($start) * 1000);
+            $self->log(3, "$queue->{logid}: unpack archive '$filename' done ($elapsed ms)");
+        }
     }
 
-    for my $part ($entity->parts)  {
-	$self->unpack_entity ($unpack, $part, $msginfo, $queue);
+    for my $part ($entity->parts) {
+        $self->unpack_entity($unpack, $part, $msginfo, $queue);
     }
 
 }
@@ -608,7 +635,7 @@ sub unpack_entity {
 sub handle_smtp {
     my ($self, $smtp) = @_;
 
-    my $starttime = [ gettimeofday() ];
+    my $starttime = [gettimeofday()];
 
     my $queue;
     my $msginfo = {};
@@ -617,166 +644,168 @@ sub handle_smtp {
     my $cinfo = $self->{cinfo};
     my $lcid = $cinfo->{local}->{cid};
 
-    $msginfo->{test_fh} = PMG::AtomicFile->new("testresult.out", "w")  if $opt_testmode;
+    $msginfo->{test_fh} = PMG::AtomicFile->new("testresult.out", "w") if $opt_testmode;
 
     $msginfo->{trusted} = $self->{trusted};
 
-
-# PHASE 1 - save incoming mail (already done)
-# on error: exit
+    # PHASE 1 - save incoming mail (already done)
+    # on error: exit
 
     $queue = $smtp->{queue};
     $queue->{sa} = $self->{sa};
     $queue->{clamav_heuristic_score} =
-	$opt_testmode ? 100 : $pmg_cfg->get('spam', 'clamav_heuristic_score');
+        $opt_testmode ? 100 : $pmg_cfg->get('spam', 'clamav_heuristic_score');
 
     $queue->{lic_valid} = 1;
 
     my $matching_rules;
 
     eval {
-	$msginfo->{testmode} = $opt_testmode;
-	$msginfo->{sender} = $smtp->{from};
-	$msginfo->{xforward} = $smtp->{xforward};
-	$msginfo->{targets} = $smtp->{to};
-	$msginfo->{param} = $smtp->{param};
+        $msginfo->{testmode} = $opt_testmode;
+        $msginfo->{sender} = $smtp->{from};
+        $msginfo->{xforward} = $smtp->{xforward};
+        $msginfo->{targets} = $smtp->{to};
+        $msginfo->{param} = $smtp->{param};
 
-	my $dkim_sign = $msginfo->{trusted} && $pmg_cfg->get('admin', 'dkim_sign');
-	if ($dkim_sign) {
-	    $msginfo->{dkim}->{sign} = $dkim_sign;
-	    $msginfo->{dkim}->{use_domain} = $pmg_cfg->get('admin', 'dkim-use-domain');
-	    $msginfo->{dkim}->{sign_all} = $pmg_cfg->get('admin', 'dkim_sign_all_mail');
-	    $msginfo->{dkim}->{selector} = $pmg_cfg->get('admin', 'dkim_selector');
-	}
-	$msginfo->{admin_mail_from} = $pmg_cfg->get('admin', 'admin-mail-from');
+        my $dkim_sign = $msginfo->{trusted} && $pmg_cfg->get('admin', 'dkim_sign');
+        if ($dkim_sign) {
+            $msginfo->{dkim}->{sign} = $dkim_sign;
+            $msginfo->{dkim}->{use_domain} = $pmg_cfg->get('admin', 'dkim-use-domain');
+            $msginfo->{dkim}->{sign_all} = $pmg_cfg->get('admin', 'dkim_sign_all_mail');
+            $msginfo->{dkim}->{selector} = $pmg_cfg->get('admin', 'dkim_selector');
+        }
+        $msginfo->{admin_mail_from} = $pmg_cfg->get('admin', 'admin-mail-from');
 
-	$msginfo->{hostname} = PVE::INotify::nodename();
-	my $resolv = PVE::INotify::read_file('resolvconf');
+        $msginfo->{hostname} = PVE::INotify::nodename();
+        my $resolv = PVE::INotify::read_file('resolvconf');
 
-	$msginfo->{domain} = $resolv->{search};
-	$msginfo->{fqdn} = $msginfo->{hostname};
-	$msginfo->{fqdn} .= ".$msginfo->{domain}" if $msginfo->{domain};
-	$msginfo->{lcid} = $lcid;
-	$msginfo->{starttime} = $starttime;
+        $msginfo->{domain} = $resolv->{search};
+        $msginfo->{fqdn} = $msginfo->{hostname};
+        $msginfo->{fqdn} .= ".$msginfo->{domain}" if $msginfo->{domain};
+        $msginfo->{lcid} = $lcid;
+        $msginfo->{starttime} = $starttime;
 
-	# $msginfo->{targets} is case sensitive,
-	# but pmail is always lower case!
+        # $msginfo->{targets} is case sensitive,
+        # but pmail is always lower case!
 
-	foreach my $t (@{$msginfo->{targets}}) {
-	    my $res;
-	    if ($ldap && ($res = $ldap->account_info ($t))) {
-		$msginfo->{pmail}->{$t} = $res->{pmail};
-	    } else {
-		$msginfo->{pmail}->{$t} = lc ($t);
-	    }
-	}
+        foreach my $t (@{ $msginfo->{targets} }) {
+            my $res;
+            if ($ldap && ($res = $ldap->account_info($t))) {
+                $msginfo->{pmail}->{$t} = $res->{pmail};
+            } else {
+                $msginfo->{pmail}->{$t} = lc($t);
+            }
+        }
 
-# PHASE 2 - parse mail
-# on error: exit
+        # PHASE 2 - parse mail
+        # on error: exit
 
-	my $maxfiles = $pmg_cfg->get('clamav', 'archivemaxfiles');
+        my $maxfiles = $pmg_cfg->get('clamav', 'archivemaxfiles');
 
-	my ($entity, $max_aid) = $queue->parse_mail($maxfiles);
-	$msginfo->{max_aid} = $max_aid;
+        my ($entity, $max_aid) = $queue->parse_mail($maxfiles);
+        $msginfo->{max_aid} = $max_aid;
 
-	$self->log (3, "$queue->{logid}: new mail message-id=%s", $queue->{msgid});
+        $self->log(3, "$queue->{logid}: new mail message-id=%s", $queue->{msgid});
 
-# PHASE 3 - run external content analyzers
-# (SPAM analyzer is run on demand later)
-# on error: log error messages
+        # PHASE 3 - run external content analyzers
+        # (SPAM analyzer is run on demand later)
+        # on error: log error messages
 
-	# run custom script first
-	my ($vinfo, $custom_spaminfo) = PMG::Utils::analyze_custom_check(
-	    $queue, $queue->{dataname}, $pmg_cfg, $opt_testmode);
+        # run custom script first
+        my ($vinfo, $custom_spaminfo) =
+            PMG::Utils::analyze_custom_check($queue, $queue->{dataname}, $pmg_cfg, $opt_testmode);
 
-	# test for virus if none found
-	if (!defined($vinfo)) {
-	    $vinfo = PMG::Utils::analyze_virus(
-		$queue, $queue->{dataname}, $pmg_cfg, $opt_testmode);
+        # test for virus if none found
+        if (!defined($vinfo)) {
+            $vinfo =
+                PMG::Utils::analyze_virus($queue, $queue->{dataname}, $pmg_cfg, $opt_testmode);
 
-	    if ($vinfo && $vinfo =~ m/^Heuristics\.(.+)$/) {
-		my $hit = $1;
-		$queue->{clamav_heuristic} = $hit;
-		$vinfo = undef;
-	    }
-	}
-	$queue->{vinfo} = $vinfo;
+            if ($vinfo && $vinfo =~ m/^Heuristics\.(.+)$/) {
+                my $hit = $1;
+                $queue->{clamav_heuristic} = $hit;
+                $vinfo = undef;
+            }
+        }
+        $queue->{vinfo} = $vinfo;
 
-	# always add this headers to incoming mails
-	# to enable user to report false negatives
-	if (!$msginfo->{trusted}) {
-	    if ($queue->{vinfo}) {
-		$entity->head->replace('X-Proxmox-VInfo', $queue->{vinfo});
-	    }
-	}
+        # always add this headers to incoming mails
+        # to enable user to report false negatives
+        if (!$msginfo->{trusted}) {
+            if ($queue->{vinfo}) {
+                $entity->head->replace('X-Proxmox-VInfo', $queue->{vinfo});
+            }
+        }
 
-	# we unpack after virus scanning, because this is more secure.
-	# This way virus scanners gets the whole mail files and are able
-	# to detect phishing signature for example - which would not work
-	# if we decompose first and only analyze the decomposed attachments.
-	# Disadvantage is that we need to unpack more than
-	# once (bad performance).
+        # we unpack after virus scanning, because this is more secure.
+        # This way virus scanners gets the whole mail files and are able
+        # to detect phishing signature for example - which would not work
+        # if we decompose first and only analyze the decomposed attachments.
+        # Disadvantage is that we need to unpack more than
+        # once (bad performance).
 
-	# should we scan content types inside archives
+        # should we scan content types inside archives
 
-	my $rulecache = $self->{rulecache};
+        my $rulecache = $self->{rulecache};
 
-	my $scan_archives = 0;
+        my $scan_archives = 0;
 
-	if (($rulecache->{archivefilter_in} && !$msginfo->{trusted}) ||
-	    ($rulecache->{archivefilter_out} && $msginfo->{trusted})) {
-	    $scan_archives = 1;
-	}
+        if (
+            ($rulecache->{archivefilter_in} && !$msginfo->{trusted})
+            || ($rulecache->{archivefilter_out} && $msginfo->{trusted})
+        ) {
+            $scan_archives = 1;
+        }
 
-	if ($scan_archives && !$queue->{vinfo}) {
+        if ($scan_archives && !$queue->{vinfo}) {
 
-	    # unpack all archives - determine contained content types
+            # unpack all archives - determine contained content types
 
-	    my $decdir = $queue->{dumpdir} . "/__decoded_archives";
-	    mkdir $decdir;
+            my $decdir = $queue->{dumpdir} . "/__decoded_archives";
+            mkdir $decdir;
 
-	    my $start = [ gettimeofday() ];
+            my $start = [gettimeofday()];
 
-	    my $unpack;
-	    eval {
+            my $unpack;
+            eval {
 
-		# limits: We use clamav limit for maxfiles, and scan
-		# only 4 levels, timeout of 30 seconds
+                # limits: We use clamav limit for maxfiles, and scan
+                # only 4 levels, timeout of 30 seconds
 
-		$unpack = PMG::Unpack->new (
-		    tmpdir => $decdir,
-		    timeout => 30,
-		    ctonly => 1, # only detect CTs
-		    maxrec => -4,
-		    maxfiles => $maxfiles);
+                $unpack = PMG::Unpack->new(
+                    tmpdir => $decdir,
+                    timeout => 30,
+                    ctonly => 1, # only detect CTs
+                    maxrec => -4,
+                    maxfiles => $maxfiles,
+                );
 
-		$self->unpack_entity ($unpack, $entity, $msginfo, $queue);
-	    };
+                $self->unpack_entity($unpack, $entity, $msginfo, $queue);
+            };
 
-	    my $err = $@;
+            my $err = $@;
 
-	    $unpack->cleanup() if $unpack;
+            $unpack->cleanup() if $unpack;
 
-	    my $elapsed = int(tv_interval ($start) * 1000);
+            my $elapsed = int(tv_interval($start) * 1000);
 
-	    if ($err) {
-		$self->log (3, "$queue->{logid}: unpack archive failed ($elapsed ms) - $err");
-	    }
-	}
+            if ($err) {
+                $self->log(3, "$queue->{logid}: unpack archive failed ($elapsed ms) - $err");
+            }
+        }
 
-# PHASE 4 - apply rules
-# on error: exit (cleanup process should do the rest)
-	$msginfo->{maxspamsize} = $pmg_cfg->get('spam', 'maxspamsize');
-	if ($msginfo->{maxspamsize} <= 1024*64) {
-	    $msginfo->{maxspamsize} = 1024*64;
-	}
+        # PHASE 4 - apply rules
+        # on error: exit (cleanup process should do the rest)
+        $msginfo->{maxspamsize} = $pmg_cfg->get('spam', 'maxspamsize');
+        if ($msginfo->{maxspamsize} <= 1024 * 64) {
+            $msginfo->{maxspamsize} = 1024 * 64;
+        }
 
-	if ($msginfo->{trusted}) {
-	    my $hide = $pmg_cfg->get('mail', 'hide_received');
-	    $entity->head->delete("Received") if $hide;
-	}
+        if ($msginfo->{trusted}) {
+            my $hide = $pmg_cfg->get('mail', 'hide_received');
+            $entity->head->delete("Received") if $hide;
+        }
 
-	$matching_rules = $self->apply_rules($queue, $msginfo, $entity, $ldap);
+        $matching_rules = $self->apply_rules($queue, $msginfo, $entity, $ldap);
     };
 
     my $err = $@;
@@ -786,56 +815,61 @@ sub handle_smtp {
     # restart on error
     $self->{errors} = 1 if $err;
 
-    $queue->close ();
+    $queue->close();
 
     die $err if $err;
 
     my $time_total = int(tv_interval($starttime) * 1000);
 
-# PHASE 5 - log statistics
-# on error: log error messages
+    # PHASE 5 - log statistics
+    # on error: log error messages
 
     eval {
-	my $dbh = $self->{ruledb}->{dbh};
+        my $dbh = $self->{ruledb}->{dbh};
 
-	my $where = "";
-	foreach my $rid (@$matching_rules) {
-	    $where .= $where ? " OR ID = $rid" : "ID = $rid";
-	}
+        my $where = "";
+        foreach my $rid (@$matching_rules) {
+            $where .= $where ? " OR ID = $rid" : "ID = $rid";
+        }
 
-	$dbh->do ("UPDATE Rule SET Count = Count + 1 WHERE $where") if $where;
+        $dbh->do("UPDATE Rule SET Count = Count + 1 WHERE $where") if $where;
 
-	my $insert_cmds = "SELECT nextval ('cstatistic_id_seq');INSERT INTO CStatistic " .
-	    "(CID, RID, ID, Time, Bytes, Direction, Spamlevel, VirusInfo, PTime, Sender) VALUES (" .
-	    "$lcid, currval('cstatistic_id_seq'), currval('cstatistic_id_seq'),";
+        my $insert_cmds =
+            "SELECT nextval ('cstatistic_id_seq');INSERT INTO CStatistic "
+            . "(CID, RID, ID, Time, Bytes, Direction, Spamlevel, VirusInfo, PTime, Sender) VALUES ("
+            . "$lcid, currval('cstatistic_id_seq'), currval('cstatistic_id_seq'),";
 
-	$insert_cmds .= $queue->{rtime} . ',';
-	$insert_cmds .= $queue->{bytes} . ',';
-	$insert_cmds .= $dbh->quote($msginfo->{trusted} ? 0 : 1) . ',';
-	$insert_cmds .= ($queue->{sa_score} || 0) . ',';
-	$insert_cmds .= $dbh->quote($queue->{vinfo}) . ',';
-	$insert_cmds .= $time_total . ',';
-	$insert_cmds .= $dbh->quote(encode('UTF-8', $msginfo->{sender})) . ');';
+        $insert_cmds .= $queue->{rtime} . ',';
+        $insert_cmds .= $queue->{bytes} . ',';
+        $insert_cmds .= $dbh->quote($msginfo->{trusted} ? 0 : 1) . ',';
+        $insert_cmds .= ($queue->{sa_score} || 0) . ',';
+        $insert_cmds .= $dbh->quote($queue->{vinfo}) . ',';
+        $insert_cmds .= $time_total . ',';
+        $insert_cmds .= $dbh->quote(encode('UTF-8', $msginfo->{sender})) . ');';
 
-	foreach my $r (@{$msginfo->{targets}}) {
-	    my $tmp = $dbh->quote(encode('UTF-8',$r));
-	    my $blocked = $queue->{status}->{$r} eq 'blocked' ? 1 : 0;
-	    $insert_cmds .= "INSERT INTO CReceivers (CStatistic_CID, CStatistic_RID, Receiver, Blocked) " .
-		"VALUES ($lcid, currval ('cstatistic_id_seq'), $tmp, '$blocked'); ";
-	}
+        foreach my $r (@{ $msginfo->{targets} }) {
+            my $tmp = $dbh->quote(encode('UTF-8', $r));
+            my $blocked = $queue->{status}->{$r} eq 'blocked' ? 1 : 0;
+            $insert_cmds .=
+                "INSERT INTO CReceivers (CStatistic_CID, CStatistic_RID, Receiver, Blocked) "
+                . "VALUES ($lcid, currval ('cstatistic_id_seq'), $tmp, '$blocked'); ";
+        }
 
-	$dbh->do($insert_cmds);
+        $dbh->do($insert_cmds);
     };
     # save $err (because log clears $@)
     $err = $@;
 
-    $time_total = $time_total/1000;
+    $time_total = $time_total / 1000;
 
-    my $ptspam = ($queue->{ptime_spam} || 0)/1000;
-    my $ptclam = ($queue->{ptime_clam} || 0)/1000;
-    my $ptcustom = ($queue->{ptime_custom} || 0)/1000;
+    my $ptspam = ($queue->{ptime_spam} || 0) / 1000;
+    my $ptclam = ($queue->{ptime_clam} || 0) / 1000;
+    my $ptcustom = ($queue->{ptime_custom} || 0) / 1000;
 
-    $self->log(3, "$queue->{logid}: processing time: ${time_total} seconds ($ptspam, $ptclam, $ptcustom)");
+    $self->log(
+        3,
+        "$queue->{logid}: processing time: ${time_total} seconds ($ptspam, $ptclam, $ptcustom)",
+    );
 
     $msginfo->{test_fh}->close if $opt_testmode;
 
@@ -845,81 +879,81 @@ sub handle_smtp {
 my $initial_memory_usage;
 
 sub process_request {
-  my $self = shift;
-  my $prop = $self->{server};
-  my $sock = $prop->{client};
+    my $self = shift;
+    my $prop = $self->{server};
+    my $sock = $prop->{client};
 
-  eval {
+    eval {
 
-      # make sure the ldap cache is up to date
-      $self->{ldap}->update (1);
+        # make sure the ldap cache is up to date
+        $self->{ldap}->update(1);
 
-      $self->load_config() if $self->{reload_config};
+        $self->load_config() if $self->{reload_config};
 
-      $self->{trusted} = 0;
-      if ($prop->{sockport} == $opt_int_port && !$opt_untrusted) {
-	  $self->{trusted} = 1;
-      }
+        $self->{trusted} = 0;
+        if ($prop->{sockport} == $opt_int_port && !$opt_untrusted) {
+            $self->{trusted} = 1;
+        }
 
-      my $smtp = PMG::SMTP->new ($sock);
+        my $smtp = PMG::SMTP->new($sock);
 
-      my $maxcount = $max_requests - $prop->{requests};
+        my $maxcount = $max_requests - $prop->{requests};
 
-      my $count = $smtp->loop (\&handle_smtp, $self, $maxcount);
-      if ($count > 1) {
-	  $prop->{requests} += $count - 1;
-      }
-  };
+        my $count = $smtp->loop(\&handle_smtp, $self, $maxcount);
+        if ($count > 1) {
+            $prop->{requests} += $count - 1;
+        }
+    };
 
-  my $err = $@;
+    my $err = $@;
 
-  $self->log (0, $err) if $err;
+    $self->log(0, $err) if $err;
 
-  kill(15, $prop->{ppid}) if $opt_testmode;
+    kill(15, $prop->{ppid}) if $opt_testmode;
 
-  my $mem = PVE::ProcFSTools::read_memory_usage();
-  if (!defined($initial_memory_usage) || ($prop->{requests} < 10)) {
-      $initial_memory_usage = $mem->{resident};
-  }
+    my $mem = PVE::ProcFSTools::read_memory_usage();
+    if (!defined($initial_memory_usage) || ($prop->{requests} < 10)) {
+        $initial_memory_usage = $mem->{resident};
+    }
 
-  if ($opt_testmode) {
-      $self->log (0, "memory usage: $mem->{size} bytes");
-  } else {
-      if ($self->{errors}) {
-	  $self->log (0, "fast exit because of errors (free $mem->{size} bytes)");
-	  $self->done (1);
-      } else {
-	  my $diff = $mem->{resident} - $initial_memory_usage;
-	  if ($diff > 5*1024*1024) {
-	      $self->log (0, "fast exit to reduce server load (free $diff bytes)");
-	      $self->done (1);
-	  }
-      }
-  }
+    if ($opt_testmode) {
+        $self->log(0, "memory usage: $mem->{size} bytes");
+    } else {
+        if ($self->{errors}) {
+            $self->log(0, "fast exit because of errors (free $mem->{size} bytes)");
+            $self->done(1);
+        } else {
+            my $diff = $mem->{resident} - $initial_memory_usage;
+            if ($diff > 5 * 1024 * 1024) {
+                $self->log(0, "fast exit to reduce server load (free $diff bytes)");
+                $self->done(1);
+            }
+        }
+    }
 
-  $self->done (1) if $err;
+    $self->done(1) if $err;
 }
 
 # test sig_hup with: for ((;;)) ;do kill -HUP  `cat /run/${prog_name}.pid`; done;
 # wrapper to avoid multiple calls to sig_hup
 sub sig_hup {
-  my $self = shift;
-  my $prop = $self->{server};
+    my $self = shift;
+    my $prop = $self->{server};
 
-  return if defined ($prop->{_HUP}); # do not call twice
+    return if defined($prop->{_HUP}); # do not call twice
 
-  $self->SUPER::sig_hup();
+    $self->SUPER::sig_hup();
 }
 
 sub restart_close_hook {
-  my $self = shift;
+    my $self = shift;
 
-  my $sig_set = POSIX::SigSet->new;
-  $sig_set->addset (&POSIX::SIGHUP);
-  $sig_set->addset (&POSIX::SIGCHLD); # to avoid zombies
-  my $old_sig_set = POSIX::SigSet->new();
+    my $sig_set = POSIX::SigSet->new;
+    $sig_set->addset(&POSIX::SIGHUP);
+    $sig_set->addset(&POSIX::SIGCHLD); # to avoid zombies
+    my $old_sig_set = POSIX::SigSet->new();
 
-  sigprocmask (SIG_BLOCK, $sig_set, $old_sig_set);
+    sigprocmask(SIG_BLOCK, $sig_set, $old_sig_set);
 }
 
 sub pre_server_close_hook {
@@ -927,78 +961,76 @@ sub pre_server_close_hook {
     my $prop = $self->{server};
 
     if (defined $prop->{_HUP}) {
-	undef $prop->{pid_file_unlink};
+        undef $prop->{pid_file_unlink};
     }
 
     if (defined $prop->{children}) {
-	foreach my $pid (keys %{$prop->{children}}) {
-	    kill (1, $pid); # HUP children
-	}
+        foreach my $pid (keys %{ $prop->{children} }) {
+            kill(1, $pid); # HUP children
+        }
     }
 
     # nicely shutdown children (give them max 30 seconds to shut down)
     my $previous_alarm = alarm(30);
     eval {
-	local $SIG{ALRM} = sub { die "Timed Out!\n" };
+        local $SIG{ALRM} = sub { die "Timed Out!\n" };
 
-	my $pid;
-	1 while ((($pid = waitpid (-1, 0)) > 0) || ($! == EINTR));
+        my $pid;
+        1 while ((($pid = waitpid(-1, 0)) > 0) || ($! == EINTR));
 
-	alarm(0); # avoid race
+        alarm(0); # avoid race
     };
-    alarm ($previous_alarm);
+    alarm($previous_alarm);
 }
 
 # initialize mime system before fork
-xdg_mime_get_mime_type_for_file ($0);
+xdg_mime_get_mime_type_for_file($0);
 
 my $server = bless {
     server => $server_attr,
 };
 
 if (!$opt_testmode) {
-    $server->run ();
+    $server->run();
 } else {
     if (fork) {
-	$server->run();
+        $server->run();
     } else {
 
-	my $sender ='sender@pmg.example';
-	my $targets = [
-	    'target1@pmg.example',
-	    'target2@pmg.example',
-	    'target3@pmg.example',
-	];
+        my $sender = 'sender@pmg.example';
+        my $targets = [
+            'target1@pmg.example', 'target2@pmg.example', 'target3@pmg.example',
+        ];
 
-	my $smtp;
-	while (!$smtp) {
-	    $smtp = Net::SMTP->new ('127.0.0.1', Port => 10023);
-	    last if $smtp;
-	    usleep(10);
-	}
+        my $smtp;
+        while (!$smtp) {
+            $smtp = Net::SMTP->new('127.0.0.1', Port => 10023);
+            last if $smtp;
+            usleep(10);
+        }
 
-	# syslog ('info', "connected to " . $smtp->domain);
+        # syslog ('info', "connected to " . $smtp->domain);
 
-	$smtp->mail ($sender);
-	$smtp->to (@$targets);
+        $smtp->mail($sender);
+        $smtp->to(@$targets);
 
-	$smtp->data();
+        $smtp->data();
 
-	open (TMP, $opt_testmode) ||
-	    die "unable to upen file '$opt_testmode' - $! :ERROR";
-	while (<TMP>) {
-	    $smtp->datasend ($_);
-	}
-	close TMP;
+        open(TMP, $opt_testmode)
+            || die "unable to upen file '$opt_testmode' - $! :ERROR";
+        while (<TMP>) {
+            $smtp->datasend($_);
+        }
+        close TMP;
 
-	$smtp->datasend ("\n");
-	$smtp->dataend ();
+        $smtp->datasend("\n");
+        $smtp->dataend();
 
-	$smtp->quit;
+        $smtp->quit;
     }
 }
 
-exit (0);
+exit(0);
 
 __END__
 

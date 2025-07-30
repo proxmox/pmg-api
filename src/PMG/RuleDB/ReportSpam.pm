@@ -27,7 +27,7 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 0;   
+    return 0;
 }
 
 sub final {
@@ -40,22 +40,22 @@ sub priority {
 
 sub new {
     my ($type, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
-   
+
     return $self;
 }
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     my $obj = $class->new($ogroup);
     $obj->{id} = $id;
-    
+
     return $obj;
 }
 
@@ -64,56 +64,58 @@ sub save {
 
     defined($self->{ogroup}) || return undef;
 
-    if (defined ($self->{id})) {
-	# update
-	
-	# nothing to update
+    if (defined($self->{id})) {
+        # update
+
+        # nothing to update
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+        $sth->execute($self->ogroup, $self->otype);
+
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-    
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
-    syslog('warning', "%s: deprecated action 'Attach' will be removed with PMG 8.0.",
-	   $queue->{logid},);
+    syslog(
+        'warning',
+        "%s: deprecated action 'Attach' will be removed with PMG 8.0.",
+        $queue->{logid},
+    );
 
     my $rulename = $vars->{RULE} // 'unknown';
 
     my $subgroups = $mod_group->subgroups($targets);
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
-	if ($msginfo->{testmode}) {
-	    my $fh = $msginfo->{test_fh};
-	    print $fh "report as spam\n";
-	} else {
+        if ($msginfo->{testmode}) {
+            my $fh = $msginfo->{test_fh};
+            print $fh "report as spam\n";
+        } else {
 
-	    my $spamtest = $queue->{sa};
+            my $spamtest = $queue->{sa};
 
-	    $queue->{fh}->seek (0, 0);
-	    *SATMP = \*{$queue->{fh}};
-	    my $mail = $spamtest->parse(\*SATMP);
+            $queue->{fh}->seek(0, 0);
+            *SATMP = \*{ $queue->{fh} };
+            my $mail = $spamtest->parse(\*SATMP);
 
-	    $spamtest->report_as_spam($mail);
-	    
-	    $mail->finish();	
-	}
-	syslog('info', "%s: report mail as spam (rule: %s)", $queue->{logid}, $rulename);
-	$queue->set_status ($tg, 'delivered');
+            $spamtest->report_as_spam($mail);
+
+            $mail->finish();
+        }
+        syslog('info', "%s: report mail as spam (rule: %s)", $queue->{logid}, $rulename);
+        $queue->set_status($tg, 'delivered');
     }
 }
 

@@ -38,24 +38,22 @@ EnuBffLm6uSOHJA6/0r6THJkffDSuvqM5yU=
 
 my $tests = [
     [
-	'./KAM_channel.conf', # input filename
-	{                   # result structure
-	    filename => './KAM_channel.conf',
-	    channelurl => 'kam.sa-channels.mcgrail.com',
-	    keyid => '24C063D8',
-	    gpgkey => $kam_key,
-	},
-	undef,              # error string
+        './KAM_channel.conf', # input filename
+        { # result structure
+            filename => './KAM_channel.conf',
+            channelurl => 'kam.sa-channels.mcgrail.com',
+            keyid => '24C063D8',
+            gpgkey => $kam_key,
+        },
+        undef, # error string
     ],
     [
-	'./missing_gpg_key_channel.conf',
-	undef,
-	'no GPG public key in ./missing_gpg_key_channel.conf!',
+        './missing_gpg_key_channel.conf',
+        undef,
+        'no GPG public key in ./missing_gpg_key_channel.conf!',
     ],
     [
-	'./missing_keyid.conf',
-	undef,
-	'no KEYID in ./missing_keyid.conf!',
+        './missing_keyid.conf', undef, 'no KEYID in ./missing_keyid.conf!',
     ],
 ];
 
@@ -66,9 +64,9 @@ foreach my $test (@$tests) {
     my $err = $@;
 
     if ($error) {
-	like($err, qr/^\Q$error\E/, "expected error for $filename: $error");
+        like($err, qr/^\Q$error\E/, "expected error for $filename: $error");
     } else {
-	is_deeply($result, $expect, "channel file: $filename parsed correctly");
+        is_deeply($result, $expect, "channel file: $filename parsed correctly");
     }
 }
 

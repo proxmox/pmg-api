@@ -44,14 +44,14 @@ my $socketfile = sub {
 
 sub finish_children {
     while ((my $cpid = waitpid(-1, POSIX::WNOHANG())) > 0) {
-	if (defined($workers->{$cpid})) {
-	    my $ip = $workers->{$cpid}->{ip};
-	    my $cid = $workers->{$cpid}->{cid};
-	    syslog('err', "tunnel finished $cpid $ip");
-	    unlink $socketfile->($cid);
-	    $delayed_exec->{$cid} = time + ($startcount->{$cid} > 5 ? 60 : 10);
-	    delete $workers->{$cpid};
-	}
+        if (defined($workers->{$cpid})) {
+            my $ip = $workers->{$cpid}->{ip};
+            my $cid = $workers->{$cpid}->{cid};
+            syslog('err', "tunnel finished $cpid $ip");
+            unlink $socketfile->($cid);
+            $delayed_exec->{$cid} = time + ($startcount->{$cid} > 5 ? 60 : 10);
+            delete $workers->{$cpid};
+        }
     }
 }
 
@@ -61,52 +61,59 @@ sub start_tunnels {
     my $role = $cinfo->{local}->{type} // '-';
     return if $role eq '-';
 
-    foreach my $cid (keys %{$cinfo->{ids}}) {
-	my $ni = $cinfo->{ids}->{$cid};
-	next if $ni->{ip} eq $cinfo->{local}->{ip}; # just to be sure
+    foreach my $cid (keys %{ $cinfo->{ids} }) {
+        my $ni = $cinfo->{ids}->{$cid};
+        next if $ni->{ip} eq $cinfo->{local}->{ip}; # just to be sure
 
-	my $running;
-	foreach my $cpid (keys %$workers) {
-	    $running = 1 if $workers->{$cpid}->{ip} eq  $ni->{ip};
-	}
-	next if $running;
+        my $running;
+        foreach my $cpid (keys %$workers) {
+            $running = 1 if $workers->{$cpid}->{ip} eq $ni->{ip};
+        }
+        next if $running;
 
-	if ($delayed_exec->{$cid} && (time < $delayed_exec->{$cid})) {
-	    next;
-	}
-	$delayed_exec->{$cid} = 0;
-	$startcount->{$cid}++;
+        if ($delayed_exec->{$cid} && (time < $delayed_exec->{$cid})) {
+            next;
+        }
+        $delayed_exec->{$cid} = 0;
+        $startcount->{$cid}++;
 
-	my $pid = fork;
+        my $pid = fork;
 
-	if (!defined ($pid)) {
+        if (!defined($pid)) {
 
-	    syslog('err', "can't fork tunnel");
+            syslog('err', "can't fork tunnel");
 
-	} elsif($pid) { # parent
+        } elsif ($pid) { # parent
 
-	    $workers->{$pid}->{ip} = $ni->{ip};
-	    $workers->{$pid}->{cid} = $cid;
+            $workers->{$pid}->{ip} = $ni->{ip};
+            $workers->{$pid}->{cid} = $cid;
 
-	    if ($startcount->{$cid} > 1) {
-		syslog('info', "restarting crashed tunnel $pid $ni->{ip}");
-	    } else {
-		syslog('info', "starting tunnel $pid $ni->{ip}");
-	    }
+            if ($startcount->{$cid} > 1) {
+                syslog('info', "restarting crashed tunnel $pid $ni->{ip}");
+            } else {
+                syslog('info', "starting tunnel $pid $ni->{ip}");
+            }
 
-	} else { # child
+        } else { # child
 
-	    $self->after_fork_cleanup();
+            $self->after_fork_cleanup();
 
-	    mkdir $socketdir;
-	    my $sock = $socketfile->($cid);
-	    unlink $sock;
-	    exec('/usr/bin/ssh', '-N', '-o', 'BatchMode=yes',
-		 '-o', "HostKeyAlias=$ni->{name}",
-		 '-L', "$sock:/var/run/postgresql/.s.PGSQL.5432",
-		 $ni->{ip});
-	    exit (0);
-	}
+            mkdir $socketdir;
+            my $sock = $socketfile->($cid);
+            unlink $sock;
+            exec(
+                '/usr/bin/ssh',
+                '-N',
+                '-o',
+                'BatchMode=yes',
+                '-o',
+                "HostKeyAlias=$ni->{name}",
+                '-L',
+                "$sock:/var/run/postgresql/.s.PGSQL.5432",
+                $ni->{ip},
+            );
+            exit(0);
+        }
     }
 }
 
@@ -114,23 +121,23 @@ sub purge_tunnels {
     my ($self, $cinfo) = @_;
 
     foreach my $cpid (keys %$workers) {
-	my $ip = $workers->{$cpid}->{ip};
-	my $cid = $workers->{$cpid}->{cid};
+        my $ip = $workers->{$cpid}->{ip};
+        my $cid = $workers->{$cpid}->{cid};
 
-	my $found;
-	foreach my $ni (values %{$cinfo->{ids}}) {
-	    $found = 1 if ($ni->{ip} eq $ip) && ($ni->{cid} eq $cid);
-	}
+        my $found;
+        foreach my $ni (values %{ $cinfo->{ids} }) {
+            $found = 1 if ($ni->{ip} eq $ip) && ($ni->{cid} eq $cid);
+        }
 
-	my $role = $cinfo->{local}->{type} // '-';
-	$found = 0 if $role eq '-';
+        my $role = $cinfo->{local}->{type} // '-';
+        $found = 0 if $role eq '-';
 
-	if (!$found) {
-	    syslog ('info', "trying to finish tunnel $cpid $ip");
-	    kill(15, $cpid);
-	    $delayed_exec->{$cid} = time + ($startcount->{$cid} > 5 ? 60 : 10);
-	    delete $workers->{$cpid};
-	}
+        if (!$found) {
+            syslog('info', "trying to finish tunnel $cpid $ip");
+            kill(15, $cpid);
+            $delayed_exec->{$cid} = time + ($startcount->{$cid} > 5 ? 60 : 10);
+            delete $workers->{$cpid};
+        }
     }
 }
 
@@ -141,20 +148,20 @@ sub init {
 sub shutdown {
     my ($self) = @_;
 
-    syslog('info' , "server closing");
+    syslog('info', "server closing");
 
     foreach my $cpid (keys %$workers) {
-	if (kill (15, $cpid) || ! kill(0, $cpid)) {
-	    my $ip = $workers->{$cpid}->{ip};
-	    delete $workers->{$cpid};
-	    syslog ('info', "successfully deleted tunnel $cpid $ip");
-	}
+        if (kill(15, $cpid) || !kill(0, $cpid)) {
+            my $ip = $workers->{$cpid}->{ip};
+            delete $workers->{$cpid};
+            syslog('info', "successfully deleted tunnel $cpid $ip");
+        }
     }
 
     # wait for children
     1 while (waitpid(-1, POSIX::WNOHANG()) > 0);
 
- #   $self->exit_daemon(0);
+    #   $self->exit_daemon(0);
 }
 
 sub hup {
@@ -163,8 +170,6 @@ sub hup {
     $restart_request = 1;
 }
 
-
-
 sub run {
     my ($self) = @_;
 
@@ -172,64 +177,68 @@ sub run {
 
     for (;;) { # forever
 
-	$next_update = time() + $updatetime;
+        $next_update = time() + $updatetime;
 
-	eval {
-	    my $cinfo = PMG::ClusterConfig->new(); # reload
-	    $self->purge_tunnels($cinfo);
-	    $self->start_tunnels($cinfo);
-	};
+        eval {
+            my $cinfo = PMG::ClusterConfig->new(); # reload
+            $self->purge_tunnels($cinfo);
+            $self->start_tunnels($cinfo);
+        };
 
-	if (my $err = $@) {
+        if (my $err = $@) {
 
-	    syslog('err', "status update error: $err");
-	}
+            syslog('err', "status update error: $err");
+        }
 
-	my $wcount = 0;
-	while ((time() < $next_update) &&
-	       ($wcount < $updatetime) && # protect against time wrap
-	       !$restart_request && !$self->{terminate}) {
+        my $wcount = 0;
+        while (
+            (time() < $next_update)
+            && ($wcount < $updatetime)
+            && # protect against time wrap
+            !$restart_request && !$self->{terminate}
+        ) {
 
-	    finish_children();
+            finish_children();
 
-	    $wcount++; sleep (1);
-	};
+            $wcount++;
+            sleep(1);
+        }
 
-	last if $self->{terminate};
+        last if $self->{terminate};
 
-	$self->restart_daemon() if $restart_request;
+        $self->restart_daemon() if $restart_request;
     }
 }
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'status',
     path => 'status',
     method => 'GET',
     description => "Print cluster tunnel status.",
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
     returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $status = $daemon->running() ? 'running' : 'stopped';
-	print "$status\n";
+        my $status = $daemon->running() ? 'running' : 'stopped';
+        print "$status\n";
 
-	return undef;
-    }});
-
+        return undef;
+    },
+});
 
 $daemon->register_start_command("Start the Cluster Tunnel Daemon");
 $daemon->register_stop_command("Stop the Cluster Tunnel Daemon");
 $daemon->register_restart_command(1, "Restart the Cluster Tunnel Daemon");
 
 our $cmddef = {
-    start => [ __PACKAGE__, 'start', []],
-    restart => [ __PACKAGE__, 'restart', []],
-    stop => [ __PACKAGE__, 'stop', []],
-    status => [ __PACKAGE__, 'status', []]
+    start => [__PACKAGE__, 'start', []],
+    restart => [__PACKAGE__, 'restart', []],
+    stop => [__PACKAGE__, 'stop', []],
+    status => [__PACKAGE__, 'status', []],
 };
 
 1;

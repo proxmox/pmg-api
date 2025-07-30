@@ -27,7 +27,7 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 0;   
+    return 0;
 }
 
 sub final {
@@ -40,24 +40,24 @@ sub priority {
 
 sub new {
     my ($type, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
-   
+
     return $self;
 }
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
-    my $obj = $class->new ($ogroup);
+    my $obj = $class->new($ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $ogroup);
-    
+
     return $obj;
 }
 
@@ -66,39 +66,44 @@ sub save {
 
     defined($self->{ogroup}) || return undef;
 
-    if (defined ($self->{id})) {
-	# update
-	
-	# nothing to update
+    if (defined($self->{id})) {
+        # update
+
+        # nothing to update
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+        $sth->execute($self->ogroup, $self->otype);
+
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     if ($msginfo->{testmode}) {
-	my $fh = $msginfo->{test_fh};
-	print $fh "block from: $msginfo->{sender}\n";
-	printf  $fh "block   to: %s\n", join (',', @$targets);
+        my $fh = $msginfo->{test_fh};
+        print $fh "block from: $msginfo->{sender}\n";
+        printf $fh "block   to: %s\n", join(',', @$targets);
     }
 
     foreach my $to (@$targets) {
-	syslog('info', "%s: block mail to <%s> (rule: %s)", $queue->{logid}, encode('UTF-8', $to), $rulename);
+        syslog(
+            'info',
+            "%s: block mail to <%s> (rule: %s)",
+            $queue->{logid},
+            encode('UTF-8', $to),
+            $rulename,
+        );
     }
 
     $queue->set_status($targets, 'blocked');

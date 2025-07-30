@@ -23,8 +23,8 @@ sub print_objects {
     my $objects = $ruledb->load_group_objects($og->{id});
 
     foreach my $obj (@$objects) {
-	my $desc = $obj->short_desc();
-	print "    OBJECT $obj->{id}: $desc\n";
+        my $desc = $obj->short_desc();
+        print "    OBJECT $obj->{id}: $desc\n";
     }
 }
 
@@ -33,28 +33,27 @@ sub print_rule {
 
     print "Found RULE $rule->{id}: $rule->{name}\n";
 
-    my ($from, $to, $when, $what, $action) = 
-	$ruledb->load_groups($rule);
+    my ($from, $to, $when, $what, $action) = $ruledb->load_groups($rule);
 
     foreach my $og (@$from) {
-	print "  FOUND FROM GROUP $og->{id}: $og->{name}\n";
-	print_objects($og);
+        print "  FOUND FROM GROUP $og->{id}: $og->{name}\n";
+        print_objects($og);
     }
     foreach my $og (@$to) {
-	print "  FOUND TO GROUP $og->{id}: $og->{name}\n";
-	print_objects($og);
+        print "  FOUND TO GROUP $og->{id}: $og->{name}\n";
+        print_objects($og);
     }
     foreach my $og (@$when) {
-	print "  FOUND WHEN GROUP $og->{id}: $og->{name}\n";
-	print_objects($og);
+        print "  FOUND WHEN GROUP $og->{id}: $og->{name}\n";
+        print_objects($og);
     }
     foreach my $og (@$what) {
-	print "  FOUND WHAT GROUP $og->{id}: $og->{name}\n";
-	print_objects($og);
+        print "  FOUND WHAT GROUP $og->{id}: $og->{name}\n";
+        print_objects($og);
     }
     foreach my $og (@$action) {
-	print "  FOUND ACTION GROUP $og->{id}: $og->{name}\n";
-	print_objects($og);
+        print "  FOUND ACTION GROUP $og->{id}: $og->{name}\n";
+        print_objects($og);
     }
 }
 
@@ -64,7 +63,6 @@ foreach my $rule (@$rules) {
     print_rule $rule;
 }
 
-
 $ruledb->close();
 
-exit (0);
+exit(0);

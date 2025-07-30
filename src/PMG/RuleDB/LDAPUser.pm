@@ -32,12 +32,12 @@ sub new {
     my ($type, $ldapuser, $profile, $ogroup) = @_;
 
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
 
     $self->{ldapuser} = $ldapuser // '';
     $self->{profile} = $profile // '';
-    
+
     return $self;
 }
 
@@ -52,15 +52,16 @@ sub load_attr {
 
     my $obj;
     if ($decoded =~ m/^([^:]*):(.*)$/) {
-	$obj = $class->new($2, $1, $ogroup);
-	$obj->{digest} = Digest::SHA::sha1_hex($id, encode('UTF-8', $2), encode('UTF-8', $1), $ogroup);
-   } else {
-	$obj = $class->new($decoded, '', $ogroup);
-	$obj->{digest} = Digest::SHA::sha1_hex ($id, $value, '#', $ogroup);
+        $obj = $class->new($2, $1, $ogroup);
+        $obj->{digest} =
+            Digest::SHA::sha1_hex($id, encode('UTF-8', $2), encode('UTF-8', $1), $ogroup);
+    } else {
+        $obj = $class->new($decoded, '', $ogroup);
+        $obj->{digest} = Digest::SHA::sha1_hex($id, $value, '#', $ogroup);
     }
 
     $obj->{id} = $id;
-    
+
     return $obj;
 }
 
@@ -73,45 +74,45 @@ sub save {
 
     my $user = $self->{ldapuser};
     my $profile = $self->{profile};
- 
+
     my $confdata = encode('UTF-8', "$profile:$user");
-    
+
     if (defined($self->{id})) {
-	# update
-	
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?", 
-	    undef, $confdata, $self->{id});
+        # update
+
+        $ruledb->{dbh}
+            ->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $confdata, $self->{id});
 
     } else {
-	# insert
+        # insert
 
-	# check if it exists first
-	if (my $id = PMG::Utils::get_existing_object_id(
-	    $ruledb->{dbh},
-	    $self->{ogroup},
-	    $self->otype(),
-	    $confdata
-	)) {
-	    return $id;
-	}
+        # check if it exists first
+        if (
+            my $id = PMG::Utils::get_existing_object_id(
+                $ruledb->{dbh},
+                $self->{ogroup},
+                $self->otype(),
+                $confdata,
+            )
+        ) {
+            return $id;
+        }
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+        my $sth = $ruledb->{dbh}->prepare(
+            "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " . "VALUES (?, ?, ?);");
 
-	$sth->execute($self->{ogroup}, $self->otype, $confdata);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+        $sth->execute($self->{ogroup}, $self->otype, $confdata);
+
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
 sub test_ldap {
     my ($ldap, $addr, $user, $profile) = @_;
 
-    return $ldap->account_has_address($user, $addr, $profile); 
+    return $ldap->account_has_address($user, $addr, $profile);
 }
 
 sub who_match {
@@ -131,9 +132,9 @@ sub short_desc {
     my $desc;
 
     if ($profile) {
-	$desc = "LDAP user '$user', profile '$profile'";
+        $desc = "LDAP user '$user', profile '$profile'";
     } else {
-	$desc = "LDAP user without profile - fail always";
+        $desc = "LDAP user without profile - fail always";
     }
 
     return $desc;
@@ -143,16 +144,17 @@ sub properties {
     my ($class) = @_;
 
     return {
-	profile => {
-	    description => "Profile ID.",
-	    type => 'string', format => 'pve-configid',
-	},
-	account => {
-	    description => "LDAP user account name.",
-	    type => 'string',
-	    maxLength => 1024,
-	    minLength => 1,
-	},
+        profile => {
+            description => "Profile ID.",
+            type => 'string',
+            format => 'pve-configid',
+        },
+        account => {
+            description => "LDAP user account name.",
+            type => 'string',
+            maxLength => 1024,
+            minLength => 1,
+        },
     };
 }
 
@@ -160,8 +162,8 @@ sub get {
     my ($self) = @_;
 
     return {
-	account => $self->{ldapuser},
-	profile => $self->{profile},
+        account => $self->{ldapuser},
+        profile => $self->{profile},
     };
 }
 
@@ -174,11 +176,10 @@ sub update {
     die "LDAP profile '$profile' does not exist\n" if !$config;
 
     my $account = $param->{account};
-    my $ldapcache = PMG::LDAPCache->new(
-	id => $profile, syncmode => 1, %$config);
+    my $ldapcache = PMG::LDAPCache->new(id => $profile, syncmode => 1, %$config);
 
     die "LDAP account '$account' does not exist\n"
-	if !$ldapcache->account_exists($account);
+        if !$ldapcache->account_exists($account);
 
     $self->{ldapuser} = $account;
     $self->{profile} = $profile;

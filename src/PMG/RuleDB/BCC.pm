@@ -47,7 +47,7 @@ sub new {
 
     $self->{target} = $target || 'receiver@domain.tld';
 
-    defined ($original) || ($original = 1);
+    defined($original) || ($original = 1);
 
     $self->{original} = $original;
 
@@ -81,38 +81,34 @@ sub save {
     defined($self->{original}) || die "undefined object attribute: ERROR";
 
     if ($self->{original}) {
-	$self->{original} = 1;
+        $self->{original} = 1;
     } else {
-	$self->{original} = 0;
+        $self->{original} = 0;
     }
 
     my $value = "$self->{original}:$self->{target}";
 
     if (defined($self->{id})) {
-	# update
+        # update
 
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?",
-	    undef, $value, $self->{id});
+        $ruledb->{dbh}->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $value, $self->{id});
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+        my $sth = $ruledb->{dbh}->prepare(
+            "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " . "VALUES (?, ?, ?);");
 
-	$sth->execute($self->{ogroup}, $self->otype, $value);
+        $sth->execute($self->{ogroup}, $self->otype, $value);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets,
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
     my $subgroups = $mod_group->subgroups($targets, 1);
 
@@ -121,74 +117,78 @@ sub execute {
     my $bcc_to = PMG::Utils::subst_values_for_header($self->{target}, $vars);
 
     if ($bcc_to =~ m/^\s*$/) {
-	# this happens if a notification is triggered by bounce mails
-	# which notifies the sender <> - we just log and then ignore it
-	syslog('info', "%s: bcc to <> (rule: %s, ignored)", $queue->{logid}, $rulename);
-	return;
+        # this happens if a notification is triggered by bounce mails
+        # which notifies the sender <> - we just log and then ignore it
+        syslog('info', "%s: bcc to <> (rule: %s, ignored)", $queue->{logid}, $rulename);
+        return;
     }
 
-    my @bcc_targets = split (/\s*,\s*/, $bcc_to);
+    my @bcc_targets = split(/\s*,\s*/, $bcc_to);
 
     if ($self->{original}) {
-	$subgroups = [[\@bcc_targets, $mod_group->{entity}]];
+        $subgroups = [[\@bcc_targets, $mod_group->{entity}]];
     }
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
-	$entity = $entity->dup();
-	PMG::Utils::remove_marks($entity);
+        $entity = $entity->dup();
+        PMG::Utils::remove_marks($entity);
 
-	my $dkim = $msginfo->{dkim} // {};
-	if ($dkim->{sign}) {
-	    eval {
-		$entity = PMG::DKIMSign::sign_entity($entity, $dkim, $msginfo->{sender});
-	    };
-	    if ($@) {
-		syslog('warning',
-		    "%s: Could not create DKIM-Signature - disabling Signing: $@",
-		    $queue->{logid}
-		);
-	    }
-	}
+        my $dkim = $msginfo->{dkim} // {};
+        if ($dkim->{sign}) {
+            eval { $entity = PMG::DKIMSign::sign_entity($entity, $dkim, $msginfo->{sender}); };
+            if ($@) {
+                syslog(
+                    'warning',
+                    "%s: Could not create DKIM-Signature - disabling Signing: $@",
+                    $queue->{logid},
+                );
+            }
+        }
 
-	if ($msginfo->{testmode}) {
-	    my $fh = $msginfo->{test_fh};
-	    print $fh "bcc from: $msginfo->{sender}\n";
-	    printf $fh "bcc   to: %s\n", join (',', @$tg);
-	    print $fh "bcc content:\n";
-	    $entity->print ($fh);
-	    print $fh "bcc end\n";
-	} else {
-	    my $param = {};
-	    for my $bcc (@bcc_targets) {
-		$param->{rcpt}->{$bcc}->{notify} = "never";
-	    }
-	    my $qid = PMG::Utils::reinject_mail(
-		$entity, $msginfo->{sender}, \@bcc_targets,
-		$msginfo->{xforward}, $msginfo->{fqdn}, $param);
-	    foreach (@bcc_targets) {
-		my $target = encode('UTF-8', $_);
-		if ($qid) {
-		    syslog(
-			'info',
-			"%s: bcc to <%s> (rule: %s, %s)",
-			$queue->{logid},
-			$target,
-			$rulename,
-			$qid,
-		    );
-		} else {
-		    syslog(
-			'err',
-			"%s: bcc to <%s> (rule: %s) failed",
-			$queue->{logid},
-			$target,
-			$rulename,
-		    );
-		}
-	    }
-	}
+        if ($msginfo->{testmode}) {
+            my $fh = $msginfo->{test_fh};
+            print $fh "bcc from: $msginfo->{sender}\n";
+            printf $fh "bcc   to: %s\n", join(',', @$tg);
+            print $fh "bcc content:\n";
+            $entity->print($fh);
+            print $fh "bcc end\n";
+        } else {
+            my $param = {};
+            for my $bcc (@bcc_targets) {
+                $param->{rcpt}->{$bcc}->{notify} = "never";
+            }
+            my $qid = PMG::Utils::reinject_mail(
+                $entity,
+                $msginfo->{sender},
+                \@bcc_targets,
+                $msginfo->{xforward},
+                $msginfo->{fqdn},
+                $param,
+            );
+            foreach (@bcc_targets) {
+                my $target = encode('UTF-8', $_);
+                if ($qid) {
+                    syslog(
+                        'info',
+                        "%s: bcc to <%s> (rule: %s, %s)",
+                        $queue->{logid},
+                        $target,
+                        $rulename,
+                        $qid,
+                    );
+                } else {
+                    syslog(
+                        'err',
+                        "%s: bcc to <%s> (rule: %s) failed",
+                        $queue->{logid},
+                        $target,
+                        $rulename,
+                    );
+                }
+            }
+        }
     }
 
     # warn if no subgroups
@@ -208,25 +208,26 @@ sub properties {
     my ($class) = @_;
 
     return {
-	target => {
-	    description => "Send a Blind Carbon Copy to this email address.",
-	    type => 'string', format => 'email',
-	},
-	original =>{
-	    description => "Send the original, unmodified mail.",
-	    type => 'boolean',
-	    optional => 1,
-	    default => 1,
-	},
+        target => {
+            description => "Send a Blind Carbon Copy to this email address.",
+            type => 'string',
+            format => 'email',
+        },
+        original => {
+            description => "Send the original, unmodified mail.",
+            type => 'boolean',
+            optional => 1,
+            default => 1,
+        },
     };
 }
 
 sub get {
     my ($self) = @_;
 
-    return { 
-	target => $self->{target}, 
-	original => $self->{original},
+    return {
+        target => $self->{target},
+        original => $self->{original},
     };
 }
 

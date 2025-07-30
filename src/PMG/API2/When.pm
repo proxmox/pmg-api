@@ -18,41 +18,40 @@ use PMG::RuleDB;
 
 use base qw(PVE::RESTHandler);
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'index',
     path => '',
     method => 'GET',
     description => "Directory index.",
-    permissions => { check => [ 'admin', 'audit' ] },
+    permissions => { check => ['admin', 'audit'] },
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    ogroup => {
-		description => "Object Group ID.",
-		type => 'integer',
-	    },
-	},
+        additionalProperties => 0,
+        properties => {
+            ogroup => {
+                description => "Object Group ID.",
+                type => 'integer',
+            },
+        },
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => {
-		subdir => { type => 'string'},
-	    },
-	},
-	links => [ { rel => 'child', href => "{subdir}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                subdir => { type => 'string' },
+            },
+        },
+        links => [{ rel => 'child', href => "{subdir}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	return [
-	    { subdir => 'config' },
-	    { subdir => 'objects' },
-	    { subdir => 'timeframe' },
-	];
+        return [
+            { subdir => 'config' }, { subdir => 'objects' }, { subdir => 'timeframe' },
+        ];
 
-    }});
+    },
+});
 
 PMG::API2::ObjectGroupHelpers::register_delete_object_group_api(__PACKAGE__, 'when', '');
 PMG::API2::ObjectGroupHelpers::register_object_group_config_api(__PACKAGE__, 'when', 'config');

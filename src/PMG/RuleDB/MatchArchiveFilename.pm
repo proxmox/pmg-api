@@ -28,31 +28,31 @@ sub parse_entity {
     # test regex for validity
     eval { "" =~ m|^$self->{fname}$|i; };
     if (my $err = $@) {
-	warn "invalid regex: $err\n";
-	return $res;
+        warn "invalid regex: $err\n";
+        return $res;
     }
 
     if (my $id = $entity->head->mime_attr('x-proxmox-tmp-aid')) {
-	chomp $id;
+        chomp $id;
 
-	my $fn = PMG::Utils::extract_filename($entity->head);
-	if (defined($fn) && $fn =~ m|^$self->{fname}$|i) {
-	    push @$res, $id;
-	} elsif (my $filenames = $entity->{PMX_filenames}) {
-	    # Match inside archives
-	    for my $fn (keys %$filenames) {
-		if ($fn =~ m|^$self->{fname}$|i) {
-		    push @$res, $id;
-		    last;
-		}
-	    }
-	}
+        my $fn = PMG::Utils::extract_filename($entity->head);
+        if (defined($fn) && $fn =~ m|^$self->{fname}$|i) {
+            push @$res, $id;
+        } elsif (my $filenames = $entity->{PMX_filenames}) {
+            # Match inside archives
+            for my $fn (keys %$filenames) {
+                if ($fn =~ m|^$self->{fname}$|i) {
+                    push @$res, $id;
+                    last;
+                }
+            }
+        }
     }
 
-    foreach my $part ($entity->parts)  {
-	if (my $match = $self->parse_entity ($part)) {
-	    push @$res, @$match;
-	}
+    foreach my $part ($entity->parts) {
+        if (my $match = $self->parse_entity($part)) {
+            push @$res, @$match;
+        }
     }
 
     return $res;

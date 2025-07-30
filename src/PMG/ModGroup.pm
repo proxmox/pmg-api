@@ -7,10 +7,10 @@ sub new {
     my ($type, $entity, $targets) = @_;
 
     my $self = {
-	targets => $targets,
-	ea => [$entity],
-	groups => [$targets],
-	entity => $entity,
+        targets => $targets,
+        ea => [$entity],
+        groups => [$targets],
+        entity => $entity,
     };
 
     bless $self, $type;
@@ -28,54 +28,54 @@ sub subgroups {
 
     my $groups;
     if ($ro) {
-	my @copy = @{$self->{groups}};
-	$groups =  \@copy;
+        my @copy = @{ $self->{groups} };
+        $groups = \@copy;
     } else {
-	$groups =  $self->{groups};
+        $groups = $self->{groups};
     }
 
-    my $ea =  $self->{ea};
+    my $ea = $self->{ea};
 
     my $res;
 
-    for my $i (0..$#$groups) {
-	my $g = @$groups[$i];
+    for my $i (0 .. $#$groups) {
+        my $g = @$groups[$i];
 
-	my $tcount = -1;
-	my ($ma, $ua);
-	foreach my $member (@$g) {
-	    my $found = 0;
-	    foreach my $t (@$targets) {
-		if ($member eq $t) {
-		    $found = 1;
-		    $tcount++;
-		}
-	    }
-	    if ($found) {
-		push @$ma, $member;
-	    } else {
-		push @$ua, $member;
-	    }
-	}
+        my $tcount = -1;
+        my ($ma, $ua);
+        foreach my $member (@$g) {
+            my $found = 0;
+            foreach my $t (@$targets) {
+                if ($member eq $t) {
+                    $found = 1;
+                    $tcount++;
+                }
+            }
+            if ($found) {
+                push @$ma, $member;
+            } else {
+                push @$ua, $member;
+            }
+        }
 
-	next if $tcount == -1;
+        next if $tcount == -1;
 
-	if ($tcount < $#$g) {
-	    @$groups[$i] = $ma;
-	    push @$groups, $ua;
-	    if ($ro) {
-		push @$ea, @$ea[$i];
-	    } else {
-		my $e = @$ea[$i];
-		my $copy = $e->dup;
+        if ($tcount < $#$g) {
+            @$groups[$i] = $ma;
+            push @$groups, $ua;
+            if ($ro) {
+                push @$ea, @$ea[$i];
+            } else {
+                my $e = @$ea[$i];
+                my $copy = $e->dup;
 
-		# also copy proxmox attribute
-		foreach (keys %$e) {$copy->{$_} = $e->{$_} if $_ =~ m/^PMX_/};
+                # also copy proxmox attribute
+                foreach (keys %$e) { $copy->{$_} = $e->{$_} if $_ =~ m/^PMX_/ }
 
-		push @$ea, $copy;
-	    }
-	}
-	push @$res, [$ma, @$ea[$i]];
+                push @$ea, $copy;
+            }
+        }
+        push @$res, [$ma, @$ea[$i]];
     }
 
     return $res;
@@ -92,7 +92,7 @@ sub explode {
 
     # TODO: implement it more directly with less overhead!
     for my $target ($targets->@*) {
-	$self->subgroups([$target]);
+        $self->subgroups([$target]);
     }
 
     return $self->subgroups($targets);

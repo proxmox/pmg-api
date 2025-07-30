@@ -24,77 +24,78 @@ my $extract_userdata = sub {
 
     my $res = {};
     foreach my $k (keys %$entry) {
-	$res->{$k} = $entry->{$k} if $k ne 'crypt_pass';
+        $res->{$k} = $entry->{$k} if $k ne 'crypt_pass';
     }
 
     return $res;
 };
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'index',
     path => '',
     method => 'GET',
     description => "List users.",
     proxyto => 'master',
     protected => 1,
-    permissions => { check => [ 'admin', 'qmanager', 'audit' ] },
+    permissions => { check => ['admin', 'qmanager', 'audit'] },
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => {
-		userid => { type => 'string'},
-		enable => { type => 'boolean'},
-		role => { type => 'string'},
-		comment => { type => 'string', optional => 1},
-		'totp-locked' => {
-		    type => 'boolean',
-		    optional => 1,
-		    description => 'True if the user is currently locked out of TOTP factors.',
-		},
-		'tfa-locked-until' => {
-		    type => 'integer',
-		    optional => 1,
-		    description =>
-			'Contains a timestamp until when a user is locked out of 2nd factors.',
-		},
-	    },
-	},
-	links => [ { rel => 'child', href => "{userid}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                userid => { type => 'string' },
+                enable => { type => 'boolean' },
+                role => { type => 'string' },
+                comment => { type => 'string', optional => 1 },
+                'totp-locked' => {
+                    type => 'boolean',
+                    optional => 1,
+                    description => 'True if the user is currently locked out of TOTP factors.',
+                },
+                'tfa-locked-until' => {
+                    type => 'integer',
+                    optional => 1,
+                    description =>
+                        'Contains a timestamp until when a user is locked out of 2nd factors.',
+                },
+            },
+        },
+        links => [{ rel => 'child', href => "{userid}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $cfg = PMG::UserConfig->new();
-	my $tfa_cfg = PMG::TFAConfig->new();
+        my $cfg = PMG::UserConfig->new();
+        my $tfa_cfg = PMG::TFAConfig->new();
 
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-	my $role = $rpcenv->get_role();
+        my $rpcenv = PMG::RESTEnvironment->get();
+        my $authuser = $rpcenv->get_user();
+        my $role = $rpcenv->get_role();
 
-	my $res = [];
+        my $res = [];
 
-	foreach my $userid (sort keys %$cfg) {
-	    next if $role eq 'qmanager' && $authuser ne $userid;
-	    my $entry = $extract_userdata->($cfg->{$userid});
-	    if (defined($tfa_cfg)) {
-		if (my $data = $tfa_cfg->tfa_lock_status($userid)) {
-		    for (qw(totp-locked tfa-locked-until)) {
-			$entry->{$_} = $data->{$_} if exists($data->{$_});
-		    }
-		}
-	    }
-	    push @$res, $entry;
-	}
+        foreach my $userid (sort keys %$cfg) {
+            next if $role eq 'qmanager' && $authuser ne $userid;
+            my $entry = $extract_userdata->($cfg->{$userid});
+            if (defined($tfa_cfg)) {
+                if (my $data = $tfa_cfg->tfa_lock_status($userid)) {
+                    for (qw(totp-locked tfa-locked-until)) {
+                        $entry->{$_} = $data->{$_} if exists($data->{$_});
+                    }
+                }
+            }
+            push @$res, $entry;
+        }
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'create',
     path => '',
     method => 'POST',
@@ -104,91 +105,94 @@ __PACKAGE__->register_method ({
     parameters => $PMG::UserConfig::create_schema,
     returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $code = sub {
+        my $code = sub {
 
-	    my $cfg = PMG::UserConfig->new();
+            my $cfg = PMG::UserConfig->new();
 
-	    die "User '$param->{userid}' already exists\n"
-		if $cfg->{$param->{userid}};
+            die "User '$param->{userid}' already exists\n"
+                if $cfg->{ $param->{userid} };
 
-	    my $entry = {};
-	    foreach my $k (keys %$param) {
-		my $v = $param->{$k};
-		if ($k eq 'password') {
-		    $entry->{crypt_pass} = PVE::Tools::encrypt_pw($v);
-		} else {
-		    $entry->{$k} = $v;
-		}
-	    }
+            my $entry = {};
+            foreach my $k (keys %$param) {
+                my $v = $param->{$k};
+                if ($k eq 'password') {
+                    $entry->{crypt_pass} = PVE::Tools::encrypt_pw($v);
+                } else {
+                    $entry->{$k} = $v;
+                }
+            }
 
-	    my ($userid, $username, $realm) = PMG::Utils::verify_username($entry->{userid});
-	    die "invalid realm '$realm' in userid\n" if !PMG::Auth::Plugin::is_valid_realm($realm);
+            my ($userid, $username, $realm) = PMG::Utils::verify_username($entry->{userid});
+            die "invalid realm '$realm' in userid\n"
+                if !PMG::Auth::Plugin::is_valid_realm($realm);
 
-	    die "'\@' forbidden in username\n" if $username =~ /@/;
+            die "'\@' forbidden in username\n" if $username =~ /@/;
 
-	    if ($entry->{realm}) {
-		die "realm parameter does not fit userid ('$entry->{realm}' != '$realm')\n"
-		    if $entry->{realm} ne $realm;
-	    } else {
-		$entry->{realm} = $realm;
-	    }
+            if ($entry->{realm}) {
+                die "realm parameter does not fit userid ('$entry->{realm}' != '$realm')\n"
+                    if $entry->{realm} ne $realm;
+            } else {
+                $entry->{realm} = $realm;
+            }
 
-	    die "You cannot create user in the PAM realm\n" if $entry->{realm} eq 'pam';
+            die "You cannot create user in the PAM realm\n" if $entry->{realm} eq 'pam';
 
-	    $entry->{enable} //= 0;
-	    $entry->{expire} //= 0;
-	    $entry->{role} //= 'audit';
+            $entry->{enable} //= 0;
+            $entry->{expire} //= 0;
+            $entry->{role} //= 'audit';
 
-	    $cfg->{$param->{userid}} = $entry;
+            $cfg->{ $param->{userid} } = $entry;
 
-	    $cfg->write();
-	};
+            $cfg->write();
+        };
 
-	PMG::UserConfig::lock_config($code, "create user failed");
+        PMG::UserConfig::lock_config($code, "create user failed");
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'read',
     path => '{userid}',
     method => 'GET',
     description => "Read User data.",
-    permissions => { check => [ 'admin', 'qmanager', 'audit' ] },
+    permissions => { check => ['admin', 'qmanager', 'audit'] },
     proxyto => 'master',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    userid => get_standard_option('userid'),
-	},
+        additionalProperties => 0,
+        properties => {
+            userid => get_standard_option('userid'),
+        },
     },
     returns => {
-	type => "object",
-	properties => {},
+        type => "object",
+        properties => {},
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $cfg = PMG::UserConfig->new();
+        my $cfg = PMG::UserConfig->new();
 
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
-	my $role = $rpcenv->get_role();
+        my $rpcenv = PMG::RESTEnvironment->get();
+        my $authuser = $rpcenv->get_user();
+        my $role = $rpcenv->get_role();
 
-	raise_perm_exc()
-	    if $role eq 'qmanager' && $authuser ne $param->{userid};
+        raise_perm_exc()
+            if $role eq 'qmanager' && $authuser ne $param->{userid};
 
-	my $data = $cfg->lookup_user_data($param->{userid});
+        my $data = $cfg->lookup_user_data($param->{userid});
 
-	my $res = $extract_userdata->($data);
+        my $res = $extract_userdata->($data);
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'write',
     path => '{userid}',
     method => 'PUT',
@@ -198,42 +202,43 @@ __PACKAGE__->register_method ({
     parameters => $PMG::UserConfig::update_schema,
     returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $code = sub {
+        my $code = sub {
 
-	    my $cfg = PMG::UserConfig->new();
+            my $cfg = PMG::UserConfig->new();
 
-	    my $userid = extract_param($param, 'userid');
+            my $userid = extract_param($param, 'userid');
 
-	    my $entry = $cfg->lookup_user_data($userid);
+            my $entry = $cfg->lookup_user_data($userid);
 
-	    my $delete_str = extract_param($param, 'delete');
-	    die "no options specified\n"
-		if !$delete_str && !scalar(keys %$param);
+            my $delete_str = extract_param($param, 'delete');
+            die "no options specified\n"
+                if !$delete_str && !scalar(keys %$param);
 
-	    foreach my $k (PVE::Tools::split_list($delete_str)) {
-		delete $entry->{$k};
-	    }
+            foreach my $k (PVE::Tools::split_list($delete_str)) {
+                delete $entry->{$k};
+            }
 
-	    foreach my $k (keys %$param) {
-		my $v = $param->{$k};
-		if ($k eq 'password') {
-		    $entry->{crypt_pass} = PVE::Tools::encrypt_pw($v);
-		} else {
-		    $entry->{$k} = $v;
-		}
-	    }
+            foreach my $k (keys %$param) {
+                my $v = $param->{$k};
+                if ($k eq 'password') {
+                    $entry->{crypt_pass} = PVE::Tools::encrypt_pw($v);
+                } else {
+                    $entry->{$k} = $v;
+                }
+            }
 
-	    $cfg->write();
-	};
+            $cfg->write();
+        };
 
-	PMG::UserConfig::lock_config($code, "update user failed");
+        PMG::UserConfig::lock_config($code, "update user failed");
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'delete',
     path => '{userid}',
     method => 'DELETE',
@@ -241,43 +246,44 @@ __PACKAGE__->register_method ({
     protected => 1,
     proxyto => 'master',
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    userid => get_standard_option('userid'),
-	}
+        additionalProperties => 0,
+        properties => {
+            userid => get_standard_option('userid'),
+        },
     },
     returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $code = sub {
+        my $code = sub {
 
-	    my $cfg = PMG::UserConfig->new();
+            my $cfg = PMG::UserConfig->new();
 
-	    $cfg->lookup_user_data($param->{userid}); # user exists?
+            $cfg->lookup_user_data($param->{userid}); # user exists?
 
-	    delete $cfg->{$param->{userid}};
+            delete $cfg->{ $param->{userid} };
 
-	    $cfg->write();
-	};
+            $cfg->write();
+        };
 
-	PMG::UserConfig::lock_config($code, "delete user failed");
+        PMG::UserConfig::lock_config($code, "delete user failed");
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'unlock_tfa',
     path => '{userid}/unlock-tfa',
     method => 'PUT',
     protected => 1,
     description => "Unlock a user's TFA authentication.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    userid => get_standard_option('userid'),
-	},
+        additionalProperties => 0,
+        properties => {
+            userid => get_standard_option('userid'),
+        },
     },
     returns => { type => 'boolean' },
     code => sub {
@@ -285,15 +291,15 @@ __PACKAGE__->register_method ({
 
         my $userid = extract_param($param, "userid");
 
-	my $user_was_locked = PMG::TFAConfig::lock_config(sub {
-	    my $tfa_cfg = PMG::TFAConfig->new();
-	    my $was_locked = $tfa_cfg->api_unlock_tfa($userid);
-	    $tfa_cfg->write() if $was_locked;
-	    return $was_locked;
-	});
+        my $user_was_locked = PMG::TFAConfig::lock_config(sub {
+            my $tfa_cfg = PMG::TFAConfig->new();
+            my $was_locked = $tfa_cfg->api_unlock_tfa($userid);
+            $tfa_cfg->write() if $was_locked;
+            return $was_locked;
+        });
 
-	return $user_was_locked;
-    }});
-
+        return $user_was_locked;
+    },
+});
 
 1;

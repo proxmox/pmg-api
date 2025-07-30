@@ -50,30 +50,30 @@ sub authenticate_user : prototype($$$) {
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
     if ($realm eq 'pam') {
-	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
-	authenticate_pam_user($ruid, $password);
+        die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
+        authenticate_pam_user($ruid, $password);
     } elsif ($realm eq 'pmg') {
-	my $usercfg = PMG::UserConfig->new();
-	$usercfg->authenticate_user($username, $password);
+        my $usercfg = PMG::UserConfig->new();
+        $usercfg->authenticate_user($username, $password);
     } elsif ($realm eq 'quarantine') {
-	my $ldap_cfg = PMG::LDAPConfig->new();
-	my $ldap = PMG::LDAPSet->new_from_ldap_cfg($ldap_cfg, 1);
+        my $ldap_cfg = PMG::LDAPConfig->new();
+        my $ldap = PMG::LDAPSet->new_from_ldap_cfg($ldap_cfg, 1);
 
-	if (my $ldapinfo = $ldap->account_info($ruid, $password)) {
-	    my $pmail = $ldapinfo->{pmail};
-	    return ($pmail . '@quarantine', undef);
-	}
-	die "ldap login failed\n";
+        if (my $ldapinfo = $ldap->account_info($ruid, $password)) {
+            my $pmail = $ldapinfo->{pmail};
+            return ($pmail . '@quarantine', undef);
+        }
+        die "ldap login failed\n";
     } else {
-	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-	if ($realm =~ m!(${realm_regex})!) {
-	    my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
-	    my $cfg = $realm_cfg->{ids}->{$realm};
-	    my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
-	    $plugin->authenticate_user($cfg, $realm, $ruid, $password);
-	} else {
-	    die "no such realm '$realm'\n";
-	}
+        my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+        if ($realm =~ m!(${realm_regex})!) {
+            my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
+            my $cfg = $realm_cfg->{ids}->{$realm};
+            my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
+            $plugin->authenticate_user($cfg, $realm, $ruid, $password);
+        } else {
+            die "no such realm '$realm'\n";
+        }
     }
 
     return ($username, undef) if $skip_tfa;
@@ -82,8 +82,8 @@ sub authenticate_user : prototype($$$) {
 
     my $origin = undef;
     if (!$tfa->has_webauthn_origin()) {
-	my $rpcenv = PMG::RESTEnvironment->get();
-	$origin = 'https://'.$rpcenv->get_request_host(1);
+        my $rpcenv = PMG::RESTEnvironment->get();
+        $origin = 'https://' . $rpcenv->get_request_host(1);
     }
 
     my $tfa_challenge = $tfa->authentication_challenge($username, $origin);
@@ -99,28 +99,28 @@ sub set_user_password {
     ($username, $ruid, $realm) = PMG::Utils::verify_username($username);
 
     if ($realm eq 'pam') {
-	die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
+        die "invalid pam user (only root allowed)\n" if $ruid ne 'root';
 
-	my $cmd = ['usermod'];
+        my $cmd = ['usermod'];
 
-	my $epw = PVE::Tools::encrypt_pw($password);
+        my $epw = PVE::Tools::encrypt_pw($password);
 
-	push @$cmd, '-p', $epw, $ruid;
+        push @$cmd, '-p', $epw, $ruid;
 
-	PVE::Tools::run_command($cmd, errmsg => "change password for '$ruid' failed");
+        PVE::Tools::run_command($cmd, errmsg => "change password for '$ruid' failed");
 
     } elsif ($realm eq 'pmg') {
-	PMG::UserConfig->set_user_password($username, $password);
+        PMG::UserConfig->set_user_password($username, $password);
     } else {
-	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-	if ($realm =~ m!(${realm_regex})!) {
-	    my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
-	    my $cfg = $realm_cfg->{ids}->{$realm};
-	    my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
-	    $plugin->store_password($cfg, $realm, $username, $password);
-	} else {
-	    die "no such realm '$realm'\n";
-	}
+        my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+        if ($realm =~ m!(${realm_regex})!) {
+            my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
+            my $cfg = $realm_cfg->{ids}->{$realm};
+            my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
+            $plugin->store_password($cfg, $realm, $username, $password);
+        } else {
+            die "no such realm '$realm'\n";
+        }
     }
 }
 
@@ -132,22 +132,22 @@ sub check_user_enabled {
     my ($username, $ruid, $realm) = PMG::Utils::verify_username($username_raw, 1);
 
     if ($realm && $ruid) {
-	if ($realm eq 'pam') {
-	    return 'root' if $ruid eq 'root';
-	} elsif ($realm eq 'pmg') {
-	    my $usercfg = PMG::UserConfig->new();
-	    my $data = $usercfg->lookup_user_data($username, $noerr);
-	    return $data->{role} if $data && $data->{enable};
-	} elsif ($realm eq 'quarantine') {
-	    return 'quser';
-	} else {
-	    my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-	    if ($realm =~ m!(${realm_regex})!) {
-		my $usercfg = PMG::UserConfig->new();
-		my $data = $usercfg->lookup_user_data($username, $noerr);
-		return $data->{role} if $data && $data->{enable};
-	    }
-	}
+        if ($realm eq 'pam') {
+            return 'root' if $ruid eq 'root';
+        } elsif ($realm eq 'pmg') {
+            my $usercfg = PMG::UserConfig->new();
+            my $data = $usercfg->lookup_user_data($username, $noerr);
+            return $data->{role} if $data && $data->{enable};
+        } elsif ($realm eq 'quarantine') {
+            return 'quser';
+        } else {
+            my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+            if ($realm =~ m!(${realm_regex})!) {
+                my $usercfg = PMG::UserConfig->new();
+                my $data = $usercfg->lookup_user_data($username, $noerr);
+                return $data->{role} if $data && $data->{enable};
+            }
+        }
     }
 
     raise_perm_exc("user '$username_raw' is disabled") if !$noerr;
@@ -172,38 +172,42 @@ sub authenticate_pam_user {
 
     # user need to be able to read /etc/passwd /etc/shadow
 
-    my $pamh = Authen::PAM->new('proxmox-mailgateway-auth', $username, sub {
-	my @res;
-	while(@_) {
-	    my $msg_type = shift;
-	    my $msg = shift;
-	    push @res, (0, $password);
-	}
-	push @res, 0;
-	return @res;
-    });
+    my $pamh = Authen::PAM->new(
+        'proxmox-mailgateway-auth',
+        $username,
+        sub {
+            my @res;
+            while (@_) {
+                my $msg_type = shift;
+                my $msg = shift;
+                push @res, (0, $password);
+            }
+            push @res, 0;
+            return @res;
+        },
+    );
 
     if (my $rpcenv = PMG::RESTEnvironment->get()) {
-	if (my $ip = $rpcenv->get_client_ip()) {
-	    $pamh->pam_set_item(PAM_RHOST(), $ip);
-	}
+        if (my $ip = $rpcenv->get_client_ip()) {
+            $pamh->pam_set_item(PAM_RHOST(), $ip);
+        }
     }
 
     if (!ref($pamh)) {
-	my $err = $pamh->pam_strerror($pamh);
-	die "Error during PAM init: $err";
+        my $err = $pamh->pam_strerror($pamh);
+        die "Error during PAM init: $err";
     }
 
     my $res;
 
     if (($res = $pamh->pam_authenticate(0)) != PAM_SUCCESS) {
-	my $err = $pamh->pam_strerror($res);
-	die "auth failed: $err\n";
+        my $err = $pamh->pam_strerror($res);
+        die "auth failed: $err\n";
     }
 
     if (($res = $pamh->pam_acct_mgmt(0)) != PAM_SUCCESS) {
-	my $err = $pamh->pam_strerror($res);
-	die "auth failed: $err\n";
+        my $err = $pamh->pam_strerror($res);
+        die "auth failed: $err\n";
     }
 
     $pamh = 0; # call destructor

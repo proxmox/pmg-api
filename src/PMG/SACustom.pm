@@ -15,7 +15,7 @@ sub get_shadow_path {
 
 sub apply_changes {
     if (-f $shadow_path) {
-	rename($shadow_path, $conf_path) || die 'failed to apply custom scores - $!\n';
+        rename($shadow_path, $conf_path) || die 'failed to apply custom scores - $!\n';
     }
 }
 
@@ -25,22 +25,23 @@ sub calc_digest {
     my $raw = '';
 
     foreach my $rule (sort keys %$data) {
-	my $score = $data->{$rule}->{score};
-	my $comment = $data->{$rule}->{comment} // "";
-	$raw .= "$rule$score$comment";
+        my $score = $data->{$rule}->{score};
+        my $comment = $data->{$rule}->{comment} // "";
+        $raw .= "$rule$score$comment";
     }
 
     my $digest = Digest::SHA::sha1_hex($raw);
     return $digest;
 }
 
-PVE::INotify::register_file('pmg-scores.cf', $conf_path,
-			    \&read_pmg_cf,
-			    \&write_pmg_cf,
-			    undef,
-			    always_call_parser => 1,
-			    shadow => $shadow_path,
-			    );
+PVE::INotify::register_file(
+    'pmg-scores.cf', $conf_path,
+    \&read_pmg_cf,
+    \&write_pmg_cf,
+    undef,
+    always_call_parser => 1,
+    shadow => $shadow_path,
+);
 
 sub read_pmg_cf {
     my ($filename, $fh) = @_;
@@ -49,27 +50,27 @@ sub read_pmg_cf {
 
     my $comment = '';
     if (defined($fh)) {
-	while (defined(my $line = <$fh>)) {
-	    chomp $line;
-	    next if $line =~ m/^\s*$/;
-	    if ($line =~ m/^# ?(.*)\s*$/) {
-		$comment = $1;
-		next;
-	    }
-	    if ($line =~ m/^score\s+(\S+)\s+(\S+)\s*$/) {
-		my $rule = $1;
-		my $score = $2;
-		$scores->{$rule} = {
-		    name => $rule,
-		    score => $score,
-		    comment => $comment,
-		};
-		$comment = '';
-	    } else {
-		warn "parse error in '$filename': $line\n";
-		$comment = '';
-	    }
-	}
+        while (defined(my $line = <$fh>)) {
+            chomp $line;
+            next if $line =~ m/^\s*$/;
+            if ($line =~ m/^# ?(.*)\s*$/) {
+                $comment = $1;
+                next;
+            }
+            if ($line =~ m/^score\s+(\S+)\s+(\S+)\s*$/) {
+                my $rule = $1;
+                my $score = $2;
+                $scores->{$rule} = {
+                    name => $rule,
+                    score => $score,
+                    comment => $comment,
+                };
+                $comment = '';
+            } else {
+                warn "parse error in '$filename': $line\n";
+                $comment = '';
+            }
+        }
     }
 
     return $scores;
@@ -80,10 +81,10 @@ sub write_pmg_cf {
 
     my $content = "";
     foreach my $rule (sort keys %$scores) {
-	my $comment = $scores->{$rule}->{comment};
-	my $score = sprintf("%.3f", $scores->{$rule}->{score});
-	$content .= "# $comment\n" if defined($comment) && $comment !~ m/^\s*$/;
-	$content .= "score $rule $score\n";
+        my $comment = $scores->{$rule}->{comment};
+        my $score = sprintf("%.3f", $scores->{$rule}->{score});
+        $content .= "# $comment\n" if defined($comment) && $comment !~ m/^\s*$/;
+        $content .= "score $rule $score\n";
     }
     PVE::Tools::safe_print($filename, $fh, $content);
 }

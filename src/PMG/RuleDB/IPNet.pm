@@ -20,9 +20,9 @@ sub otype_text {
 
 sub new {
     my ($type, $address, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     $address //= '127.0.0.1/32';
 
     my $self = $class->SUPER::new($address, $ogroup);
@@ -45,10 +45,11 @@ sub properties {
     my ($class) = @_;
 
     return {
-	cidr => {
-	    description => "Network address in CIDR notation.",
-	    type => 'string', format => 'CIDR',
-	},
+        cidr => {
+            description => "Network address in CIDR notation.",
+            type => 'string',
+            format => 'CIDR',
+        },
     };
 }
 

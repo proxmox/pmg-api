@@ -2,7 +2,7 @@
 
 $ENV{'PATH'} = '/sbin:/bin:/usr/sbin:/usr/bin';
 
-delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};  
+delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 
 use strict;
 use warnings;
@@ -40,21 +40,21 @@ my $nodename = PVE::INotify::nodename();
 
 eval { PMG::API2::Subscription->update({ node => $nodename }); };
 if (my $err = $@) {
-    syslog ('err', "update subscription info failed: $err");
+    syslog('err', "update subscription info failed: $err");
 }
 
 my $cfg = PMG::Config->new();
 
-if (my $statlifetime = $cfg->get ('admin', 'statlifetime')) {
+if (my $statlifetime = $cfg->get('admin', 'statlifetime')) {
     my $count = 0;
     eval {
-	my $dbh = PMG::DBTools::open_ruledb();
-	$count = PMG::DBTools::purge_statistic_database($dbh, $statlifetime);
+        my $dbh = PMG::DBTools::open_ruledb();
+        $count = PMG::DBTools::purge_statistic_database($dbh, $statlifetime);
     };
     if (my $err = $@) {
-	syslog('err', $err);
+        syslog('err', $err);
     } else {
-	syslog('info', "cleanup removed $count entries from statistic database") if $count;
+        syslog('info', "cleanup removed $count entries from statistic database") if $count;
     }
 }
 
@@ -65,7 +65,7 @@ my $info = eval { PMG::API2::Subscription::read_etc_subscription() };
 my $notify = ($info && $info->{status} eq 'active') ? 1 : 0;
 eval { PMG::API2::APT->update_database({ node => $nodename, notify => $notify, quiet => 1 }); };
 if (my $err = $@) {
-    syslog ('err', "update apt database failed: $err");
+    syslog('err', "update apt database failed: $err");
 }
 
 # rotate razor log file
@@ -84,9 +84,7 @@ if (system('sa-update') == 0) {
     $restart_filter = 1;
 }
 
-eval {
-    $restart_filter = 1 if PMG::Utils::update_local_spamassassin_channels(0);
-};
+eval { $restart_filter = 1 if PMG::Utils::update_local_spamassassin_channels(0); };
 syslog('err', "$@") if $@;
 
 PMG::Utils::service_cmd('pmg-smtp-filter', 'restart') if $restart_filter;
@@ -98,32 +96,39 @@ eval {
     my $acme_node_config = PMG::NodeConfig::get_acme_conf($node_config);
     my $acme_domains = $acme_node_config && $acme_node_config->{domains};
     if ($acme_domains) {
-	my %typed_domains = map {
-	    $_ => PMG::NodeConfig::filter_domains_by_type($acme_domains, $_)
-	} qw(api smtp);
+        my %typed_domains = map {
+            $_ => PMG::NodeConfig::filter_domains_by_type($acme_domains, $_)
+        } qw(api smtp);
 
-	foreach my $type (qw(api smtp)) {
-	    next if !$typed_domains{$type};
+        foreach my $type (qw(api smtp)) {
+            next if !$typed_domains{$type};
 
-	    # Guard both certificates separately.
-	    eval {
-		my $cert = PMG::CertHelpers::cert_path($type);
-		if (!-e $cert) {
-		    syslog ('info', "ACME config found for '$type' certificate, but no custom certificate exists. Skipping ACME renewal until initial certificate has been deployed.");
-		    next;
-		}
+            # Guard both certificates separately.
+            eval {
+                my $cert = PMG::CertHelpers::cert_path($type);
+                if (!-e $cert) {
+                    syslog(
+                        'info',
+                        "ACME config found for '$type' certificate, but no custom certificate exists. Skipping ACME renewal until initial certificate has been deployed.",
+                    );
+                    next;
+                }
 
-		if (PVE::Certificate::check_expiry($cert, time() + 30*24*60*60)) {
-		    PMG::API2::Certificates->renew_acme_cert({ node => $nodename, type => $type });
-		} else {
-		    syslog ('info', "Custom '$type' certificate does not expire soon, skipping ACME renewal.");
-		}
-	    };
-	    syslog ('err', "Renewing '$type' ACME certificate failed: $@") if $@;
-	}
+                if (PVE::Certificate::check_expiry($cert, time() + 30 * 24 * 60 * 60)) {
+                    PMG::API2::Certificates->renew_acme_cert({
+                        node => $nodename, type => $type });
+                } else {
+                    syslog(
+                        'info',
+                        "Custom '$type' certificate does not expire soon, skipping ACME renewal.",
+                    );
+                }
+            };
+            syslog('err', "Renewing '$type' ACME certificate failed: $@") if $@;
+        }
     }
 };
-syslog ('err', "Renewing ACME certificate failed: $@") if $@;
+syslog('err', "Renewing ACME certificate failed: $@") if $@;
 
-exit (0);
+exit(0);
 

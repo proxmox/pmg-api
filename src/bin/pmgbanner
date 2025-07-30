@@ -18,7 +18,7 @@ configure this server - connect to:
 __EOBANNER
 
 my $addr;
-for (my $try = 1; $try <= 15; $try ++) {
+for (my $try = 1; $try <= 15; $try++) {
     # TODO, pass `all => 1` and print them? May be seen as "leak" for some users of unprotected setups?!
     $addr = PVE::Network::get_local_ip();
     last if defined($addr);
@@ -38,4 +38,4 @@ print $issue_fh $banner;
 
 close($issue_fh);
 
-exit (0);
+exit(0);

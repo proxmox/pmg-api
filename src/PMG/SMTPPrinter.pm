@@ -14,7 +14,7 @@ sub new {
 sub print {
     my ($self, $line) = @_;
 
-    $self->{smtp}->datasend ($line);
+    $self->{smtp}->datasend($line);
 }
 
 1;

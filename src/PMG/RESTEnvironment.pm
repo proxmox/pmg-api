@@ -26,16 +26,16 @@ sub init {
     $self->{cinfo} = {};
     $self->{usercfg} = {};
     $self->{ticket} = undef;
- 
+
     return $self;
-};
+}
 
 # init_request - must be called before each RPC request
 sub init_request {
     my ($self, %params) = @_;
-    
+
     $self->SUPER::init_request(%params);
-    
+
     $self->{ticket} = undef;
     $self->{role} = undef;
     $self->{format} = undef;
@@ -132,12 +132,12 @@ sub check_api2_permissions {
     my $role = $self->{role};
 
     if (my $allowed_roles = $perm->{check}) {
-	if ($role eq 'helpdesk') {
-	    # helpdesk is qmanager + audit
-	    return 1 if grep { $_ eq 'audit' } @$allowed_roles;
-	    return 1 if grep { $_ eq 'qmanager' } @$allowed_roles;
-	}
-	return 1 if grep { $_ eq $role } @$allowed_roles;
+        if ($role eq 'helpdesk') {
+            # helpdesk is qmanager + audit
+            return 1 if grep { $_ eq 'audit' } @$allowed_roles;
+            return 1 if grep { $_ eq 'qmanager' } @$allowed_roles;
+        }
+        return 1 if grep { $_ eq $role } @$allowed_roles;
     }
 
     raise_perm_exc();

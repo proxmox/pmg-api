@@ -34,11 +34,11 @@ sub priority {
 
 sub new {
     my ($type, $field, $field_value, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
-   
+
     $self->{field} = $field;
     $self->{field_value} = $field_value;
 
@@ -47,7 +47,7 @@ sub new {
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     defined($value) || return undef;
@@ -62,7 +62,7 @@ sub load_attr {
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $field, $field_value, $ogroup);
-    
+
     return $obj;
 }
 
@@ -73,39 +73,36 @@ sub save {
 
     my $new_value = encode('UTF-8', "$self->{field}:$self->{field_value}");
 
-    if (defined ($self->{id})) {
-	# update
-	
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?", 
-	    undef, $new_value, $self->{id});
+    if (defined($self->{id})) {
+        # update
+
+        $ruledb->{dbh}
+            ->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $new_value, $self->{id});
 
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+        my $sth = $ruledb->{dbh}->prepare(
+            "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " . "VALUES (?, ?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype, $new_value);
-    
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+        $sth->execute($self->ogroup, $self->otype, $new_value);
+
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
-	$msginfo, $vars, $marks) = @_;
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks) = @_;
 
     my $fvalue = PMG::Utils::subst_values_for_header($self->{field_value}, $vars);
 
     my $subgroups = $mod_group->subgroups($targets);
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $e) = (@$ta[0], @$ta[1]);
-	$e->head->replace($self->{field}, $fvalue);
+        my ($tg, $e) = (@$ta[0], @$ta[1]);
+        $e->head->replace($self->{field}, $fvalue);
     }
 }
 
@@ -119,17 +116,17 @@ sub properties {
     my ($class) = @_;
 
     return {
-	field => {
-	    description => "The Field",
-	    type => 'string',
-	    pattern => '[0-9a-zA-Z\/\\\[\]\+\-\.\*\_]+',
-	    maxLength => 1024,
-	},
-	value => {
-	    description => "The Value",
-	    type => 'string',
-	    maxLength => 1024,
-	},
+        field => {
+            description => "The Field",
+            type => 'string',
+            pattern => '[0-9a-zA-Z\/\\\[\]\+\-\.\*\_]+',
+            maxLength => 1024,
+        },
+        value => {
+            description => "The Value",
+            type => 'string',
+            maxLength => 1024,
+        },
     };
 }
 
@@ -137,8 +134,8 @@ sub get {
     my ($self) = @_;
 
     return {
-	field => $self->{field},
-	value => $self->{field_value},
+        field => $self->{field},
+        value => $self->{field_value},
     };
 }
 

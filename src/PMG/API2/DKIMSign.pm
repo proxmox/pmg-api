@@ -26,110 +26,117 @@ __PACKAGE__->register_method({
     method => 'GET',
     description => "Directory index.",
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => { section => { type => 'string'} },
-	},
-	links => [ { rel => 'child', href => "{section}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => { section => { type => 'string' } },
+        },
+        links => [{ rel => 'child', href => "{section}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	return [
-	    { section => 'domains'},
-	    { section => 'selector'},
-	    { section => 'selectors'}
-	];
-    }});
+        return [
+            { section => 'domains' },
+            { section => 'selector' },
+            { section => 'selectors' },
+        ];
+    },
+});
 
 __PACKAGE__->register_method({
     name => 'set_selector',
     path => 'selector',
     method => 'POST',
-    description => "Generate a new private key for selector. All future mail will be signed with the new key!",
+    description =>
+        "Generate a new private key for selector. All future mail will be signed with the new key!",
     protected => 1,
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'master',
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    selector => {
-		description => "DKIM Selector",
-		type => 'string', format => 'dns-name',
-	    },
-	    keysize => {
-		description => "Number of bits for the RSA-Key",
-		type => 'integer', minimum => 1024
-	    },
-	    force => {
-		description => "Overwrite existing key",
-		type => 'boolean', optional => 1
-	    },
-	},
+        additionalProperties => 0,
+        properties => {
+            selector => {
+                description => "DKIM Selector",
+                type => 'string',
+                format => 'dns-name',
+            },
+            keysize => {
+                description => "Number of bits for the RSA-Key",
+                type => 'integer',
+                minimum => 1024,
+            },
+            force => {
+                description => "Overwrite existing key",
+                type => 'boolean',
+                optional => 1,
+            },
+        },
     },
     returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
-	my $selector = extract_param($param, 'selector');
-	my $keysize = extract_param($param, 'keysize');
-	my $force = extract_param($param, 'force');
+        my ($param) = @_;
+        my $selector = extract_param($param, 'selector');
+        my $keysize = extract_param($param, 'keysize');
+        my $force = extract_param($param, 'force');
 
-	PMG::DKIMSign::set_selector($selector, $keysize, $force);
+        PMG::DKIMSign::set_selector($selector, $keysize, $force);
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
 sub pmg_verify_dkim_pubkey_record {
     my ($rec, $noerr) = @_;
 
-    if ($rec !~ /\._domainkey\tIN\tTXT\t\( "v=DKIM1; h=sha256; k=rsa; ".+ \)  ; ----- DKIM key/ms ) {
-	return undef if $noerr;
-	die "value does not look like a valid DKIM TXT record\n";
+    if ($rec !~ /\._domainkey\tIN\tTXT\t\( "v=DKIM1; h=sha256; k=rsa; ".+ \)  ; ----- DKIM key/ms) {
+        return undef if $noerr;
+        die "value does not look like a valid DKIM TXT record\n";
     }
 
-    return $rec
+    return $rec;
 }
 
-PVE::JSONSchema::register_format(
-    'pmg-dkim-record', \&pmg_verify_dkim_pubkey_record);
+PVE::JSONSchema::register_format('pmg-dkim-record', \&pmg_verify_dkim_pubkey_record);
 
 __PACKAGE__->register_method({
     name => 'get_selector_info',
     path => 'selector',
     method => 'GET',
-    description => "Get the public key for the configured selector, prepared as DKIM TXT record",
+    description =>
+        "Get the public key for the configured selector, prepared as DKIM TXT record",
     protected => 1,
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'master',
     parameters => {
-	additionalProperties => 0,
-	properties => { },
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'object',
-	properties => {
-	    selector => { type => 'string', format => 'dns-name', optional => 1 },
-	    keysize => { type => 'integer', minimum => 1024 , optional => 1},
-	    record => { type => 'string', format => 'pmg-dkim-record', optional => 1},
-	},
+        type => 'object',
+        properties => {
+            selector => { type => 'string', format => 'dns-name', optional => 1 },
+            keysize => { type => 'integer', minimum => 1024, optional => 1 },
+            record => { type => 'string', format => 'pmg-dkim-record', optional => 1 },
+        },
     },
     code => sub {
-	my $cfg = PMG::Config->new();
-	my $selector = $cfg->get('admin', 'dkim_selector');
+        my $cfg = PMG::Config->new();
+        my $selector = $cfg->get('admin', 'dkim_selector');
 
-	return {} if !defined($selector);
+        return {} if !defined($selector);
 
-	my ($record, $size);
-	eval { ($record, $size) = PMG::DKIMSign::get_selector_info($selector); };
-	return {selector => $selector} if $@;
+        my ($record, $size);
+        eval { ($record, $size) = PMG::DKIMSign::get_selector_info($selector); };
+        return { selector => $selector } if $@;
 
-	return { selector => $selector, keysize => $size, record => $record };
-    }});
+        return { selector => $selector, keysize => $size, record => $record };
+    },
+});
 
 __PACKAGE__->register_method({
     name => 'get_selector_list',
@@ -137,30 +144,35 @@ __PACKAGE__->register_method({
     method => 'GET',
     description => "Get a list of all existing selectors",
     protected => 1,
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'master',
     parameters => {
-	additionalProperties => 0,
-	properties => { },
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => { selector => { type => 'string', format => 'dns-name' } },
-	},
-	links => [ { rel => 'child', href => "{selector}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => { selector => { type => 'string', format => 'dns-name' } },
+        },
+        links => [{ rel => 'child', href => "{selector}" }],
     },
     code => sub {
-	my $res = [];
+        my $res = [];
 
-	my @selectors = dir_glob_foreach('/etc/pmg/dkim/', '.*\.private', sub {
-	    my ($sel) = @_;
-	    $sel =~ s/\.private$//;
-	    push @$res, { selector => $sel };
-	});
+        my @selectors = dir_glob_foreach(
+            '/etc/pmg/dkim/',
+            '.*\.private',
+            sub {
+                my ($sel) = @_;
+                $sel =~ s/\.private$//;
+                push @$res, { selector => $sel };
+            },
+        );
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
 1;

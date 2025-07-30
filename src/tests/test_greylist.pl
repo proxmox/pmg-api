@@ -13,9 +13,9 @@ use PVE::SafeSyslog;
 use PMG::DBTools;
 use PMG::RuleDB;
 
-my $greylist_delay = 3*60;
-my $greylist_lifetime = 3600*24*2; #retry window
-my $greylist_awlifetime = 3600*24*36;
+my $greylist_delay = 3 * 60;
+my $greylist_lifetime = 3600 * 24 * 2; #retry window
+my $greylist_awlifetime = 3600 * 24 * 36;
 
 initlog($0, 'mail');
 
@@ -23,7 +23,7 @@ my $testdb = 'Proxmox_testdb';
 my $testport = 10122;
 my $testpidfn = "greylist-test-$$.pid";
 
-system ("perl -I.. ../bin/pmgpolicy -d $testdb -t --port $testport --pidfile '$testpidfn'");
+system("perl -I.. ../bin/pmgpolicy -d $testdb -t --port $testport --pidfile '$testpidfn'");
 
 sub exit_test_pmgpolicy {
     my $pid = PVE::Tools::file_read_firstline($testpidfn);
@@ -32,24 +32,24 @@ sub exit_test_pmgpolicy {
     die "could not find pid in pidfile\n" if $pid !~ m/^(\d+)$/;
     $pid = $1;
 
-    kill ('TERM', $pid);
+    kill('TERM', $pid);
     unlink($testpidfn);
 }
 
 sub reset_gldb {
     my $dbh = PMG::DBTools::open_ruledb($testdb);
-    $dbh->do ("DELETE FROM CGreylist");
+    $dbh->do("DELETE FROM CGreylist");
     $dbh->disconnect();
 }
 
 reset_gldb();
 
-
 my $sock;
-for (my $tries = 0 ; $tries < 3 ; $tries++) {
+for (my $tries = 0; $tries < 3; $tries++) {
     $sock = IO::Socket::INET->new(
-	PeerAddr => '127.0.0.1',
-	PeerPort => $testport);
+        PeerAddr => '127.0.0.1',
+        PeerPort => $testport,
+    );
     last if $sock;
     sleep 1;
 }
@@ -72,9 +72,9 @@ sub gltest {
     my $res = <$sock>;
     chomp $res;
     if ($res !~ m/^action=$eres(\s.*)?/) {
-	my $timediff = $ttime - $starttime;
-	exit_test_pmgpolicy();
-	die "unexpected result at time $timediff: $res != $eres\n$data"
+        my $timediff = $ttime - $starttime;
+        exit_test_pmgpolicy();
+        die "unexpected result at time $timediff: $res != $eres\n$data";
     }
 }
 
@@ -92,24 +92,40 @@ recipient=test1\@proxmox.com
 _EOD
 
 # time 0
-reset_gldb ();
-gltest ($data, $testtime, 'defer');
-gltest ($data, $testtime+$greylist_delay-3, 'defer');
-gltest ($data, $testtime+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime-1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
+reset_gldb();
+gltest($data, $testtime, 'defer');
+gltest($data, $testtime + $greylist_delay - 3, 'defer');
+gltest($data, $testtime + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime - 1, 'dunno');
+gltest($data, $testtime + $greylist_lifetime - 1 + $greylist_awlifetime - 1, 'dunno');
+gltest(
+    $data,
+    $testtime + $greylist_lifetime - 1 + $greylist_awlifetime - 1 + $greylist_awlifetime,
+    'defer',
+);
 
 # time 0
-reset_gldb ();
-gltest ($data, $testtime, 'defer');
-gltest ($data, $testtime+$greylist_delay-3, 'defer');
-gltest ($data, $testtime+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
+reset_gldb();
+gltest($data, $testtime, 'defer');
+gltest($data, $testtime + $greylist_delay - 3, 'defer');
+gltest($data, $testtime + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1 + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1 + $greylist_delay + 1, 'dunno');
+gltest(
+    $data,
+    $testtime + $greylist_lifetime + 1 + $greylist_delay + 1 + $greylist_awlifetime - 1,
+    'dunno',
+);
+gltest(
+    $data,
+    $testtime +
+        $greylist_lifetime + 1 +
+        $greylist_delay + 1 +
+        $greylist_awlifetime - 1 +
+        $greylist_awlifetime,
+    'defer',
+);
 
 # a record with sender = <> (bounce)
 
@@ -125,24 +141,24 @@ recipient=test1\@proxmox.com
 _EOD
 
 # time 0
-reset_gldb ();
+reset_gldb();
 
-gltest ($data, $testtime, 'defer');
-gltest ($data, $testtime+$greylist_delay-3, 'defer');
-gltest ($data, $testtime+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime-1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime+1, 'defer');
+gltest($data, $testtime, 'defer');
+gltest($data, $testtime + $greylist_delay - 3, 'defer');
+gltest($data, $testtime + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime - 1, 'dunno');
+gltest($data, $testtime + $greylist_lifetime + 1, 'defer');
 
 # time 0
-reset_gldb ();
+reset_gldb();
 
-gltest ($data, $testtime, 'defer');
-gltest ($data, $testtime+$greylist_delay-3, 'defer');
-gltest ($data, $testtime+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay-1, 'defer');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+1, 'dunno');
-gltest ($data, $testtime+$greylist_lifetime+1+$greylist_delay+2, 'defer');
+gltest($data, $testtime, 'defer');
+gltest($data, $testtime + $greylist_delay - 3, 'defer');
+gltest($data, $testtime + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1 + $greylist_delay - 1, 'defer');
+gltest($data, $testtime + $greylist_lifetime + 1 + $greylist_delay + 1, 'dunno');
+gltest($data, $testtime + $greylist_lifetime + 1 + $greylist_delay + 2, 'defer');
 
 # greylist ipv6
 my $data6 = <<_EOD;
@@ -157,25 +173,40 @@ recipient=test1\@proxmox.com
 _EOD
 
 # time 0
-reset_gldb ();
-gltest ($data6, $testtime, 'defer');
-gltest ($data6, $testtime+$greylist_delay-3, 'defer');
-gltest ($data6, $testtime+$greylist_delay-1, 'defer');
-gltest ($data6, $testtime+$greylist_lifetime-1, 'dunno');
-gltest ($data6, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1, 'dunno');
-gltest ($data6, $testtime+$greylist_lifetime-1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
+reset_gldb();
+gltest($data6, $testtime, 'defer');
+gltest($data6, $testtime + $greylist_delay - 3, 'defer');
+gltest($data6, $testtime + $greylist_delay - 1, 'defer');
+gltest($data6, $testtime + $greylist_lifetime - 1, 'dunno');
+gltest($data6, $testtime + $greylist_lifetime - 1 + $greylist_awlifetime - 1, 'dunno');
+gltest(
+    $data6,
+    $testtime + $greylist_lifetime - 1 + $greylist_awlifetime - 1 + $greylist_awlifetime,
+    'defer',
+);
 
 # time 0
-reset_gldb ();
-gltest ($data6, $testtime, 'defer');
-gltest ($data6, $testtime+$greylist_delay-3, 'defer');
-gltest ($data6, $testtime+$greylist_delay-1, 'defer');
-gltest ($data6, $testtime+$greylist_lifetime+1, 'defer');
-gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay-1, 'defer');
-gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1, 'dunno');
-gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1, 'dunno');
-gltest ($data6, $testtime+$greylist_lifetime+1+$greylist_delay+1+$greylist_awlifetime-1+$greylist_awlifetime, 'defer');
-
+reset_gldb();
+gltest($data6, $testtime, 'defer');
+gltest($data6, $testtime + $greylist_delay - 3, 'defer');
+gltest($data6, $testtime + $greylist_delay - 1, 'defer');
+gltest($data6, $testtime + $greylist_lifetime + 1, 'defer');
+gltest($data6, $testtime + $greylist_lifetime + 1 + $greylist_delay - 1, 'defer');
+gltest($data6, $testtime + $greylist_lifetime + 1 + $greylist_delay + 1, 'dunno');
+gltest(
+    $data6,
+    $testtime + $greylist_lifetime + 1 + $greylist_delay + 1 + $greylist_awlifetime - 1,
+    'dunno',
+);
+gltest(
+    $data6,
+    $testtime +
+        $greylist_lifetime + 1 +
+        $greylist_delay + 1 +
+        $greylist_awlifetime - 1 +
+        $greylist_awlifetime,
+    'defer',
+);
 
 my $testdomain = "interspar.at";
 my $testipok = "68.232.133.35";
@@ -191,7 +222,7 @@ sender=xyz\@$testdomain
 recipient=testspf\@maurer-it.com
 _EOD
 
-gltest ($data_ok, $testtime, 'prepend'); # helo pass
+gltest($data_ok, $testtime, 'prepend'); # helo pass
 
 $data_ok = <<_EOD;
 request=smtpd_access_policy
@@ -203,7 +234,7 @@ sender=xyz\@$testdomain
 recipient=testspf\@proxmox.com
 _EOD
 
-gltest ($data_ok, $testtime, 'prepend'); # mform pass
+gltest($data_ok, $testtime, 'prepend'); # mform pass
 
 $data_ok = <<_EOD;
 request=smtpd_access_policy
@@ -230,7 +261,7 @@ sender=xyz\@$testdomain
 recipient=testspf\@maurer-it.com
 _EOD
 
-gltest ($data_fail, $testtime, 'reject');
+gltest($data_fail, $testtime, 'reject');
 
 exit_test_pmgpolicy();
 
@@ -238,4 +269,4 @@ print "ALL TESTS OK\n";
 
 $sock->close();
 
-exit (0);
+exit(0);

@@ -28,223 +28,238 @@ my $backup_filename_property = {
     maxLength => 256,
 };
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'list',
     path => '',
     method => 'GET',
     description => "List all stored backups (files named proxmox-backup_{DATE}.tgz).",
-    permissions => { check => [ 'admin', 'audit' ] },
+    permissions => { check => ['admin', 'audit'] },
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+        },
     },
     returns => {
-	type => "array",
-	items => {
-	    type => "object",
-	    properties => {
-		filename => $backup_filename_property,
-		size => {
-		    description => "Size of backup file in bytes.",
-		    type => 'integer',
-		},
-		timestamp => {
-		    description => "Backup timestamp (Unix epoch).",
-		    type => 'integer',
-		},
-	    },
-	},
-	links => [ { rel => 'child', href => "{filename}" } ],
+        type => "array",
+        items => {
+            type => "object",
+            properties => {
+                filename => $backup_filename_property,
+                size => {
+                    description => "Size of backup file in bytes.",
+                    type => 'integer',
+                },
+                timestamp => {
+                    description => "Backup timestamp (Unix epoch).",
+                    type => 'integer',
+                },
+            },
+        },
+        links => [{ rel => 'child', href => "{filename}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $res = [];
+        my $res = [];
 
-	PVE::Tools::dir_glob_foreach(
-	    $backup_dir,
-	    $backup_filename_pattern,
-	    sub {
-		my ($filename) = @_;
+        PVE::Tools::dir_glob_foreach(
+            $backup_dir,
+            $backup_filename_pattern,
+            sub {
+                my ($filename) = @_;
 
-		my $path = "$backup_dir/$filename";
-		my @sa = stat($path);
+                my $path = "$backup_dir/$filename";
+                my @sa = stat($path);
 
-		my $timestamp = $sa[9] // 0; # mtime
-		my $size = $sa[7] // 0; # size
+                my $timestamp = $sa[9] // 0; # mtime
+                my $size = $sa[7] // 0; # size
 
-		# prefer timestamp from filename
-		if ($filename =~ m/.*_([0-9A-F]+)\.tgz/) {
-		    $timestamp = hex($1);
-		}
+                # prefer timestamp from filename
+                if ($filename =~ m/.*_([0-9A-F]+)\.tgz/) {
+                    $timestamp = hex($1);
+                }
 
-		push @$res, {
-		    filename => $filename,
-		    size => $size,
-		    timestamp => $timestamp,
-		};
-	    });
+                push @$res,
+                    {
+                        filename => $filename,
+                        size => $size,
+                        timestamp => $timestamp,
+                    };
+            },
+        );
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'backup',
     path => '',
     method => 'POST',
     description => "Backup the system configuration.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	    statistic => {
-		description => "Backup statistic databases.",
-		type => 'boolean',
-		optional => 1,
-		default => 1,
-	    },
-	    notify => {
-		description => "Specify when to notify via e-mail",
-		type => 'string',
-		enum => [ 'always', 'error', 'never' ],
-		optional => 1,
-		default => 'never',
-	    },
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            statistic => {
+                description => "Backup statistic databases.",
+                type => 'boolean',
+                optional => 1,
+                default => 1,
+            },
+            notify => {
+                description => "Specify when to notify via e-mail",
+                type => 'string',
+                enum => ['always', 'error', 'never'],
+                optional => 1,
+                default => 'never',
+            },
+        },
     },
     returns => { type => "string" },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
+        my $rpcenv = PMG::RESTEnvironment->get();
+        my $authuser = $rpcenv->get_user();
 
-	$param->{statistic} //= 1;
+        $param->{statistic} //= 1;
 
-	my $ctime = time();
-	my (undef, undef, undef, $mday, $mon, $year) = localtime($ctime);
-	my $bkfile = sprintf("pmg-backup_%04d_%02d_%02d_%08X.tgz", $year + 1900, $mon + 1, $mday, $ctime);
-	my $filename = "${backup_dir}/$bkfile";
+        my $ctime = time();
+        my (undef, undef, undef, $mday, $mon, $year) = localtime($ctime);
+        my $bkfile =
+            sprintf("pmg-backup_%04d_%02d_%02d_%08X.tgz", $year + 1900, $mon + 1, $mday, $ctime);
+        my $filename = "${backup_dir}/$bkfile";
 
-	my $worker = sub {
-	    my $upid = shift;
+        my $worker = sub {
+            my $upid = shift;
 
-	    my $full_log = "";
-	    my $log = sub { print "$_[0]\n"; $full_log .= "$_[0]\n"; };
+            my $full_log = "";
+            my $log = sub { print "$_[0]\n"; $full_log .= "$_[0]\n"; };
 
-	    $log->("starting backup to: $filename");
+            $log->("starting backup to: $filename");
 
-	    eval { PMG::Backup::pmg_backup_pack($filename, $param->{statistic}) };
-	    if (my $err = $@) {
-		$log->($err);
-		PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, $err);
-		die "backup failed: $err\n";
-	    }
+            eval { PMG::Backup::pmg_backup_pack($filename, $param->{statistic}) };
+            if (my $err = $@) {
+                $log->($err);
+                PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, $err);
+                die "backup failed: $err\n";
+            }
 
-	    $log->("backup finished");
+            $log->("backup finished");
 
-	    PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, undef);
+            PMG::Backup::send_backup_notification($param->{notify}, undef, $full_log, undef);
 
-	    return;
-	};
+            return;
+        };
 
-	return $rpcenv->fork_worker('backup', undef, $authuser, $worker);
-    }});
+        return $rpcenv->fork_worker('backup', undef, $authuser, $worker);
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'download',
     path => '{filename}',
     method => 'GET',
     description => "Download a backup file.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	    filename => $backup_filename_property,
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            filename => $backup_filename_property,
+        },
     },
     download_allowed => 1,
     returns => { type => "object" },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $filename = "${backup_dir}/$param->{filename}";
+        my $filename = "${backup_dir}/$param->{filename}";
 
-	return { download => { path => $filename } };
-    }});
+        return { download => { path => $filename } };
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'delete',
     path => '{filename}',
     method => 'DELETE',
     description => "Delete a backup file.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    node => get_standard_option('pve-node'),
-	    filename => $backup_filename_property,
-	},
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            filename => $backup_filename_property,
+        },
     },
     returns => { type => "null" },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $filename = "${backup_dir}/$param->{filename}";
-	unlink($filename) || die "delete backup file '$filename' failed - $!\n";
+        my $filename = "${backup_dir}/$param->{filename}";
+        unlink($filename) || die "delete backup file '$filename' failed - $!\n";
 
-	return undef;
-    }});
+        return undef;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'restore',
     path => '{filename}',
     method => 'POST',
     description => "Restore the system configuration.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     proxyto => 'node',
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    PMG::Backup::get_restore_options(),
-	    node => get_standard_option('pve-node'),
-	    filename => $backup_filename_property,
-	},
+        additionalProperties => 0,
+        properties => {
+            PMG::Backup::get_restore_options(),
+            node => get_standard_option('pve-node'),
+            filename => $backup_filename_property,
+        },
     },
     returns => { type => "string" },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $rpcenv = PMG::RESTEnvironment->get();
-	my $authuser = $rpcenv->get_user();
+        my $rpcenv = PMG::RESTEnvironment->get();
+        my $authuser = $rpcenv->get_user();
 
-	my $filename = "${backup_dir}/$param->{filename}";
-	-f $filename || die "backup file '$filename' does not exist - $!\n";
+        my $filename = "${backup_dir}/$param->{filename}";
+        -f $filename || die "backup file '$filename' does not exist - $!\n";
 
-	$param->{database} //= 1;
+        $param->{database} //= 1;
 
-	die "nothing selected - please select what you want to restore (config or database?)\n"
-	    if !($param->{database} || $param->{config});
+        die "nothing selected - please select what you want to restore (config or database?)\n"
+            if !($param->{database} || $param->{config});
 
-	return $rpcenv->fork_worker('restore', undef, $authuser, sub {
-	    print "starting restore: $filename\n";
-	    PMG::Backup::pmg_restore($filename, $param->{database}, $param->{config}, $param->{statistic});
-	    print "restore finished\n";
-	    return;
-	});
-    }});
+        return $rpcenv->fork_worker(
+            'restore',
+            undef,
+            $authuser,
+            sub {
+                print "starting restore: $filename\n";
+                PMG::Backup::pmg_restore(
+                    $filename, $param->{database}, $param->{config}, $param->{statistic},
+                );
+                print "restore finished\n";
+                return;
+            },
+        );
+    },
+});
 
 1;

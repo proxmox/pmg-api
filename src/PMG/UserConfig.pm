@@ -44,6 +44,7 @@ my $tfa_lockfile = "/var/lock/pmgtfa.lck";
 #  2) user config
 # If we permit the other way round, too, we might end up deadlocking!
 my $user_config_locked;
+
 sub lock_config {
     my ($code, $errmsg) = @_;
 
@@ -54,7 +55,7 @@ sub lock_config {
     my $p = PVE::Tools::lock_file($lockfile, undef, $code);
     $user_config_locked = undef;
     if (my $err = $@) {
-	$errmsg ? die "$errmsg: $err" : die $err;
+        $errmsg ? die "$errmsg: $err" : die $err;
     }
 }
 
@@ -63,11 +64,11 @@ sub lock_tfa_config {
     my ($code, $errmsg) = @_;
 
     die "tfa config lock cannot be acquired while holding user config lock\n"
-	if ($user_config_locked && $$user_config_locked);
+        if ($user_config_locked && $$user_config_locked);
 
     my $res = PVE::Tools::lock_file($tfa_lockfile, undef, $code);
     if (my $err = $@) {
-	$errmsg ? die "$errmsg: $err" : die $err;
+        $errmsg ? die "$errmsg: $err" : die $err;
     }
 
     return $res;
@@ -76,67 +77,69 @@ sub lock_tfa_config {
 my $schema = {
     additionalProperties => 0,
     properties => {
-	userid => get_standard_option('userid'),
-	username => get_standard_option('username', { optional => 1 }),
-	realm => {
-	    description => "Authentication realm.",
-	    type => 'string',
-	    format => 'pmg-realm',
-	    default => 'pmg',
-	    optional => 1,
-	},
-	email => {
-	    description => "Users E-Mail address.",
-	    type => 'string', format => 'email',
-	    optional => 1,
-	},
-	expire => {
-	    description => "Account expiration date (seconds since epoch). '0' means no expiration date.",
-	    type => 'integer',
-	    minimum => 0,
-	    default => 0,
-	    optional => 1,
-	},
-	enable => {
-	    description => "Flag to enable or disable the account.",
-	    type => 'boolean',
-	    default => 0,
-	    optional => 1,
-	},
-	crypt_pass => {
-	    description => "Encrypted password (see `man crypt`)",
-	    type => 'string',
-	    pattern => '\$\d\$[a-zA-Z0-9\.\/]+\$[a-zA-Z0-9\.\/]+',
-	    optional => 1,
-	},
-	role => {
-	    description => "User role. Role 'root' is reserved for the Unix Superuser.",
-	    type => 'string',
-	    enum => ['root', 'admin', 'helpdesk', 'qmanager', 'audit'],
-	},
-	firstname => {
-	    description => "First name.",
-	    type => 'string',
-	    maxLength => 64,
-	    optional => 1,
-	},
-	lastname => {
-	    description => "Last name.",
-	    type => 'string',
-	    maxLength => 64,
-	    optional => 1,
-	},
-	keys => {
-	    description => "Keys for two factor auth (yubico).",
-	    type => 'string',
-	    maxLength => 128,
-	    optional => 1,
-	},
-	comment => {
-	    description => "Comment.",
-	    type => 'string',
-	    optional => 1,
-	},
+        userid => get_standard_option('userid'),
+        username => get_standard_option('username', { optional => 1 }),
+        realm => {
+            description => "Authentication realm.",
+            type => 'string',
+            format => 'pmg-realm',
+            default => 'pmg',
+            optional => 1,
+        },
+        email => {
+            description => "Users E-Mail address.",
+            type => 'string',
+            format => 'email',
+            optional => 1,
+        },
+        expire => {
+            description =>
+                "Account expiration date (seconds since epoch). '0' means no expiration date.",
+            type => 'integer',
+            minimum => 0,
+            default => 0,
+            optional => 1,
+        },
+        enable => {
+            description => "Flag to enable or disable the account.",
+            type => 'boolean',
+            default => 0,
+            optional => 1,
+        },
+        crypt_pass => {
+            description => "Encrypted password (see `man crypt`)",
+            type => 'string',
+            pattern => '\$\d\$[a-zA-Z0-9\.\/]+\$[a-zA-Z0-9\.\/]+',
+            optional => 1,
+        },
+        role => {
+            description => "User role. Role 'root' is reserved for the Unix Superuser.",
+            type => 'string',
+            enum => ['root', 'admin', 'helpdesk', 'qmanager', 'audit'],
+        },
+        firstname => {
+            description => "First name.",
+            type => 'string',
+            maxLength => 64,
+            optional => 1,
+        },
+        lastname => {
+            description => "Last name.",
+            type => 'string',
+            maxLength => 64,
+            optional => 1,
+        },
+        keys => {
+            description => "Keys for two factor auth (yubico).",
+            type => 'string',
+            maxLength => 128,
+            optional => 1,
+        },
+        comment => {
+            description => "Comment.",
+            type => 'string',
+            optional => 1,
+        },
     },
 };
 
@@ -153,7 +156,8 @@ $create_schema->{properties}->{password} = {
 our $update_schema = clone($create_schema);
 $update_schema->{properties}->{role}->{optional} = 1;
 $update_schema->{properties}->{delete} = {
-    type => 'string', format => 'pve-configid-list',
+    type => 'string',
+    format => 'pve-configid-list',
     description => "A list of settings you want to delete.",
     maxLength => 4096,
     optional => 1,
@@ -165,16 +169,16 @@ my $verify_entry = sub {
     my $errors = {};
     my $userid = $entry->{userid};
     if (defined(my $username = $entry->{username})) {
-	if ($userid !~ /^\Q$username\E\@/) {
-	    $errors->{'username'} = 'invalid username for userid';
-	}
+        if ($userid !~ /^\Q$username\E\@/) {
+            $errors->{'username'} = 'invalid username for userid';
+        }
     } else {
-	# make sure the username's length is checked
-	$entry->{username} = ($userid =~ s/\@.*$//r);
+        # make sure the username's length is checked
+        $entry->{username} = ($userid =~ s/\@.*$//r);
     }
     PVE::JSONSchema::check_prop($entry, $schema, '', $errors);
     if (scalar(%$errors)) {
-	raise "verify entry failed\n", errors => $errors;
+        raise "verify entry failed\n", errors => $errors;
     }
 };
 
@@ -198,16 +202,17 @@ sub read_user_conf {
 
     if ($fh) {
 
-	my $comment = '';
+        my $comment = '';
 
-	while (defined(my $line = <$fh>)) {
-	    next if $line =~ m/^\s*$/;
-	    if ($line =~ m/^#(.*)$/) {
-		$comment = $1;
-		next;
-	    }
+        while (defined(my $line = <$fh>)) {
+            next if $line =~ m/^\s*$/;
+            if ($line =~ m/^#(.*)$/) {
+                $comment = $1;
+                next;
+            }
 
-	    if ($line =~ m/^
+            if (
+                $line =~ m/^
                (?<userid>(?:[^\s:]+)) :
                (?<enable>[01]?) :
                (?<expire>\d*) :
@@ -218,38 +223,38 @@ sub read_user_conf {
                (?<lastname>(?:[^:]*)) :
                (?<keys>(?:[^:]*)) :
                $/x
-	    ) {
-		my @username_parts = split('@', $+{userid});
-		my $username = $username_parts[0];
-		my $realm = defined($username_parts[1]) ? $username_parts[1] : "pmg";
-		my $d = {
-		    username => $username,
-		    userid => $username . '@' . $realm,
-		    realm => $realm,
-		    enable => $+{enable} || 0,
-		    expire => $+{expire} || 0,
-		    role => $+{role},
-		};
-		$d->{comment} = $comment if $comment;
-		$comment = '';
-		foreach my $k (qw(crypt_pass email firstname lastname keys)) {
-		    $d->{$k} = $+{$k} if $+{$k};
-		}
-		eval {
-		    $verify_entry->($d);
-		    $cfg->{$d->{userid}} = $d;
-		    if ($d->{role} eq 'root' && $d->{userid} !~ /^root@(pmg|pam)$/) {
-			die "role 'root' is reserved\n";
-		    }
-		};
-		if (my $err = $@) {
-		    warn "$filename: $err";
-		}
-	    } else {
-		warn "$filename: ignore invalid line $.\n";
-		$comment = '';
-	    }
-	}
+            ) {
+                my @username_parts = split('@', $+{userid});
+                my $username = $username_parts[0];
+                my $realm = defined($username_parts[1]) ? $username_parts[1] : "pmg";
+                my $d = {
+                    username => $username,
+                    userid => $username . '@' . $realm,
+                    realm => $realm,
+                    enable => $+{enable} || 0,
+                    expire => $+{expire} || 0,
+                    role => $+{role},
+                };
+                $d->{comment} = $comment if $comment;
+                $comment = '';
+                foreach my $k (qw(crypt_pass email firstname lastname keys)) {
+                    $d->{$k} = $+{$k} if $+{$k};
+                }
+                eval {
+                    $verify_entry->($d);
+                    $cfg->{ $d->{userid} } = $d;
+                    if ($d->{role} eq 'root' && $d->{userid} !~ /^root@(pmg|pam)$/) {
+                        die "role 'root' is reserved\n";
+                    }
+                };
+                if (my $err = $@) {
+                    warn "$filename: $err";
+                }
+            } else {
+                warn "$filename: ignore invalid line $.\n";
+                $comment = '';
+            }
+        }
     }
 
     # hack: we list root@pam here (root@pmg is an alias for root@pam)
@@ -270,41 +275,39 @@ sub write_user_conf {
     $fixup_root_properties->($cfg);
 
     foreach my $userid (keys %$cfg) {
-	my $d = $cfg->{$userid};
+        my $d = $cfg->{$userid};
 
-	$d->{userid} = $userid;
+        $d->{userid} = $userid;
 
-	die "invalid userid '$userid'\n" if $userid eq 'root@pmg';
-	$verify_entry->($d);
-	$cfg->{$d->{userid}} = $d;
+        die "invalid userid '$userid'\n" if $userid eq 'root@pmg';
+        $verify_entry->($d);
+        $cfg->{ $d->{userid} } = $d;
 
-	my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-	if ($d->{userid} ne 'root@pam') {
-	    die "role 'root' is reserved\n" if $d->{role} eq 'root';
-	    die "unable to add users for realm '$d->{realm}'\n"
-		if $d->{realm} && $d->{realm} !~ m!(${realm_regex})!;
-	}
+        my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
+        if ($d->{userid} ne 'root@pam') {
+            die "role 'root' is reserved\n" if $d->{role} eq 'root';
+            die "unable to add users for realm '$d->{realm}'\n"
+                if $d->{realm} && $d->{realm} !~ m!(${realm_regex})!;
+        }
 
-	my $line;
+        my $line;
 
-	if ($userid eq 'root@pam') {
-	    $line = 'root@pam:';
-	    $d->{crypt_pass} = '',
-	    $d->{expire} = '0',
-	    $d->{role} = 'root';
-	} else {
-	    next if $userid !~ m/^(?<username>.+)\@(${realm_regex})$/;
-	    $line = "$d->{userid}:";
-	}
+        if ($userid eq 'root@pam') {
+            $line = 'root@pam:';
+            $d->{crypt_pass} = '', $d->{expire} = '0', $d->{role} = 'root';
+        } else {
+            next if $userid !~ m/^(?<username>.+)\@(${realm_regex})$/;
+            $line = "$d->{userid}:";
+        }
 
-	for my $k (qw(enable expire crypt_pass role email firstname lastname keys)) {
-	    $line .= ($d->{$k} // '') . ':';
-	}
-	if (my $comment = $d->{comment}) {
-	    my $firstline = (split /\n/, $comment)[0]; # only allow one line
-	    $raw .= "#$firstline\n";
-	}
-	$raw .= $line . "\n";
+        for my $k (qw(enable expire crypt_pass role email firstname lastname keys)) {
+            $line .= ($d->{$k} // '') . ':';
+        }
+        if (my $comment = $d->{comment}) {
+            my $firstline = (split /\n/, $comment)[0]; # only allow one line
+            $raw .= "#$firstline\n";
+        }
+        $raw .= $line . "\n";
     }
 
     my $gid = getgrnam('www-data');
@@ -314,11 +317,14 @@ sub write_user_conf {
     PVE::Tools::safe_print($filename, $fh, $raw);
 }
 
-PVE::INotify::register_file($inotify_file_id, $config_filename,
-			    \&read_user_conf,
-			    \&write_user_conf,
-			    undef,
-			    always_call_parser => 1);
+PVE::INotify::register_file(
+    $inotify_file_id,
+    $config_filename,
+    \&read_user_conf,
+    \&write_user_conf,
+    undef,
+    always_call_parser => 1,
+);
 
 sub lookup_user_data {
     my ($self, $username, $noerr) = @_;
@@ -343,10 +349,10 @@ sub authenticate_user {
     die "account expired\n" if $expire && ($expire < $ctime);
 
     if ($data->{crypt_pass}) {
-	my $encpw = crypt($password, $data->{crypt_pass});
+        my $encpw = crypt($password, $data->{crypt_pass});
         die "invalid credentials\n" if ($encpw ne $data->{crypt_pass});
     } else {
-	die "no password set\n";
+        die "no password set\n";
     }
 
     return 1;
@@ -356,11 +362,11 @@ sub set_user_password {
     my ($class, $username, $password) = @_;
 
     lock_config(sub {
-	my $cfg = $class->new();
-	my $data = $cfg->lookup_user_data($username); # user exists
-	my $epw = PVE::Tools::encrypt_pw($password);
-	$data->{crypt_pass} = $epw;
-	$cfg->write();
+        my $cfg = $class->new();
+        my $data = $cfg->lookup_user_data($username); # user exists
+        my $epw = PVE::Tools::encrypt_pw($password);
+        $data->{crypt_pass} = $epw;
+        $cfg->write();
     });
 }
 

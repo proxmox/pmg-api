@@ -21,32 +21,32 @@ my $lockfile = "/var/lock/pmg-node-config.lck";
 
 my $acme_domain_desc = {
     domain => {
-	type => 'string',
-	format => 'pmg-acme-domain',
-	format_description => 'domain',
-	description => 'domain for this node\'s ACME certificate',
-	default_key => 1,
+        type => 'string',
+        format => 'pmg-acme-domain',
+        format_description => 'domain',
+        description => 'domain for this node\'s ACME certificate',
+        default_key => 1,
     },
     plugin => {
-	type => 'string',
-	format => 'pve-configid',
-	description => 'The ACME plugin ID',
-	format_description => 'name of the plugin configuration',
-	optional => 1,
-	default => 'standalone',
+        type => 'string',
+        format => 'pve-configid',
+        description => 'The ACME plugin ID',
+        format_description => 'name of the plugin configuration',
+        optional => 1,
+        default => 'standalone',
     },
     alias => {
-	type => 'string',
-	format => 'pmg-acme-alias',
-	format_description => 'domain',
-	description => 'Alias for the Domain to verify ACME Challenge over DNS',
-	optional => 1,
+        type => 'string',
+        format => 'pmg-acme-alias',
+        format_description => 'domain',
+        description => 'Alias for the Domain to verify ACME Challenge over DNS',
+        optional => 1,
     },
     usage => {
-	type => 'string',
-	format => 'pmg-certificate-type-list',
-	format_description => 'usage list',
-	description => 'Whether this domain is used for the API, SMTP or both',
+        type => 'string',
+        format => 'pmg-certificate-type-list',
+        format_description => 'usage list',
+        description => 'Whether this domain is used for the API, SMTP or both',
     },
 };
 
@@ -56,19 +56,19 @@ my $acmedesc = {
 
 my $confdesc = {
     acme => {
-	type => 'string',
-	description => 'Node specific ACME settings.',
-	format => $acmedesc,
-	optional => 1,
+        type => 'string',
+        description => 'Node specific ACME settings.',
+        format => $acmedesc,
+        optional => 1,
     },
-    map {(
-	"acmedomain$_" => {
-	    type => 'string',
-	    description => 'ACME domain and validation plugin',
-	    format => $acme_domain_desc,
-	    optional => 1,
-	},
-    )} (0..$MAXDOMAINS),
+    map { (
+        "acmedomain$_" => {
+            type => 'string',
+            description => 'ACME domain and validation plugin',
+            format => $acme_domain_desc,
+            optional => 1,
+        },
+    ) } (0 .. $MAXDOMAINS),
 };
 
 sub acme_config_schema : prototype(;$) {
@@ -77,13 +77,12 @@ sub acme_config_schema : prototype(;$) {
     $overrides //= {};
 
     return {
-	type => 'object',
-	additionalProperties => 0,
-	properties => {
-	    %$confdesc,
-	    %$overrides,
-	},
-    }
+        type => 'object',
+        additionalProperties => 0,
+        properties => {
+            %$confdesc, %$overrides,
+        },
+    };
 }
 
 my $config_schema = acme_config_schema();
@@ -95,7 +94,7 @@ sub parse_acme : prototype($) {
     my ($cfg) = @_;
     my $data = $cfg->{acme};
     if (defined($data)) {
-	return PVE::JSONSchema::parse_property_string($acmedesc, $data);
+        return PVE::JSONSchema::parse_property_string($acmedesc, $data);
     }
     return; # empty list otherwise
 }
@@ -136,11 +135,14 @@ sub write_pmg_node_config {
     PVE::Tools::safe_print($filename, $fh, $raw);
 }
 
-PVE::INotify::register_file($inotify_file_id, $config_filename,
-			    \&read_pmg_node_config,
-			    \&write_pmg_node_config,
-			    undef,
-			    always_call_parser => 1);
+PVE::INotify::register_file(
+    $inotify_file_id,
+    $config_filename,
+    \&read_pmg_node_config,
+    \&write_pmg_node_config,
+    undef,
+    always_call_parser => 1,
+);
 
 sub lock_config {
     my ($code) = @_;
@@ -171,64 +173,61 @@ sub get_acme_conf {
 
     my $res = {};
     if (defined($conf->{acme})) {
-	$res = eval {
-	    PVE::JSONSchema::parse_property_string($acmedesc, $conf->{acme})
-	};
-	if (my $err = $@) {
-	    return undef if $noerr;
-	    die $err;
-	}
-	my $standalone_domains = delete($res->{domains}) // '';
-	$res->{domains} = {};
-	for my $domain (split(";", $standalone_domains)) {
-	    $domain = lc($domain);
-	    die "duplicate domain '$domain' in ACME config properties\n"
-		if defined($res->{domains}->{$domain});
+        $res = eval { PVE::JSONSchema::parse_property_string($acmedesc, $conf->{acme}) };
+        if (my $err = $@) {
+            return undef if $noerr;
+            die $err;
+        }
+        my $standalone_domains = delete($res->{domains}) // '';
+        $res->{domains} = {};
+        for my $domain (split(";", $standalone_domains)) {
+            $domain = lc($domain);
+            die "duplicate domain '$domain' in ACME config properties\n"
+                if defined($res->{domains}->{$domain});
 
-	    $res->{domains}->{$domain}->{plugin} = 'standalone';
-	    $res->{domains}->{$domain}->{_configkey} = 'acme';
-	}
+            $res->{domains}->{$domain}->{plugin} = 'standalone';
+            $res->{domains}->{$domain}->{_configkey} = 'acme';
+        }
     }
 
     $res->{account} //= 'default';
 
-    for my $index (0..$MAXDOMAINS) {
-	my $domain_rec = $conf->{"acmedomain$index"};
-	next if !defined($domain_rec);
+    for my $index (0 .. $MAXDOMAINS) {
+        my $domain_rec = $conf->{"acmedomain$index"};
+        next if !defined($domain_rec);
 
-	my $parsed = eval {
-	    PVE::JSONSchema::parse_property_string($acme_domain_desc, $domain_rec)
-	};
-	if (my $err = $@) {
-	    return undef if $noerr;
-	    die $err;
-	}
-	my $domain = lc(delete $parsed->{domain});
-	if (my $exists = $res->{domains}->{$domain}) {
-	    return undef if $noerr;
-	    die "duplicate domain '$domain' in ACME config properties"
-	        ." 'acmedomain$index' and '$exists->{_configkey}'\n";
-	}
-	$parsed->{plugin} //= 'standalone';
+        my $parsed =
+            eval { PVE::JSONSchema::parse_property_string($acme_domain_desc, $domain_rec) };
+        if (my $err = $@) {
+            return undef if $noerr;
+            die $err;
+        }
+        my $domain = lc(delete $parsed->{domain});
+        if (my $exists = $res->{domains}->{$domain}) {
+            return undef if $noerr;
+            die "duplicate domain '$domain' in ACME config properties"
+                . " 'acmedomain$index' and '$exists->{_configkey}'\n";
+        }
+        $parsed->{plugin} //= 'standalone';
 
-	my $plugins = PMG::API2::ACMEPlugin::load_config();
-	my $plugin_id = $parsed->{plugin};
-	if ($plugin_id ne 'standalone') {
-	    die "plugin '$plugin_id' for domain '$domain' not found!\n"
-		if !$plugins->{ids}->{$plugin_id};
-	}
+        my $plugins = PMG::API2::ACMEPlugin::load_config();
+        my $plugin_id = $parsed->{plugin};
+        if ($plugin_id ne 'standalone') {
+            die "plugin '$plugin_id' for domain '$domain' not found!\n"
+                if !$plugins->{ids}->{$plugin_id};
+        }
 
-	# validation for wildcard domain names happens on the domain w/o
-	# wildcard - see https://tools.ietf.org/html/rfc8555#section-7.1.3
-	if ($domain =~ /^\*\.(.*)$/ ) {
-	    $res->{validationtarget}->{$1} = $domain;
-	    die "wildcard domain validation for '$domain' needs a dns-01 plugin.\n"
-		if $plugins->{ids}->{$plugin_id}->{type} ne 'dns';
+        # validation for wildcard domain names happens on the domain w/o
+        # wildcard - see https://tools.ietf.org/html/rfc8555#section-7.1.3
+        if ($domain =~ /^\*\.(.*)$/) {
+            $res->{validationtarget}->{$1} = $domain;
+            die "wildcard domain validation for '$domain' needs a dns-01 plugin.\n"
+                if $plugins->{ids}->{$plugin_id}->{type} ne 'dns';
 
-	}
+        }
 
-	$parsed->{_configkey} = "acmedomain$index";
-	$res->{domains}->{$domain} = $parsed;
+        $parsed->{_configkey} = "acmedomain$index";
+        $res->{domains}->{$domain} = $parsed;
     }
 
     return $res;
@@ -243,10 +242,10 @@ sub filter_domains_by_type : prototype($$) {
     my $out = {};
 
     foreach my $domain (keys %$domains) {
-	my $entry = $domains->{$domain};
-	if (grep { $_ eq $type } PVE::Tools::split_list($entry->{usage})) {
-	    $out->{$domain} = $entry;
-	}
+        my $entry = $domains->{$domain};
+        if (grep { $_ eq $type } PVE::Tools::split_list($entry->{usage})) {
+            $out->{$domain} = $entry;
+        }
     }
 
     return undef if !%$out;

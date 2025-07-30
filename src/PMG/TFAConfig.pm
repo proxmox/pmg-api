@@ -42,9 +42,9 @@ my sub read_tfa_conf : prototype($$) {
 
     my $raw;
     if ($fh) {
-	$raw = do { local $/ = undef; <$fh> };
+        $raw = do { local $/ = undef; <$fh> };
     } else {
-	$raw = '{}';
+        $raw = '{}';
     }
 
     my $cfg = PMG::RS::TFA->new($raw);
@@ -52,9 +52,9 @@ my sub read_tfa_conf : prototype($$) {
     # Purge invalid users:
     my $usercfg = PMG::UserConfig->new();
     foreach my $user ($cfg->users()->@*) {
-	if (!$usercfg->lookup_user_data($user, 1)) {
-	    $cfg->remove_user($user);
-	}
+        if (!$usercfg->lookup_user_data($user, 1)) {
+            $cfg->remove_user($user);
+        }
     }
 
     return $cfg;

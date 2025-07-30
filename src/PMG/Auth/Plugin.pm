@@ -52,7 +52,7 @@ sub lock_realm_config {
 
     PVE::Tools::lock_file($lockfile, undef, $code);
     if (my $err = $@) {
-	$errmsg ? die "$errmsg: $err" : die $err;
+        $errmsg ? die "$errmsg: $err" : die $err;
     }
 }
 
@@ -73,12 +73,15 @@ sub is_valid_realm {
 
 PVE::JSONSchema::register_format('pmg-realm', \&is_valid_realm);
 
-PVE::JSONSchema::register_standard_option('realm', {
-    description => "Authentication domain ID",
-    type => 'string',
-    format => 'pmg-realm',
-    maxLength => 32,
-});
+PVE::JSONSchema::register_standard_option(
+    'realm',
+    {
+        description => "Authentication domain ID",
+        type => 'string',
+        format => 'pmg-realm',
+        maxLength => 32,
+    },
+);
 
 my $realm_regex = qr/[A-Za-z][A-Za-z0-9\.\-_]+/;
 
@@ -86,16 +89,16 @@ sub pmg_verify_realm {
     my ($realm, $noerr) = @_;
 
     if ($realm !~ m/^${realm_regex}$/) {
-	return undef if $noerr;
-	die "value does not look like a valid realm\n";
+        return undef if $noerr;
+        die "value does not look like a valid realm\n";
     }
     return $realm;
 }
 
 my $defaultData = {
     propertyList => {
-	type => { description => "Realm type." },
-	realm => get_standard_option('realm'),
+        type => { description => "Realm type." },
+        realm => get_standard_option('realm'),
     },
 };
 
@@ -107,12 +110,12 @@ sub parse_section_header {
     my ($class, $line) = @_;
 
     if ($line =~ m/^(\S+):\s*(\S+)\s*$/) {
-	my ($type, $realm) = (lc($1), $2);
-	my $errmsg = undef; # set if you want to skip whole section
-	eval { pmg_verify_realm($realm); };
-	$errmsg = $@ if $@;
-	my $config = {}; # to return additional attributes
-	return ($type, $realm, $errmsg, $config);
+        my ($type, $realm) = (lc($1), $2);
+        my $errmsg = undef; # set if you want to skip whole section
+        eval { pmg_verify_realm($realm); };
+        $errmsg = $@ if $@;
+        my $config = {}; # to return additional attributes
+        return ($type, $realm, $errmsg, $config);
     }
     return undef;
 }
@@ -123,43 +126,43 @@ sub parse_config {
     my $cfg = $class->SUPER::parse_config($filename, $raw);
 
     my $default;
-    foreach my $realm (keys %{$cfg->{ids}}) {
-	my $data = $cfg->{ids}->{$realm};
-	# make sure there is only one default marker
-	if ($data->{default}) {
-	    if ($default) {
-		delete $data->{default};
-	    } else {
-		$default = $realm;
-	    }
-	}
+    foreach my $realm (keys %{ $cfg->{ids} }) {
+        my $data = $cfg->{ids}->{$realm};
+        # make sure there is only one default marker
+        if ($data->{default}) {
+            if ($default) {
+                delete $data->{default};
+            } else {
+                $default = $realm;
+            }
+        }
 
-	if ($data->{comment}) {
-	    $data->{comment} = PVE::Tools::decode_text($data->{comment});
-	}
+        if ($data->{comment}) {
+            $data->{comment} = PVE::Tools::decode_text($data->{comment});
+        }
 
     }
 
     # add default realms
     $cfg->{ids}->{pmg}->{type} = 'pmg'; # force type
     $cfg->{ids}->{pmg}->{comment} = "Proxmox Mail Gateway authentication server"
-	if !$cfg->{ids}->{pmg}->{comment};
+        if !$cfg->{ids}->{pmg}->{comment};
 
     $cfg->{ids}->{pam}->{type} = 'pam'; # force type
     $cfg->{ids}->{pam}->{comment} = "Linux PAM standard authentication"
-	if !$cfg->{ids}->{pam}->{comment};
+        if !$cfg->{ids}->{pam}->{comment};
 
     return $cfg;
-};
+}
 
 sub write_config {
     my ($class, $filename, $cfg) = @_;
 
-    foreach my $realm (keys %{$cfg->{ids}}) {
-	my $data = $cfg->{ids}->{$realm};
-	if ($data->{comment}) {
-	    $data->{comment} = PVE::Tools::encode_text($data->{comment});
-	}
+    foreach my $realm (keys %{ $cfg->{ids} }) {
+        my $data = $cfg->{ids}->{$realm};
+        if ($data->{comment}) {
+            $data->{comment} = PVE::Tools::encode_text($data->{comment});
+        }
     }
 
     $class->SUPER::write_config($filename, $cfg);

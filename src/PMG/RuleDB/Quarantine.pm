@@ -27,7 +27,7 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 0;   
+    return 0;
 }
 
 sub final {
@@ -40,9 +40,9 @@ sub priority {
 
 sub new {
     my ($type, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
- 
+
     my $self = $class->SUPER::new($class->otype(), $ogroup);
 
     return $self;
@@ -50,12 +50,12 @@ sub new {
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
     my $obj = $class->new($ogroup);
     $obj->{id} = $id;
-    
+
     $obj->{digest} = Digest::SHA::sha1_hex($id, $ogroup);
 
     return $obj;
@@ -66,69 +66,74 @@ sub save {
 
     defined($self->{ogroup}) || return undef;
 
-    if (defined ($self->{id})) {
-	# update
-	
-	# nothing to update
+    if (defined($self->{id})) {
+        # update
+
+        # nothing to update
 
     } else {
-	# insert
-	my $sth = $ruledb->{dbh}->prepare (
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        # insert
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
+        $sth->execute($self->ogroup, $self->otype);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq'); 
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
 sub execute {
-    my ($self, $queue, $ruledb, $mod_group, $targets, 
-	$msginfo, $vars, $marks, $ldap) = @_;
-    
+    my ($self, $queue, $ruledb, $mod_group, $targets, $msginfo, $vars, $marks, $ldap) = @_;
+
     my $subgroups = $mod_group->subgroups($targets, 1);
 
     my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
 
     foreach my $ta (@$subgroups) {
-	my ($tg, $entity) = (@$ta[0], @$ta[1]);
+        my ($tg, $entity) = (@$ta[0], @$ta[1]);
 
-	PMG::Utils::remove_marks($entity);
+        PMG::Utils::remove_marks($entity);
 
-	if ($queue->{vinfo}) {
-	    if (my $qid = $queue->quarantine_mail($ruledb, 'V', $entity, $tg, $msginfo, $vars, $ldap)) {
+        if ($queue->{vinfo}) {
+            if (
+                my $qid =
+                $queue->quarantine_mail($ruledb, 'V', $entity, $tg, $msginfo, $vars, $ldap)
+            ) {
 
-		foreach (@$tg) {
-		    syslog (
-			'info',
-			"$queue->{logid}: moved mail for <%s> to virus quarantine - %s (rule: %s)",
-			encode('UTF-8',$_),
-			$qid,
-			$rulename,
-		    );
-		}
+                foreach (@$tg) {
+                    syslog(
+                        'info',
+                        "$queue->{logid}: moved mail for <%s> to virus quarantine - %s (rule: %s)",
+                        encode('UTF-8', $_),
+                        $qid,
+                        $rulename,
+                    );
+                }
 
-		$queue->set_status ($tg, 'delivered');
-	    }
+                $queue->set_status($tg, 'delivered');
+            }
 
-	} else {
-	    if (my $qid = $queue->quarantine_mail($ruledb, 'S', $entity, $tg, $msginfo, $vars, $ldap)) {
+        } else {
+            if (
+                my $qid =
+                $queue->quarantine_mail($ruledb, 'S', $entity, $tg, $msginfo, $vars, $ldap)
+            ) {
 
-		foreach (@$tg) {
-		    syslog (
-			'info',
-			"$queue->{logid}: moved mail for <%s> to spam quarantine - %s (rule: %s)",
-			encode('UTF-8',$_),
-			$qid,
-			$rulename,
-		    );
-		}
+                foreach (@$tg) {
+                    syslog(
+                        'info',
+                        "$queue->{logid}: moved mail for <%s> to spam quarantine - %s (rule: %s)",
+                        encode('UTF-8', $_),
+                        $qid,
+                        $rulename,
+                    );
+                }
 
-		$queue->set_status($tg, 'delivered');
-	    }
-	}
+                $queue->set_status($tg, 'delivered');
+            }
+        }
     }
 
     # warn if no subgroups

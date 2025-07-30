@@ -26,56 +26,58 @@ my $print_status = sub {
 
     my $version = "not correctly installed";
     if ($pkginfo->{OldVersion} && $pkginfo->{CurrentState} eq 'Installed') {
-	$version = $pkginfo->{OldVersion};
+        $version = $pkginfo->{OldVersion};
     } elsif ($pkginfo->{CurrentState} eq 'ConfigFiles') {
-	$version = 'residual config';
+        $version = 'residual config';
     }
 
     if ($pkginfo->{RunningKernel} && $pkginfo->{ManagerVersion}) {
-	print "$pkg: $version (API: $pkginfo->{ManagerVersion}, running kernel: $pkginfo->{RunningKernel})\n";
+        print
+            "$pkg: $version (API: $pkginfo->{ManagerVersion}, running kernel: $pkginfo->{RunningKernel})\n";
     } else {
-	print "$pkg: $version\n";
+        print "$pkg: $version\n";
     }
 };
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'pmgversion',
     path => 'pmgversion',
     method => 'GET',
     description => "Print version information for Proxmox Mail Gateway packages.",
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    verbose => {
-		type => 'boolean',
-		description => "List version details for important packages.",
-		optional => 1,
-		default => 0,
-	    },
-	}
+        additionalProperties => 0,
+        properties => {
+            verbose => {
+                type => 'boolean',
+                description => "List version details for important packages.",
+                optional => 1,
+                default => 0,
+            },
+        },
     },
-    returns => { type => 'null'},
+    returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $pkgarray = PMG::API2::APT->versions({ node => 'localhost'});
+        my $pkgarray = PMG::API2::APT->versions({ node => 'localhost' });
 
-	my $ver =  PMG::pmgcfg::package() . '/' . PMG::pmgcfg::version_text();
-	my (undef, undef, $kver) = POSIX::uname();
+        my $ver = PMG::pmgcfg::package() . '/' . PMG::pmgcfg::version_text();
+        my (undef, undef, $kver) = POSIX::uname();
 
-	if (!$param->{verbose}) {
-	    print "$ver (running kernel: $kver)\n";
-	    return undef;
-	}
+        if (!$param->{verbose}) {
+            print "$ver (running kernel: $kver)\n";
+            return undef;
+        }
 
-	foreach my $pkg (@$pkgarray) {
-	    $print_status->($pkg);
-	}
+        foreach my $pkg (@$pkgarray) {
+            $print_status->($pkg);
+        }
 
-	return undef;
+        return undef;
 
-    }});
+    },
+});
 
-our $cmddef = [ __PACKAGE__, 'pmgversion', []];
+our $cmddef = [__PACKAGE__, 'pmgversion', []];
 
 1;

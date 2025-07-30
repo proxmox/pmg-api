@@ -34,37 +34,37 @@ use base qw(PVE::RESTHandler);
 
 my $section_type_enum = PMG::Config::Base->lookup_types();
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::RuleDB",
     path => 'ruledb',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::SMTPWhitelist",
     path => 'whitelist',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::LDAP",
     path => 'ldap',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::Domains",
     path => 'domains',
-			      });
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::Fetchmail",
     path => 'fetchmail',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::Transport",
     path => 'transport',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::MyNetworks",
     # set fragment delimiter (no subdirs) - we need that, because CIDRs
     # contain a slash '/'
@@ -72,22 +72,22 @@ __PACKAGE__->register_method ({
     path => 'mynetworks',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::Cluster",
     path => 'cluster',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::MimeTypes",
     path => 'mimetypes',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::DestinationTLSPolicy",
     path => 'tlspolicy',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::InboundTLSDomains",
     path => 'tls-inbound-domains',
 });
@@ -102,63 +102,64 @@ __PACKAGE__->register_method({
     path => 'customscores',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::PBS::Remote",
     path => 'pbs',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::ACME",
     path => 'acme',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => "PMG::API2::TFAConfig",
     path => 'tfa',
 });
 
-__PACKAGE__->register_method ({
-    name => 'index', 
+__PACKAGE__->register_method({
+    name => 'index',
     path => '',
     method => 'GET',
     description => "Directory index.",
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => { section => { type => 'string'} },
-	},
-	links => [ { rel => 'child', href => "{section}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => { section => { type => 'string' } },
+        },
+        links => [{ rel => 'child', href => "{section}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $res = [ map { { section => $_ } } $section_type_enum->@* ];
+        my $res = [map { { section => $_ } } $section_type_enum->@*];
 
-	push @$res, { section => 'acme' };
-	push @$res, { section => 'cluster' };
-	push @$res, { section => 'dkim' };
-	push @$res, { section => 'domains' };
-	push @$res, { section => 'fetchmail' };
-	push @$res, { section => 'ldap' };
-	push @$res, { section => 'mimetypes' };
-	push @$res, { section => 'mynetworks' };
-	push @$res, { section => 'pbs' };
-	push @$res, { section => 'regextest' };
-	push @$res, { section => 'ruledb' };
-	push @$res, { section => 'tfa' };
-	push @$res, { section => 'tlspolicy' };
-	push @$res, { section => 'tls-inbound-domains' };
-	push @$res, { section => 'transport' };
-	push @$res, { section => 'users' };
-	push @$res, { section => 'whitelist' };
+        push @$res, { section => 'acme' };
+        push @$res, { section => 'cluster' };
+        push @$res, { section => 'dkim' };
+        push @$res, { section => 'domains' };
+        push @$res, { section => 'fetchmail' };
+        push @$res, { section => 'ldap' };
+        push @$res, { section => 'mimetypes' };
+        push @$res, { section => 'mynetworks' };
+        push @$res, { section => 'pbs' };
+        push @$res, { section => 'regextest' };
+        push @$res, { section => 'ruledb' };
+        push @$res, { section => 'tfa' };
+        push @$res, { section => 'tlspolicy' };
+        push @$res, { section => 'tls-inbound-domains' };
+        push @$res, { section => 'transport' };
+        push @$res, { section => 'users' };
+        push @$res, { section => 'whitelist' };
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
 my $api_read_config_section = sub {
     my ($section) = @_;
@@ -173,77 +174,79 @@ my $api_read_config_section = sub {
 };
 
 my $api_update_config_section = sub {
-   my ($section, $param) = @_;
+    my ($section, $param) = @_;
 
-   my $code = sub {
-       my $cfg = PMG::Config->new();
-       my $ids = $cfg->{ids};
+    my $code = sub {
+        my $cfg = PMG::Config->new();
+        my $ids = $cfg->{ids};
 
-       my $digest = extract_param($param, 'digest');
-       PVE::SectionConfig::assert_if_modified($cfg, $digest);
+        my $digest = extract_param($param, 'digest');
+        PVE::SectionConfig::assert_if_modified($cfg, $digest);
 
-       my $delete_str = extract_param($param, 'delete');
-       die "no options specified\n"
-	   if !$delete_str && !scalar(keys %$param);
+        my $delete_str = extract_param($param, 'delete');
+        die "no options specified\n"
+            if !$delete_str && !scalar(keys %$param);
 
-       foreach my $opt (PVE::Tools::split_list($delete_str)) {
-	   delete $ids->{$section}->{$opt};
-       }
+        foreach my $opt (PVE::Tools::split_list($delete_str)) {
+            delete $ids->{$section}->{$opt};
+        }
 
-       my $plugin = PMG::Config::Base->lookup($section);
-       my $config = $plugin->check_config($section, $param, 0, 1);
+        my $plugin = PMG::Config::Base->lookup($section);
+        my $config = $plugin->check_config($section, $param, 0, 1);
 
-       foreach my $p (keys %$config) {
-	   $ids->{$section}->{$p} = $config->{$p};
-       }
+        foreach my $p (keys %$config) {
+            $ids->{$section}->{$p} = $config->{$p};
+        }
 
-       $cfg->write();
+        $cfg->write();
 
-       $cfg->rewrite_config(undef, 1);
-   };
+        $cfg->rewrite_config(undef, 1);
+    };
 
-   PMG::Config::lock_config($code, "update config section '$section' failed");
+    PMG::Config::lock_config($code, "update config section '$section' failed");
 };
 
 foreach my $section (@$section_type_enum) {
 
     my $plugin = PMG::Config::Base->lookup($section);
 
-    __PACKAGE__->register_method ({
-	name => "read_${section}_section",
-	path => $section,
-	method => 'GET',
-	proxyto => 'master',
-	permissions => { check => [ 'admin', 'audit' ] },
-	description => "Read $section configuration properties.",
-	parameters => {
-	    additionalProperties => 0,
-	    properties => {},
-	},
-	returns => { type => 'object' },
-	code => sub {
-	    my ($param) = @_;
+    __PACKAGE__->register_method({
+        name => "read_${section}_section",
+        path => $section,
+        method => 'GET',
+        proxyto => 'master',
+        permissions => { check => ['admin', 'audit'] },
+        description => "Read $section configuration properties.",
+        parameters => {
+            additionalProperties => 0,
+            properties => {},
+        },
+        returns => { type => 'object' },
+        code => sub {
+            my ($param) = @_;
 
-	    return $api_read_config_section->($section);
-	}});
+            return $api_read_config_section->($section);
+        },
+    });
 
-    __PACKAGE__->register_method ({
-	name => "update_${section}_section",
-	path => $section,
-	method => 'PUT',
-	proxyto => 'master',
-	protected => 1,
-	permissions => { check => [ 'admin' ] },
-	description => "Update $section configuration properties.",
-	parameters => $plugin->updateSchema(1),
-	returns => { type => 'null' },
-	code => sub {
-	    my ($param) = @_;
+    __PACKAGE__->register_method({
+        name => "update_${section}_section",
+        path => $section,
+        method => 'PUT',
+        proxyto => 'master',
+        protected => 1,
+        permissions => { check => ['admin'] },
+        description => "Update $section configuration properties.",
+        parameters => $plugin->updateSchema(1),
+        returns => { type => 'null' },
+        code => sub {
+            my ($param) = @_;
 
-	    $api_update_config_section->($section, $param);
+            $api_update_config_section->($section, $param);
 
-	    return undef;
-	}});
+            return undef;
+        },
+    });
 }
 
 __PACKAGE__->register_method({
@@ -251,50 +254,52 @@ __PACKAGE__->register_method({
     path => 'regextest',
     method => 'POST',
     protected => 0,
-    permissions => { check => [ 'admin', 'qmanager', 'audit' ] },
+    permissions => { check => ['admin', 'qmanager', 'audit'] },
     description => "Test Regex ignoring case",
     parameters => {
-	additionalProperties => 0,
-	properties => {
-	    regex => {
-		type => 'string',
-		description => 'The Regex to test',
-		maxLength => 1024,
-	    },
-	    text => {
-		type => 'string',
-		description => 'The String to test',
-		maxLength => 1024,
-	    }
-	},
+        additionalProperties => 0,
+        properties => {
+            regex => {
+                type => 'string',
+                description => 'The Regex to test',
+                maxLength => 1024,
+            },
+            text => {
+                type => 'string',
+                description => 'The String to test',
+                maxLength => 1024,
+            },
+        },
     },
     returns => {
-	type => 'number',
+        type => 'number',
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $text = $param->{text};
-	my $regex = $param->{regex};
+        my $text = $param->{text};
+        my $regex = $param->{regex};
 
-	my $regex_check = sub {
-	    my $start_time = [Time::HiRes::gettimeofday];
-	    my $match = 0;
-	    if ($text =~ /$regex/i) {
-		$match = 1;
-	    }
-	    my $elapsed = Time::HiRes::tv_interval($start_time) * 1000;
-	    die "The Regular Expression '$regex' did not match the text '$text' (elapsed time: $elapsed ms)\n"
-		if !$match;
-	    return $elapsed;
-	};
+        my $regex_check = sub {
+            my $start_time = [Time::HiRes::gettimeofday];
+            my $match = 0;
+            if ($text =~ /$regex/i) {
+                $match = 1;
+            }
+            my $elapsed = Time::HiRes::tv_interval($start_time) * 1000;
+            die
+                "The Regular Expression '$regex' did not match the text '$text' (elapsed time: $elapsed ms)\n"
+                if !$match;
+            return $elapsed;
+        };
 
-	my $elapsed = PVE::Tools::run_fork_with_timeout(2, $regex_check);
-	if ($elapsed eq '') {
-	    die "The Regular Expression timed out\n";
-	}
+        my $elapsed = PVE::Tools::run_fork_with_timeout(2, $regex_check);
+        if ($elapsed eq '') {
+            die "The Regular Expression timed out\n";
+        }
 
-	return $elapsed;
-    }});
+        return $elapsed;
+    },
+});
 
 1;

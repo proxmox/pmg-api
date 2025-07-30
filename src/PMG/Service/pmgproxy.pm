@@ -61,8 +61,8 @@ sub init {
 
     my $accept_lock_fn = "/var/lock/pmgproxy.lck";
 
-    my $lockfh = IO::File->new(">>${accept_lock_fn}") ||
-	die "unable to open lock file '${accept_lock_fn}' - $!\n";
+    my $lockfh = IO::File->new(">>${accept_lock_fn}")
+        || die "unable to open lock file '${accept_lock_fn}' - $!\n";
 
     my $listen_ip = $proxyconf->{LISTEN_IP};
     my $socket = $self->create_reusable_socket(8006, $listen_ip);
@@ -83,65 +83,65 @@ sub init {
     add_dirs($dirs, '/pmg-docs/' => '/usr/share/pmg-docs/');
     add_dirs($dirs, '/pmg-docs/api-viewer/extjs/' => $extjs_dir);
     add_dirs($dirs, '/pwt/css/' => "$widgettoolkit_dir/css/");
-    add_dirs($dirs, '/pwt/images/' =>  "$widgettoolkit_dir/images/");
+    add_dirs($dirs, '/pwt/images/' => "$widgettoolkit_dir/images/");
     add_dirs($dirs, '/pwt/themes/' => "$widgettoolkit_dir/themes/");
 
     $self->{server_config} = {
-	title => 'Proxmox Mail Gateway API',
-	cookie_name => 'PMGAuthCookie',
-	keep_alive => 100,
-	max_conn => 500,
-	max_requests => 1000,
-	lockfile => $accept_lock_fn,
-	socket => $socket,
-	lockfh => $lockfh,
-	debug => $self->{debug},
-	trusted_env => 0, # not trusted, anyone can connect
-	logfile => '/var/log/pmgproxy/pmgproxy.log',
-	allow_from => $proxyconf->{ALLOW_FROM},
-	deny_from => $proxyconf->{DENY_FROM},
-	policy => $proxyconf->{POLICY},
-	ssl => {
-	    cert_file => '/etc/pmg/pmg-api.pem',
-	    dh => 'skip2048',
-	    cipher_list => $proxyconf->{CIPHERS},
-	    ciphersuites => $proxyconf->{CIPHERSUITES},
-	    honor_cipher_order => $proxyconf->{HONOR_CIPHER_ORDER},
-	},
-	compression => $proxyconf->{COMPRESSION},
-	# Note: there is no authentication for those pages and dirs!
-	pages => {
-	    '/' => sub { get_index($self->{nodename}, @_) },
-	    '/quarantine' => sub { get_index($self->{nodename}, @_) },
-	    # avoid authentication when accessing favicon
-	    '/favicon.ico' => {
-		file => '/usr/share/doc/pmg-api/favicon.ico',
-	    },
-	    '/proxmoxlib.js' => {
-		file => '/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js',
-	    },
-	    '/qrcode.min.js' => {
-		file => '/usr/share/javascript/qrcodejs/qrcode.min.js',
-	    },
-	},
-	dirs => $dirs,
+        title => 'Proxmox Mail Gateway API',
+        cookie_name => 'PMGAuthCookie',
+        keep_alive => 100,
+        max_conn => 500,
+        max_requests => 1000,
+        lockfile => $accept_lock_fn,
+        socket => $socket,
+        lockfh => $lockfh,
+        debug => $self->{debug},
+        trusted_env => 0, # not trusted, anyone can connect
+        logfile => '/var/log/pmgproxy/pmgproxy.log',
+        allow_from => $proxyconf->{ALLOW_FROM},
+        deny_from => $proxyconf->{DENY_FROM},
+        policy => $proxyconf->{POLICY},
+        ssl => {
+            cert_file => '/etc/pmg/pmg-api.pem',
+            dh => 'skip2048',
+            cipher_list => $proxyconf->{CIPHERS},
+            ciphersuites => $proxyconf->{CIPHERSUITES},
+            honor_cipher_order => $proxyconf->{HONOR_CIPHER_ORDER},
+        },
+        compression => $proxyconf->{COMPRESSION},
+        # Note: there is no authentication for those pages and dirs!
+        pages => {
+            '/' => sub { get_index($self->{nodename}, @_) },
+            '/quarantine' => sub { get_index($self->{nodename}, @_) },
+            # avoid authentication when accessing favicon
+            '/favicon.ico' => {
+                file => '/usr/share/doc/pmg-api/favicon.ico',
+            },
+            '/proxmoxlib.js' => {
+                file => '/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js',
+            },
+            '/qrcode.min.js' => {
+                file => '/usr/share/javascript/qrcodejs/qrcode.min.js',
+            },
+        },
+        dirs => $dirs,
     };
 
     if (defined($proxyconf->{DHPARAMS})) {
-	$self->{server_config}->{ssl}->{dh_file} = $proxyconf->{DHPARAMS};
+        $self->{server_config}->{ssl}->{dh_file} = $proxyconf->{DHPARAMS};
     }
     if (defined($proxyconf->{DISABLE_TLS_1_2})) {
-	$self->{server_config}->{ssl}->{tlsv1_2} = !$proxyconf->{DISABLE_TLS_1_2};
+        $self->{server_config}->{ssl}->{tlsv1_2} = !$proxyconf->{DISABLE_TLS_1_2};
     }
     if (defined($proxyconf->{DISABLE_TLS_1_3})) {
-	$self->{server_config}->{ssl}->{tlsv1_3} = !$proxyconf->{DISABLE_TLS_1_3};
+        $self->{server_config}->{ssl}->{tlsv1_3} = !$proxyconf->{DISABLE_TLS_1_3};
     }
 }
 
 sub run {
     my ($self) = @_;
 
-    my $server = PMG::HTTPServer->new(%{$self->{server_config}});
+    my $server = PMG::HTTPServer->new(%{ $self->{server_config} });
     $server->run();
 }
 
@@ -151,10 +151,10 @@ $daemon->register_stop_command();
 $daemon->register_status_command();
 
 our $cmddef = {
-    start => [ __PACKAGE__, 'start', []],
-    restart => [ __PACKAGE__, 'restart', []],
-    stop => [ __PACKAGE__, 'stop', []],
-    status => [ __PACKAGE__, 'status', [], undef, sub { print shift . "\n";} ],
+    start => [__PACKAGE__, 'start', []],
+    restart => [__PACKAGE__, 'restart', []],
+    stop => [__PACKAGE__, 'stop', []],
+    status => [__PACKAGE__, 'status', [], undef, sub { print shift . "\n"; }],
 };
 
 my $template_toolkit;
@@ -163,8 +163,7 @@ sub get_template_toolkit {
 
     return $template_toolkit if $template_toolkit;
 
-    $template_toolkit = Template->new(
-	{ INCLUDE_PATH => [$gui_base_dir, $xtermjs_dir]});
+    $template_toolkit = Template->new({ INCLUDE_PATH => [$gui_base_dir, $xtermjs_dir] });
 
     return $template_toolkit;
 }
@@ -174,14 +173,16 @@ sub is_phone {
 
     return 0 if !$ua;
 
-    if ($ua =~ m/(
+    if (
+        $ua =~ m/(
 	iPhone|
 	iPod|
 	Windows\ Phone|
 	Android|
 	BlackBerry
-	)/xi) {
-	return 1;
+	)/xi
+    ) {
+        return 1;
     }
 
     return 0;
@@ -196,64 +197,64 @@ sub get_index {
     my $quarantine = ($r->uri->path() =~ m/quarantine$/);
     my $mobile = is_phone($r->header('User-Agent'));
     if (defined($args->{mobile})) {
-	$mobile = $args->{mobile} ? 1 : 0;
+        $mobile = $args->{mobile} ? 1 : 0;
     }
 
     my $theme = "";
 
     if (my $cookie = $r->header('Cookie')) {
-	if (my $newlang = ($cookie =~ /(?:^|\s)PMGLangCookie=([^;]*)/)[0]) {
-	    if ($newlang =~ m/^[a-z]{2,3}(_[A-Z]{2,3})?$/) {
-		$lang = $newlang;
-	    }
-	}
+        if (my $newlang = ($cookie =~ /(?:^|\s)PMGLangCookie=([^;]*)/)[0]) {
+            if ($newlang =~ m/^[a-z]{2,3}(_[A-Z]{2,3})?$/) {
+                $lang = $newlang;
+            }
+        }
 
-	if (my $newtheme = ($cookie =~ /(?:^|\s)PMGThemeCookie=([^;]*)/)[0]) {
-	    # theme names need to be kebab case, with each segment a maximum of 10 characters long
-	    # and at most 6 segments
-	    if ($newtheme =~ m/^[a-z]{1,10}(-[a-z]{1,10}){0,5}$/) {
-		$theme = $newtheme;
-	    }
-	}
+        if (my $newtheme = ($cookie =~ /(?:^|\s)PMGThemeCookie=([^;]*)/)[0]) {
+            # theme names need to be kebab case, with each segment a maximum of 10 characters long
+            # and at most 6 segments
+            if ($newtheme =~ m/^[a-z]{1,10}(-[a-z]{1,10}){0,5}$/) {
+                $theme = $newtheme;
+            }
+        }
 
-	my $ticket = PVE::APIServer::Formatter::extract_auth_value($cookie, $server->{cookie_name});
+        my $ticket = PVE::APIServer::Formatter::extract_auth_value($cookie, $server->{cookie_name});
 
-	if ($ticket =~ m/^PMGQUAR:/) {
-	    $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
-	} else {
-	    $username = PMG::Ticket::verify_ticket($ticket, undef, 1);
-	}
+        if ($ticket =~ m/^PMGQUAR:/) {
+            $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
+        } else {
+            $username = PMG::Ticket::verify_ticket($ticket, undef, 1);
+        }
     } else {
-	if (defined($args->{ticket})) {
-	    my $ticket = uri_unescape($args->{ticket});
-	    $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
-	}
+        if (defined($args->{ticket})) {
+            my $ticket = uri_unescape($args->{ticket});
+            $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
+        }
     }
 
     if ($theme eq "") {
-	$theme = "auto"
+        $theme = "auto";
     }
 
     $token = PMG::Ticket::assemble_csrf_prevention_token($username)
-	if defined($username);
+        if defined($username);
 
     my $langfile = 0;
 
-    if (-f  "/usr/share/pmg-i18n/pmg-lang-$lang.js") {
-	$langfile = 1;
+    if (-f "/usr/share/pmg-i18n/pmg-lang-$lang.js") {
+        $langfile = 1;
     }
 
     my $wtversionraw = PVE::Tools::file_read_firstline("$widgettoolkit_dir/proxmoxlib.js");
     my $wtversion = '';
     if ($wtversionraw =~ m|^// (.*)$|) {
-	$wtversion = $1;
-    };
+        $wtversion = $1;
+    }
 
     my $versionraw = PVE::Tools::file_read_firstline("$gui_base_dir/js/pmgmanagerlib.js");
     my $version = '';
     if ($versionraw =~ m|^// (.*)$|) {
-	$version = $1;
-    };
+        $version = $1;
+    }
 
     my $cfg = PMG::Config->new();
     my $quarantinelink = $cfg->get('spamquar', 'quarantinelink');
@@ -263,32 +264,32 @@ sub get_index {
     my $page = '';
 
     my $vars = {
-	lang => $lang,
-	langfile => $langfile,
-	username => $username,
-	token => $token,
-	console => $args->{console},
-	nodename => $nodename,
-	debug => $args->{debug} || $server->{debug},
-	version => $version,
-	wtversion => $wtversion,
-	quarantinelink => $quarantinelink,
-	theme => $theme,
+        lang => $lang,
+        langfile => $langfile,
+        username => $username,
+        token => $token,
+        console => $args->{console},
+        nodename => $nodename,
+        debug => $args->{debug} || $server->{debug},
+        version => $version,
+        wtversion => $wtversion,
+        quarantinelink => $quarantinelink,
+        theme => $theme,
     };
 
     my $template_name;
     if (defined($args->{console}) && $args->{xtermjs}) {
-	$template_name = "index.html.tpl"; # fixme: use better name
+        $template_name = "index.html.tpl"; # fixme: use better name
     } elsif ($mobile && $quarantine) {
-	$template_name = "pmg-mobile-index.html.tt";
+        $template_name = "pmg-mobile-index.html.tt";
     } else {
-	$template_name = "pmg-index.html.tt";
+        $template_name = "pmg-index.html.tt";
     }
 
     my $tt = get_template_toolkit();
 
-    $tt->process($template_name, $vars, \$page) ||
-	die $tt->error() . "\n";
+    $tt->process($template_name, $vars, \$page)
+        || die $tt->error() . "\n";
 
     my $headers = HTTP::Headers->new(Content_Type => "text/html; charset=utf-8");
     my $resp = HTTP::Response->new(200, "OK", $headers, $page);

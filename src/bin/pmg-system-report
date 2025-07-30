@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use PMG::Report;
 
-($> == 0 ) || die "please run as root\n";
+($> == 0) || die "please run as root\n";
 
 print PMG::Report::generate();
 

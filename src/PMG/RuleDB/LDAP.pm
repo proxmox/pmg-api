@@ -50,11 +50,12 @@ sub load_attr {
 
     my $obj;
     if ($decoded =~ m/^([^:]*):(.*)$/) {
-	$obj = $class->new($2, $1, $ogroup);
-	$obj->{digest} = Digest::SHA::sha1_hex($id, encode('UTF-8', $2), encode('UTF-8', $1), $ogroup);
+        $obj = $class->new($2, $1, $ogroup);
+        $obj->{digest} =
+            Digest::SHA::sha1_hex($id, encode('UTF-8', $2), encode('UTF-8', $1), $ogroup);
     } else {
-	$obj = $class->new($decoded, '', $ogroup);
-	$obj->{digest} = Digest::SHA::sha1_hex($id, $value, '#', $ogroup);
+        $obj = $class->new($decoded, '', $ogroup);
+        $obj->{digest} = Digest::SHA::sha1_hex($id, $value, '#', $ogroup);
     }
 
     $obj->{id} = $id;
@@ -74,33 +75,33 @@ sub save {
 
     my $confdata = encode('UTF-8', "$profile:$grp");
 
-    if (defined ($self->{id})) {
-	# update
+    if (defined($self->{id})) {
+        # update
 
-	$ruledb->{dbh}->do(
-	    "UPDATE Object SET Value = ? WHERE ID = ?",
-	    undef, $confdata, $self->{id});
+        $ruledb->{dbh}
+            ->do("UPDATE Object SET Value = ? WHERE ID = ?", undef, $confdata, $self->{id});
 
     } else {
-	# insert
+        # insert
 
-	# check if it exists first
-	if (my $id = PMG::Utils::get_existing_object_id(
-	    $ruledb->{dbh},
-	    $self->{ogroup},
-	    $self->otype(),
-	    $confdata
-	)) {
-	    return $id;
-	}
+        # check if it exists first
+        if (
+            my $id = PMG::Utils::get_existing_object_id(
+                $ruledb->{dbh},
+                $self->{ogroup},
+                $self->otype(),
+                $confdata,
+            )
+        ) {
+            return $id;
+        }
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " .
-	    "VALUES (?, ?, ?);");
+        my $sth = $ruledb->{dbh}->prepare(
+            "INSERT INTO Object (Objectgroup_ID, ObjectType, Value) " . "VALUES (?, ?, ?);");
 
-	$sth->execute($self->{ogroup}, $self->otype, $confdata);
+        $sth->execute($self->{ogroup}, $self->otype, $confdata);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
 
     return $self->{id};
@@ -110,14 +111,14 @@ sub test_ldap {
     my ($ldap, $addr, $group, $profile) = @_;
 
     if ($group eq '') {
-	return $ldap->mail_exists($addr, $profile);
+        return $ldap->mail_exists($addr, $profile);
     } elsif ($group eq '-') {
-	return !$ldap->mail_exists($addr, $profile);
+        return !$ldap->mail_exists($addr, $profile);
     } elsif ($profile) {
-	return $ldap->user_in_group ($addr, $group, $profile);
+        return $ldap->user_in_group($addr, $group, $profile);
     } else {
-	# fail if we have a real $group without $profile
-	return 0;
+        # fail if we have a real $group without $profile
+        return 0;
     }
 }
 
@@ -138,23 +139,23 @@ sub short_desc {
     my $group = $self->{ldapgroup};
 
     if ($group eq '') {
-	$desc = "Existing LDAP address";
-	if ($profile) {
-	    $desc .= ", profile '$profile'";
-	} else {
-	    $desc .= ", any profile";
-	}
+        $desc = "Existing LDAP address";
+        if ($profile) {
+            $desc .= ", profile '$profile'";
+        } else {
+            $desc .= ", any profile";
+        }
     } elsif ($group eq '-') {
-	$desc = "Unknown LDAP address";
-	if ($profile) {
-	    $desc .= ", profile '$profile'";
-	} else {
-	    $desc .= ", any profile";
-	}
+        $desc = "Unknown LDAP address";
+        if ($profile) {
+            $desc .= ", profile '$profile'";
+        } else {
+            $desc .= ", any profile";
+        }
     } elsif ($profile) {
-	$desc = "LDAP group '$group', profile '$profile'";
+        $desc = "LDAP group '$group', profile '$profile'";
     } else {
-	$desc = "LDAP group without profile - fail always";
+        $desc = "LDAP group without profile - fail always";
     }
 
     return $desc;
@@ -164,23 +165,25 @@ sub properties {
     my ($class) = @_;
 
     return {
-	mode => {
-	    description => "Operational mode. You can either match 'any' user, match when no such user exists with 'none', or match when the user is member of a specific group.",
-	    type => 'string',
-	    enum => ['any', 'none', 'group'],
-	},
-	profile => {
-	    description => "Profile ID.",
-	    type => 'string', format => 'pve-configid',
-	    optional => 1,
-	},
-	group => {
-	    description => "LDAP Group DN",
-	    type => 'string',
-	    maxLength => 1024,
-	    minLength => 1,
-	    optional => 1,
-	},
+        mode => {
+            description =>
+                "Operational mode. You can either match 'any' user, match when no such user exists with 'none', or match when the user is member of a specific group.",
+            type => 'string',
+            enum => ['any', 'none', 'group'],
+        },
+        profile => {
+            description => "Profile ID.",
+            type => 'string',
+            format => 'pve-configid',
+            optional => 1,
+        },
+        group => {
+            description => "LDAP Group DN",
+            type => 'string',
+            maxLength => 1024,
+            minLength => 1,
+            optional => 1,
+        },
     };
 }
 
@@ -190,21 +193,21 @@ sub get {
     my $group = $self->{ldapgroup};
     my $profile = $self->{profile},
 
-    my $data = {};
+        my $data = {};
 
     if ($group eq '') {
-	$data->{mode} = 'any';
+        $data->{mode} = 'any';
     } elsif ($group eq '-') {
-	$data->{mode} = 'none';
+        $data->{mode} = 'none';
     } else {
-	$data->{mode} = 'group';
-	$data->{group} = $group;
+        $data->{mode} = 'group';
+        $data->{group} = $group;
     }
 
     $data->{profile} = $profile if $profile ne '';
 
     return $data;
- }
+}
 
 sub update {
     my ($self, $param) = @_;
@@ -212,38 +215,37 @@ sub update {
     my $mode = $param->{mode};
 
     if (defined(my $profile = $param->{profile})) {
-	my $cfg = PVE::INotify::read_file("pmg-ldap.conf");
-	my $config = $cfg->{ids}->{$profile};
-	die "LDAP profile '$profile' does not exist\n" if !$config;
+        my $cfg = PVE::INotify::read_file("pmg-ldap.conf");
+        my $config = $cfg->{ids}->{$profile};
+        die "LDAP profile '$profile' does not exist\n" if !$config;
 
-	if (defined(my $group = $param->{group})) {
-	    my $ldapcache = PMG::LDAPCache->new(
-		id => $profile, syncmode => 1, %$config);
+        if (defined(my $group = $param->{group})) {
+            my $ldapcache = PMG::LDAPCache->new(id => $profile, syncmode => 1, %$config);
 
-	    die "LDAP group '$group' does not exist\n"
-		if !$ldapcache->group_exists($group);
-	}
+            die "LDAP group '$group' does not exist\n"
+                if !$ldapcache->group_exists($group);
+        }
     }
 
     if ($mode eq 'any') {
-	raise_param_exc({ group => "parameter not allwed with mode '$mode'"})
-	    if defined($param->{group});
-	$self->{ldapgroup} = '';
-	$self->{profile} = $param->{profile} // '';
+        raise_param_exc({ group => "parameter not allwed with mode '$mode'" })
+            if defined($param->{group});
+        $self->{ldapgroup} = '';
+        $self->{profile} = $param->{profile} // '';
     } elsif ($mode eq 'none') {
-	raise_param_exc({ group => "parameter not allwed with mode '$mode'"})
-	    if defined($param->{group});
-	$self->{ldapgroup} = '-';
-	$self->{profile} = $param->{profile} // '';
+        raise_param_exc({ group => "parameter not allwed with mode '$mode'" })
+            if defined($param->{group});
+        $self->{ldapgroup} = '-';
+        $self->{profile} = $param->{profile} // '';
     } elsif ($mode eq 'group') {
-	raise_param_exc({ group => "parameter is required with mode '$mode'"})
-	    if !defined($param->{group});
-	$self->{ldapgroup} = $param->{group};
-	raise_param_exc({ profile => "parameter is required with mode '$mode'"})
-	    if !defined($param->{profile});
-	$self->{profile} = $param->{profile};
+        raise_param_exc({ group => "parameter is required with mode '$mode'" })
+            if !defined($param->{group});
+        $self->{ldapgroup} = $param->{group};
+        raise_param_exc({ profile => "parameter is required with mode '$mode'" })
+            if !defined($param->{profile});
+        $self->{profile} = $param->{profile};
     } else {
-	die "internal error"; # just to me sure
+        die "internal error"; # just to me sure
     }
 }
 

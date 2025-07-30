@@ -11,67 +11,67 @@ use PMG::RuleDB;
 sub new {
     my ($type, $name, $priority, $active, $direction) = @_;
 
-    my $self = { 
-	name => PMG::Utils::try_decode_utf8($name) // '',
-	priority => $priority // 0,
-	active => $active // 0,
-    }; 
-    
+    my $self = {
+        name => PMG::Utils::try_decode_utf8($name) // '',
+        priority => $priority // 0,
+        active => $active // 0,
+    };
+
     if (!defined($direction)) {
         $self->{direction} = 2;
-    } else {        
+    } else {
         $self->{direction} = $direction;
     }
-    
+
     bless $self, $type;
 
     return $self;
 }
 
-sub name { 
-    my ($self, $v) = @_; 
+sub name {
+    my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{name} = $v;
+    if (defined($v)) {
+        $self->{name} = $v;
     }
 
-    $self->{name}; 
+    $self->{name};
 }
 
-sub priority { 
-    my ($self, $v) = @_; 
+sub priority {
+    my ($self, $v) = @_;
 
-    if (defined ($v)) {
-	$self->{priority} = $v;
-    }
-    
-    $self->{priority}; 
-}
-
-sub direction { 
-    my ($self, $v) = @_; 
-
-    if (defined ($v)) {
-	$self->{direction} = $v;
-    }
-    
-    $self->{direction}; 
-}
-
-sub active { 
-    my ($self, $v) = @_; 
-
-    if (defined ($v)) {
-	$self->{active} = $v;
+    if (defined($v)) {
+        $self->{priority} = $v;
     }
 
-    $self->{active}; 
+    $self->{priority};
 }
 
-sub id { 
-    my $self = shift; 
+sub direction {
+    my ($self, $v) = @_;
 
-    $self->{id}; 
+    if (defined($v)) {
+        $self->{direction} = $v;
+    }
+
+    $self->{direction};
+}
+
+sub active {
+    my ($self, $v) = @_;
+
+    if (defined($v)) {
+        $self->{active} = $v;
+    }
+
+    $self->{active};
+}
+
+sub id {
+    my $self = shift;
+
+    $self->{id};
 }
 
 1;

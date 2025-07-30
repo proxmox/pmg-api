@@ -18,13 +18,13 @@ use base qw(Mail::DKIM::Signer);
 sub new {
     my ($class, $selector, $sign_all) = @_;
 
-    die "no selector provided\n" if ! $selector;
+    die "no selector provided\n" if !$selector;
 
     my %opts = (
-	Algorithm => 'rsa-sha256',
-	Method => 'relaxed/relaxed',
-	Selector => $selector,
-	KeyFile => "/etc/pmg/dkim/$selector.private",
+        Algorithm => 'rsa-sha256',
+        Method => 'relaxed/relaxed',
+        Selector => $selector,
+        KeyFile => "/etc/pmg/dkim/$selector.private",
     );
 
     my $self = $class->SUPER::new(%opts);
@@ -37,7 +37,6 @@ sub new {
 # MIME::Entity can output to all objects responding to 'print' (and does so in
 # chunks) Mail::DKIM::Signer has a 'PRINT' method and expects each line
 # terminated with "\r\n"
-
 
 sub print {
     my ($self, $chunk) = @_;
@@ -58,23 +57,23 @@ sub signing_domain {
 
     my $input_domain;
     if ($use_domain eq 'header') {
-	$input_domain = parse_headers_for_signing($entity);
-	if (!defined($input_domain)) {
-	    syslog('info', "DKIM signing: no domain found in the headers from '$sender_email'");
-	    return 0;
-	}
+        $input_domain = parse_headers_for_signing($entity);
+        if (!defined($input_domain)) {
+            syslog('info', "DKIM signing: no domain found in the headers from '$sender_email'");
+            return 0;
+        }
     } else {
-	my @parts = split('@', $sender_email);
-	if (scalar(@parts) < 2) {
-	    syslog('info', "DKIM signing: no domain found in '$sender_email'");
-	    return 0;
-	}
-	$input_domain = $parts[-1];
+        my @parts = split('@', $sender_email);
+        if (scalar(@parts) < 2) {
+            syslog('info', "DKIM signing: no domain found in '$sender_email'");
+            return 0;
+        }
+        $input_domain = $parts[-1];
     }
 
     if ($self->{sign_all}) {
-	    $self->domain($input_domain) if $self->{sign_all};
-	    return 1;
+        $self->domain($input_domain) if $self->{sign_all};
+        return 1;
     }
 
     # check that input_domain is in/a subdomain of in the
@@ -84,18 +83,17 @@ sub signing_domain {
 
     # Sort domains by length first, so if we have both a sub domain and its parent
     # the correct one will be returned
-    foreach my $domain (sort { length($b) <=> length($a) || $a cmp $b} keys %$dkimdomains) {
-	if ( $input_domain =~ /\Q$domain\E$/i ) {
-	    $self->domain($domain);
-	    return 1;
-	}
+    foreach my $domain (sort { length($b) <=> length($a) || $a cmp $b } keys %$dkimdomains) {
+        if ($input_domain =~ /\Q$domain\E$/i) {
+            $self->domain($domain);
+            return 1;
+        }
     }
 
     syslog('info', "not DKIM signing mail from $sender_email");
 
     return 0;
 }
-
 
 sub parse_headers_for_signing {
     # Following RFC 7489 [1], we only sign emails with exactly one sender in the
@@ -108,15 +106,14 @@ sub parse_headers_for_signing {
 
     my @from_headers = $entity->head->get('from');
     foreach my $from_header (@from_headers) {
-	my @addresses = Email::Address::XS::parse_email_addresses($from_header);
-	die "there is more than one sender in the header\n"
-	    if defined($domain) || scalar(@addresses) > 1;
-	$domain = $addresses[0]->host();
+        my @addresses = Email::Address::XS::parse_email_addresses($from_header);
+        die "there is more than one sender in the header\n"
+            if defined($domain) || scalar(@addresses) > 1;
+        $domain = $addresses[0]->host();
     }
 
     return $domain;
 }
-
 
 sub sign_entity {
     my ($entity, $dkim, $sender) = @_;
@@ -125,19 +122,15 @@ sub sign_entity {
     my $use_domain = $dkim->{use_domain};
     my $selector = $dkim->{selector};
 
-    die "no selector provided\n" if ! $selector;
+    die "no selector provided\n" if !$selector;
 
     #oversign certain headers
     my @oversign_headers = (
-	'from',
-	'to',
-	'cc',
-	'reply-to',
-	'subject',
+        'from', 'to', 'cc', 'reply-to', 'subject',
     );
 
     my @cond_headers = (
-	'content-type',
+        'content-type',
     );
 
     push(@oversign_headers, grep { $entity->head->mime_attr($_) } @cond_headers);
@@ -149,9 +142,9 @@ sub sign_entity {
     $signer->extended_headers($extended_headers);
 
     if ($signer->signing_domain($sender, $entity, $use_domain)) {
-	$entity->print($signer);
-	my $signature = $signer->create_signature();
-	$entity->head->add('DKIM-Signature', $signature, 0);
+        $entity->print($signer);
+        my $signature = $signer->create_signature();
+        $entity->head->add('DKIM-Signature', $signature, 0);
     }
 
     return $entity;
@@ -165,11 +158,11 @@ sub get_selector_info {
     die "no selector provided\n" if !defined($selector);
     my ($pubkey, $size);
     eval {
-	my $privkeytext = PVE::Tools::file_get_contents("/etc/pmg/dkim/$selector.private");
-	my $privkey =  Crypt::OpenSSL::RSA->new_private_key($privkeytext);
-	$size = $privkey->size() * 8;
+        my $privkeytext = PVE::Tools::file_get_contents("/etc/pmg/dkim/$selector.private");
+        my $privkey = Crypt::OpenSSL::RSA->new_private_key($privkeytext);
+        $size = $privkey->size() * 8;
 
-	$pubkey = $privkey->get_public_key_x509_string();
+        $pubkey = $privkey->get_public_key_x509_string();
     };
     die "$@\n" if $@;
 
@@ -182,14 +175,14 @@ sub get_selector_info {
     my $len = length($pubkey);
     my $cur = 0;
     while ($len > 0) {
-	if ($len < 250) {
-	    $record .= substr($pubkey, $cur);
-	    $len = 0;
-	} else {
-	    $record .= substr($pubkey, $cur, 250) . qq{"\n\t  "};
-	    $cur += 250;
-	    $len -= 250;
-	}
+        if ($len < 250) {
+            $record .= substr($pubkey, $cur);
+            $len = 0;
+        } else {
+            $record .= substr($pubkey, $cur, 250) . qq{"\n\t  "};
+            $cur += 250;
+            $len -= 250;
+        }
     }
     $record .= qq{" )  ; ----- DKIM key $selector};
 
@@ -205,25 +198,25 @@ sub set_selector {
     my $privkey_file = "/etc/pmg/dkim/$selector.private";
 
     my $code = sub {
-	my $genkey = $force || (! -e $privkey_file);
-	if (!$genkey) {
-	    my ($privkey, $cursize);
-	    eval {
-		my $privkeytext = PVE::Tools::file_get_contents($privkey_file);
-		$privkey =  Crypt::OpenSSL::RSA->new_private_key($privkeytext);
-		$cursize = $privkey->size() * 8;
-	    };
-	    die "error checking $privkey_file: $@\n" if $@;
-	    die "$privkey_file already exists, but has different size ($cursize bits)\n"
-		if $cursize != $keysize;
-	} else {
-	    my $cmd = ['openssl', 'genrsa', '-out', $privkey_file, $keysize];
-	    PMG::Utils::run_silent_cmd($cmd);
-	}
-	my $cfg = PMG::Config->new();
-	$cfg->set('admin', 'dkim_selector', $selector);
-	$cfg->write();
-	PMG::Utils::reload_smtp_filter();
+        my $genkey = $force || (!-e $privkey_file);
+        if (!$genkey) {
+            my ($privkey, $cursize);
+            eval {
+                my $privkeytext = PVE::Tools::file_get_contents($privkey_file);
+                $privkey = Crypt::OpenSSL::RSA->new_private_key($privkeytext);
+                $cursize = $privkey->size() * 8;
+            };
+            die "error checking $privkey_file: $@\n" if $@;
+            die "$privkey_file already exists, but has different size ($cursize bits)\n"
+                if $cursize != $keysize;
+        } else {
+            my $cmd = ['openssl', 'genrsa', '-out', $privkey_file, $keysize];
+            PMG::Utils::run_silent_cmd($cmd);
+        }
+        my $cfg = PMG::Config->new();
+        $cfg->set('admin', 'dkim_selector', $selector);
+        $cfg->write();
+        PMG::Utils::reload_smtp_filter();
     };
 
     PMG::Config::lock_config($code, "unable to set DKIM key ($selector - $keysize bits)");

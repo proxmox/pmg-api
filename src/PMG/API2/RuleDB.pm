@@ -23,81 +23,85 @@ use PMG::API2::Rules;
 
 use base qw(PVE::RESTHandler);
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'index',
     path => '',
     method => 'GET',
     description => "Directory index.",
     parameters => {
-    	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
-    permissions => { check => [ 'admin', 'audit' ] },
+    permissions => { check => ['admin', 'audit'] },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => {},
-	},
-	links => [ { rel => 'child', href => "{name}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {},
+        },
+        links => [{ rel => 'child', href => "{name}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $result = [
-	    { name => 'digest' },
-	    { name => 'action' },
-	    { name => 'rules' },
-	    { name => 'what' },
-	    { name => 'when' },
-	    { name => 'who' },
-	];
+        my $result = [
+            { name => 'digest' },
+            { name => 'action' },
+            { name => 'rules' },
+            { name => 'what' },
+            { name => 'when' },
+            { name => 'who' },
+        ];
 
-	return $result;
-    }});
+        return $result;
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     name => 'reset_ruledb',
     path => '',
     method => 'POST',
     description => "Reset PMG rule database back to factory defaults.",
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     protected => 1,
     parameters => {
-	additionalProperties => 0,
-	properties => {}
+        additionalProperties => 0,
+        properties => {},
     },
-    returns => { type => 'null'},
+    returns => { type => 'null' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb");
-	my $ruledb = PMG::RuleDB->new($dbh);
-	PMG::DBTools::init_ruledb($ruledb, 1);
+        my $dbh = PMG::DBTools::open_ruledb("Proxmox_ruledb");
+        my $ruledb = PMG::RuleDB->new($dbh);
+        PMG::DBTools::init_ruledb($ruledb, 1);
 
-	return undef;
-   }});
+        return undef;
+    },
+});
 
 __PACKAGE__->register_method({
     name => 'ruledb_digest',
     path => 'digest',
     method => 'GET',
-    description => "Returns the rule database digest. This is used internally for cluster synchronization.",
+    description =>
+        "Returns the rule database digest. This is used internally for cluster synchronization.",
     # always run on local node, root@pam only
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
-    permissions => { check => [ 'admin', 'audit' ] },
+    permissions => { check => ['admin', 'audit'] },
     returns => { type => 'string' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $rdb = PMG::RuleDB->new();
-	my $rulecache = PMG::RuleCache->new($rdb);
+        my $rdb = PMG::RuleDB->new();
+        my $rulecache = PMG::RuleCache->new($rdb);
 
-	return $rulecache->{digest};
-    }});
+        return $rulecache->{digest};
+    },
+});
 
 __PACKAGE__->register_method({
     name => 'list_rules',
@@ -105,52 +109,53 @@ __PACKAGE__->register_method({
     method => 'GET',
     description => "Get list of rules.",
     proxyto => 'master',
-    permissions => { check => [ 'admin', 'audit' ] },
+    permissions => { check => ['admin', 'audit'] },
     parameters => {
-	additionalProperties => 0,
-	properties => {},
+        additionalProperties => 0,
+        properties => {},
     },
     returns => {
-	type => 'array',
-	items => {
-	    type => "object",
-	    properties => {
-		id => { type => 'integer' },
-	    },
-	},
-	links => [ { rel => 'child', href => "{id}" } ],
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                id => { type => 'integer' },
+            },
+        },
+        links => [{ rel => 'child', href => "{id}" }],
     },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $rdb = PMG::RuleDB->new();
+        my $rdb = PMG::RuleDB->new();
 
-	my $rules = $rdb->load_rules();
+        my $rules = $rdb->load_rules();
 
-	my $res = [];
+        my $res = [];
 
-	my $cond_create_group = sub {
-	    my ($res, $name, $groupdata) = @_;
+        my $cond_create_group = sub {
+            my ($res, $name, $groupdata) = @_;
 
-	    return if !$groupdata;
+            return if !$groupdata;
 
-	    $res->{$name} = PMG::API2::ObjectGroupHelpers::format_object_group($groupdata);
-	};
+            $res->{$name} = PMG::API2::ObjectGroupHelpers::format_object_group($groupdata);
+        };
 
-	foreach my $rule (@$rules) {
-	    my ($from, $to, $when, $what, $action) =
-		$rdb->load_groups($rule);
+        foreach my $rule (@$rules) {
+            my ($from, $to, $when, $what, $action) = $rdb->load_groups($rule);
 
-	    my $data = PMG::API2::ObjectGroupHelpers::format_rule(
-		$rule, $from, $to, $when, $what, $action);
+            my $data =
+                PMG::API2::ObjectGroupHelpers::format_rule($rule, $from, $to, $when, $what,
+                    $action);
 
-	    push @$res, $data;
-	}
+            push @$res, $data;
+        }
 
-	$rdb->close();
+        $rdb->close();
 
-	return $res;
-    }});
+        return $res;
+    },
+});
 
 __PACKAGE__->register_method({
     name => 'create_rule',
@@ -159,44 +164,44 @@ __PACKAGE__->register_method({
     description => "Create new rule.",
     proxyto => 'master',
     protected => 1,
-    permissions => { check => [ 'admin' ] },
+    permissions => { check => ['admin'] },
     parameters => {
-	additionalProperties => 0,
-	properties => PMG::API2::Rules::get_rule_params({
-	    name => {
-		description => "Rule name",
-		type => 'string',
-	    },
-	    priority => {
-		description => "Rule priority.",
-		type => 'integer',
-		minimum => 0,
-		maximum => 100,
-	    },
-	}),
+        additionalProperties => 0,
+        properties => PMG::API2::Rules::get_rule_params({
+            name => {
+                description => "Rule name",
+                type => 'string',
+            },
+            priority => {
+                description => "Rule priority.",
+                type => 'integer',
+                minimum => 0,
+                maximum => 100,
+            },
+        }),
     },
     returns => { type => 'integer' },
     code => sub {
-	my ($param) = @_;
+        my ($param) = @_;
 
-	my $rdb = PMG::RuleDB->new();
+        my $rdb = PMG::RuleDB->new();
 
-	my $rule = PMG::RuleDB::Rule->new ($param->{name}, $param->{priority});
+        my $rule = PMG::RuleDB::Rule->new($param->{name}, $param->{priority});
 
-	for my $key (keys PMG::API2::Rules::get_rule_params()->%*) {
-	    $rule->{$key} = $param->{$key} if defined($param->{$key});
-	}
+        for my $key (keys PMG::API2::Rules::get_rule_params()->%*) {
+            $rule->{$key} = $param->{$key} if defined($param->{$key});
+        }
 
-	return $rdb->save_rule($rule);
-    }});
+        return $rdb->save_rule($rule);
+    },
+});
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => 'PMG::API2::Rules',
     path => 'rules/{id}',
 });
 
-
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => 'PMG::API2::Action',
     path => 'action',
 });
@@ -205,20 +210,19 @@ PMG::API2::ObjectGroupHelpers::register_group_list_api(__PACKAGE__, 'what');
 PMG::API2::ObjectGroupHelpers::register_group_list_api(__PACKAGE__, 'when');
 PMG::API2::ObjectGroupHelpers::register_group_list_api(__PACKAGE__, 'who');
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => 'PMG::API2::Who',
     path => 'who/{ogroup}',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => 'PMG::API2::When',
     path => 'when/{ogroup}',
 });
 
-__PACKAGE__->register_method ({
+__PACKAGE__->register_method({
     subclass => 'PMG::API2::What',
     path => 'what/{ogroup}',
 });
-
 
 1;

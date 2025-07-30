@@ -23,12 +23,12 @@ sub otype_text {
 }
 
 sub oisedit {
-    return 0;   
+    return 0;
 }
 
 sub new {
     my ($type, $ogroup) = @_;
-    
+
     my $class = ref($type) || $type;
 
     my $self = $class->SUPER::new($class->otype(), $ogroup);
@@ -38,14 +38,14 @@ sub new {
 
 sub load_attr {
     my ($type, $ruledb, $id, $ogroup, $value) = @_;
-    
+
     my $class = ref($type) || $type;
 
-    my $obj = $class->new ($ogroup);
+    my $obj = $class->new($ogroup);
     $obj->{id} = $id;
 
     $obj->{digest} = Digest::SHA::sha1_hex($id, $ogroup);
-    
+
     return $obj;
 }
 
@@ -54,21 +54,21 @@ sub save {
 
     defined($self->{ogroup}) || return undef;
 
-    if (defined ($self->{id})) {
-	# update
+    if (defined($self->{id})) {
+        # update
 
-	# nothing to update
+        # nothing to update
     } else {
-	# insert
+        # insert
 
-	my $sth = $ruledb->{dbh}->prepare(
-	    "INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
+        my $sth = $ruledb->{dbh}
+            ->prepare("INSERT INTO Object (Objectgroup_ID, ObjectType) VALUES (?, ?);");
 
-	$sth->execute($self->ogroup, $self->otype);
+        $sth->execute($self->ogroup, $self->otype);
 
-	$self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
+        $self->{id} = PMG::Utils::lastid($ruledb->{dbh}, 'object_id_seq');
     }
-	
+
     return $self->{id};
 }
 
@@ -76,28 +76,28 @@ sub what_match {
     my ($self, $queue, $entity, $msginfo) = @_;
 
     if ($queue->{vinfo}) {
-	return [];
-    } 
+        return [];
+    }
 
     return undef;
 }
 
 sub short_desc {
     my $self = shift;
-    
+
     return "active";
 }
 
 sub properties {
     my ($class) = @_;
 
-    return { };
+    return {};
 }
 
 sub get {
     my ($self) = @_;
 
-    return { };
+    return {};
 }
 
 sub update {

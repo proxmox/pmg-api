@@ -27,20 +27,20 @@ sub remote_node_ip {
 
     my $cinfo = PMG::ClusterConfig->new();
 
-    foreach my $entry (values %{$cinfo->{ids}}) {
-	if ($entry->{name} eq $nodename) {
-	    my $ip = $entry->{ip};
-	    return $ip if !wantarray;
-	    my $family = PVE::Tools::get_host_address_family($ip);
-	    return ($ip, $family);
-	}
+    foreach my $entry (values %{ $cinfo->{ids} }) {
+        if ($entry->{name} eq $nodename) {
+            my $ip = $entry->{ip};
+            return $ip if !wantarray;
+            my $family = PVE::Tools::get_host_address_family($ip);
+            return ($ip, $family);
+        }
     }
 
     # fallback: try to get IP by other means
     if ($nodename eq 'localhost' || $nodename eq PVE::INotify::nodename()) {
-	return PVE::Network::get_local_ip();
+        return PVE::Network::get_local_ip();
     } else {
-	return PVE::Network::get_ip_from_hostname($nodename, $noerr);
+        return PVE::Network::get_ip_from_hostname($nodename, $noerr);
     }
 }
 
@@ -59,28 +59,26 @@ sub read_local_ssl_cert_fingerprint {
 
     my $cert;
     eval {
-	my $bio = Net::SSLeay::BIO_new_file($cert_path, 'r');
-	$cert = Net::SSLeay::PEM_read_bio_X509($bio);
-	Net::SSLeay::BIO_free($bio);
+        my $bio = Net::SSLeay::BIO_new_file($cert_path, 'r');
+        $cert = Net::SSLeay::PEM_read_bio_X509($bio);
+        Net::SSLeay::BIO_free($bio);
     };
     if (my $err = $@) {
-	die "unable to read certificate '$cert_path' - $err\n";
+        die "unable to read certificate '$cert_path' - $err\n";
     }
 
     if (!defined($cert)) {
-	die "unable to read certificate '$cert_path' - got empty value\n";
+        die "unable to read certificate '$cert_path' - got empty value\n";
     }
 
     my $fp;
-    eval {
-	$fp = Net::SSLeay::X509_get_fingerprint($cert, 'sha256');
-    };
+    eval { $fp = Net::SSLeay::X509_get_fingerprint($cert, 'sha256'); };
     if (my $err = $@) {
-	die "unable to get fingerprint for '$cert_path' - $err\n";
+        die "unable to get fingerprint for '$cert_path' - $err\n";
     }
 
     if (!defined($fp) || $fp eq '') {
-	die "unable to get fingerprint for '$cert_path' - got empty value\n";
+        die "unable to get fingerprint for '$cert_path' - got empty value\n";
     }
 
     return $fp;
@@ -100,7 +98,7 @@ sub read_local_cluster_info {
 
     my $sshpubkeypattern = PMG::ClusterConfig::Node::valid_ssh_pubkey_regex();
     die "unable to parse ${hostrsapubkey_fn}\n"
-	if $hostrsapubkey !~ m/$sshpubkeypattern/;
+        if $hostrsapubkey !~ m/$sshpubkeypattern/;
 
     my $nodename = PVE::INotify::nodename();
 
@@ -110,11 +108,10 @@ sub read_local_cluster_info {
 
     $res->{hostrsapubkey} = $hostrsapubkey;
 
-    if (! -f $rootrsapubkey_fn) {
-	unlink $rootrsakey_fn;
-	my $cmd = ['ssh-keygen', '-t', 'rsa', '-N', '', '-b', '2048',
-		   '-f', $rootrsakey_fn];
-	PMG::Utils::run_silent_cmd($cmd);
+    if (!-f $rootrsapubkey_fn) {
+        unlink $rootrsakey_fn;
+        my $cmd = ['ssh-keygen', '-t', 'rsa', '-N', '', '-b', '2048', '-f', $rootrsakey_fn];
+        PMG::Utils::run_silent_cmd($cmd);
     }
 
     my $rootrsapubkey = PVE::Tools::file_read_firstline($rootrsapubkey_fn);
@@ -122,7 +119,7 @@ sub read_local_cluster_info {
     $rootrsapubkey =~ s/\s+root\@\S+\s*$//i;
 
     die "unable to parse ${rootrsapubkey_fn}\n"
-	if $rootrsapubkey !~ m/$sshpubkeypattern/;
+        if $rootrsapubkey !~ m/$sshpubkeypattern/;
 
     $res->{rootrsapubkey} = $rootrsapubkey;
 
@@ -146,13 +143,13 @@ sub update_cert_cache {
 
     my $cinfo = PMG::ClusterConfig->new();
 
-    foreach my $entry (values %{$cinfo->{ids}}) {
-	my $node = $entry->{name};
-	my $fp = $entry->{fingerprint};
-	if ($node && $fp) {
-	    $cert_cache_fingerprints->{$fp} = 1;
-	    $cert_cache_nodes->{$node} = $fp;
-	}
+    foreach my $entry (values %{ $cinfo->{ids} }) {
+        my $node = $entry->{name};
+        my $fp = $entry->{fingerprint};
+        if ($node && $fp) {
+            $cert_cache_fingerprints->{$fp} = 1;
+            $cert_cache_nodes->{$node} = $fp;
+        }
     }
 }
 
@@ -161,36 +158,37 @@ sub initialize_cert_cache {
     my ($node) = @_;
 
     update_cert_cache()
-	if defined($node) && !defined($cert_cache_nodes->{$node});
+        if defined($node) && !defined($cert_cache_nodes->{$node});
 }
 
 sub check_cert_fingerprint {
     my ($cert) = @_;
 
     # clear cache every 30 minutes at least
-    update_cert_cache() if time() - $cert_cache_timestamp >= 60*30;
+    update_cert_cache() if time() - $cert_cache_timestamp >= 60 * 30;
 
     # get fingerprint of server certificate
     my $fp;
-    eval {
-	$fp = Net::SSLeay::X509_get_fingerprint($cert, 'sha256');
-    };
+    eval { $fp = Net::SSLeay::X509_get_fingerprint($cert, 'sha256'); };
     return 0 if $@ || !defined($fp) || $fp eq ''; # error
 
     my $check = sub {
-	for my $expected (keys %$cert_cache_fingerprints) {
-	    return 1 if $fp eq $expected;
-	}
-	return 0;
+        for my $expected (keys %$cert_cache_fingerprints) {
+            return 1 if $fp eq $expected;
+        }
+        return 0;
     };
 
     return 1 if $check->();
 
     # clear cache and retry at most once every minute
     if (time() - $cert_cache_timestamp >= 60) {
-	syslog ('info', "Could not verify remote node certificate '$fp' with list of pinned certificates, refreshing cache");
-	update_cert_cache();
-	return $check->();
+        syslog(
+            'info',
+            "Could not verify remote node certificate '$fp' with list of pinned certificates, refreshing cache",
+        );
+        update_cert_cache();
+        return $check->();
     }
 
     return 0;
@@ -206,52 +204,52 @@ sub update_ssh_keys {
     my $old = '';
     my $data = '';
 
-    foreach my $node (values %{$cinfo->{ids}}) {
-	$data .= "$node->{ip} ssh-rsa $node->{hostrsapubkey}\n";
-	$data .= "$node->{name} ssh-rsa $node->{hostrsapubkey}\n";
+    foreach my $node (values %{ $cinfo->{ids} }) {
+        $data .= "$node->{ip} ssh-rsa $node->{hostrsapubkey}\n";
+        $data .= "$node->{name} ssh-rsa $node->{hostrsapubkey}\n";
     }
 
-    $old = PVE::Tools::file_get_contents($sshglobalknownhosts, 1024*1024)
-	if -f $sshglobalknownhosts;
+    $old = PVE::Tools::file_get_contents($sshglobalknownhosts, 1024 * 1024)
+        if -f $sshglobalknownhosts;
 
     PVE::Tools::file_set_contents($sshglobalknownhosts, $data)
-	if $old ne $data;
+        if $old ne $data;
 
     $data = '';
     $old = '';
 
     # always add ourself
     if (-f $ssh_rsa_id) {
-	my $pub = PVE::Tools::file_get_contents($ssh_rsa_id);
-	chomp($pub);
-	$data .= "$pub\n";
+        my $pub = PVE::Tools::file_get_contents($ssh_rsa_id);
+        chomp($pub);
+        $data .= "$pub\n";
     }
 
-    foreach my $node (values %{$cinfo->{ids}}) {
-	$data .= "ssh-rsa $node->{rootrsapubkey} root\@$node->{name}\n";
+    foreach my $node (values %{ $cinfo->{ids} }) {
+        $data .= "ssh-rsa $node->{rootrsapubkey} root\@$node->{name}\n";
     }
 
     if (-f $rootsshauthkeys) {
-	my $mykey = PVE::Tools::file_get_contents($rootsshauthkeys, 128*1024);
-	chomp($mykey);
-	$data .= "$mykey\n";
+        my $mykey = PVE::Tools::file_get_contents($rootsshauthkeys, 128 * 1024);
+        chomp($mykey);
+        $data .= "$mykey\n";
     }
 
     my $newdata = "";
     my $vhash = {};
     my @lines = split(/\n/, $data);
     foreach my $line (@lines) {
-	if ($line !~ /^#/ && $line =~ m/(^|\s)ssh-(rsa|dsa)\s+(\S+)\s+\S+$/) {
+        if ($line !~ /^#/ && $line =~ m/(^|\s)ssh-(rsa|dsa)\s+(\S+)\s+\S+$/) {
             next if $vhash->{$3}++;
-	}
-	$newdata .= "$line\n";
+        }
+        $newdata .= "$line\n";
     }
 
-    $old = PVE::Tools::file_get_contents($rootsshauthkeys, 1024*1024)
-	if -f $rootsshauthkeys;
+    $old = PVE::Tools::file_get_contents($rootsshauthkeys, 1024 * 1024)
+        if -f $rootsshauthkeys;
 
     PVE::Tools::file_set_contents($rootsshauthkeys, $newdata, 0600)
-	if $old ne $newdata;
+        if $old ne $newdata;
 }
 
 my $cfgdir = '/etc/pmg';
@@ -263,23 +261,23 @@ my $cond_commit_synced_file = sub {
     $dstfn = "$cfgdir/$filename" if !defined($dstfn);
     my $srcfn = "$syncdir/$filename";
 
-    if (! -f $srcfn) {
-	unlink $dstfn;
-	return;
+    if (!-f $srcfn) {
+        unlink $dstfn;
+        return;
     }
 
-    my $new = PVE::Tools::file_get_contents($srcfn, 1024*1024);
+    my $new = PVE::Tools::file_get_contents($srcfn, 1024 * 1024);
 
     if (-f $dstfn) {
-	my $old = PVE::Tools::file_get_contents($dstfn, 1024*1024);
-	return 0 if $new eq $old;
+        my $old = PVE::Tools::file_get_contents($dstfn, 1024 * 1024);
+        return 0 if $new eq $old;
     }
 
     # set mtime (touch) to avoid time drift problems
     utime(undef, undef, $srcfn);
 
-    rename($srcfn, $dstfn) ||
-	die "cond_rename_file '$filename' failed - $!\n";
+    rename($srcfn, $dstfn)
+        || die "cond_rename_file '$filename' failed - $!\n";
 
     print STDERR "updated $dstfn\n";
 
@@ -301,17 +299,20 @@ sub get_remote_cert_fingerprint {
     my $ssh_cmd = $ssh_command->(
         $ni->{name},
         $ni->{ip},
-        'openssl x509 -noout -fingerprint -sha256 -in /etc/pmg/pmg-api.pem'
+        'openssl x509 -noout -fingerprint -sha256 -in /etc/pmg/pmg-api.pem',
     );
     my $fp;
     eval {
-	PVE::Tools::run_command($ssh_cmd, outfunc => sub {
-	    my ($line) = @_;
-	    if ($line =~ m/SHA256 Fingerprint=((?:[a-f0-9]{2}:){31}[a-f0-9]{2})/i) {
-		$fp = $1;
-	    }
-	});
-	die "parsing failed\n" if !$fp;
+        PVE::Tools::run_command(
+            $ssh_cmd,
+            outfunc => sub {
+                my ($line) = @_;
+                if ($line =~ m/SHA256 Fingerprint=((?:[a-f0-9]{2}:){31}[a-f0-9]{2})/i) {
+                    $fp = $1;
+                }
+            },
+        );
+        die "parsing failed\n" if !$fp;
     };
     die "unable to get remote node fingerprint from '$ni->{name}': $@\n" if $@;
 
@@ -327,19 +328,19 @@ sub trigger_update_fingerprints {
     # if running on master the current fingerprint for the API-connection is needed
     # in addition (to prevent races with restarting pmgproxy
     if ($cinfo->{local}->{type} eq 'master') {
-	my $new_fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
-	$cached_fp->{$new_fp} = 1;
+        my $new_fp = PMG::Cluster::read_local_ssl_cert_fingerprint();
+        $cached_fp->{$new_fp} = 1;
     }
 
     my $ticket = PMG::Ticket::assemble_ticket('root@pam');
     my $csrftoken = PMG::Ticket::assemble_csrf_prevention_token('root@pam');
     my $conn = PVE::APIClient::LWP->new(
-	ticket => $ticket,
-	csrftoken => $csrftoken,
-	cookie_name => 'PMGAuthCookie',
-	host => $master->{ip},
-	cached_fingerprints => $cached_fp,
-	);
+        ticket => $ticket,
+        csrftoken => $csrftoken,
+        cookie_name => 'PMGAuthCookie',
+        host => $master->{ip},
+        cached_fingerprints => $cached_fp,
+    );
 
     $conn->post("/config/cluster/update-fingerprints", {});
     return undef;
@@ -348,9 +349,9 @@ sub trigger_update_fingerprints {
 my $rsync_command = sub {
     my ($host_key_alias, @args) = @_;
 
-    my $ssh_cmd = join(' ', @{$ssh_command->($host_key_alias)});
+    my $ssh_cmd = join(' ', @{ $ssh_command->($host_key_alias) });
 
-    my $cmd = ['rsync', "--rsh=$ssh_cmd",  '-q', @args];
+    my $cmd = ['rsync', "--rsh=$ssh_cmd", '-q', @args];
 
     return $cmd;
 };
@@ -365,8 +366,14 @@ sub sync_quarantine_files {
     mkdir $syncdir;
 
     my $cmd = $rsync_command->(
-	$host_name, '--timeout', '10', "[${host_ip}]:$spooldir", $spooldir,
-	'--files-from', $flistname);
+        $host_name,
+        '--timeout',
+        '10',
+        "[${host_ip}]:$spooldir",
+        $spooldir,
+        '--files-from',
+        $flistname,
+    );
 
     PVE::Tools::run_command($cmd);
 }
@@ -380,11 +387,11 @@ sub sync_spooldir {
     my $syncdir = "$spooldir/cluster/$rcid";
     mkdir $syncdir;
 
-    my $cmd = $rsync_command->(
-	$host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir/", $syncdir);
+    my $cmd =
+        $rsync_command->($host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir/", $syncdir);
 
     foreach my $incl (('spam/', 'spam/*', 'spam/*/*', 'virus/', 'virus/*', 'virus/*/*')) {
-	push @$cmd, '--include', $incl;
+        push @$cmd, '--include', $incl;
     }
 
     push @$cmd, '--exclude', '*';
@@ -400,8 +407,8 @@ sub sync_master_quar {
     my $syncdir = "$spooldir/cluster/";
     mkdir $syncdir;
 
-    my $cmd = $rsync_command->(
-	$host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir", $syncdir);
+    my $cmd =
+        $rsync_command->($host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir", $syncdir);
 
     PVE::Tools::run_command($cmd);
 }
@@ -410,44 +417,50 @@ sub sync_config_from_master {
     my ($master_name, $master_ip, $noreload) = @_;
 
     mkdir $syncdir;
-    File::Path::remove_tree($syncdir, {keep_root => 1});
+    File::Path::remove_tree($syncdir, { keep_root => 1 });
 
     my $sa_conf_dir = "/etc/mail/spamassassin";
     my $sa_custom_cf = "custom.cf";
     my $sa_rules_cf = "pmg-scores.cf";
 
     my $cmd = $rsync_command->(
-	$master_name, '-aq',
-	"[${master_ip}]:$cfgdir/*",
-	"[${master_ip}]:${sa_conf_dir}/${sa_custom_cf}",
-	"[${master_ip}]:${sa_conf_dir}/${sa_rules_cf}",
-	"$syncdir/",
-	'--exclude', 'master/',
-	'--exclude', '*~',
-	'--exclude', '*.db',
-	'--exclude', 'pmg-api.pem',
-	'--exclude', 'pmg-tls.pem',
-	);
+        $master_name,
+        '-aq',
+        "[${master_ip}]:$cfgdir/*",
+        "[${master_ip}]:${sa_conf_dir}/${sa_custom_cf}",
+        "[${master_ip}]:${sa_conf_dir}/${sa_rules_cf}",
+        "$syncdir/",
+        '--exclude',
+        'master/',
+        '--exclude',
+        '*~',
+        '--exclude',
+        '*.db',
+        '--exclude',
+        'pmg-api.pem',
+        '--exclude',
+        'pmg-tls.pem',
+    );
 
     my $errmsg = "syncing master configuration from '${master_ip}' failed";
     PVE::Tools::run_command($cmd, errmsg => $errmsg);
 
     # verify that the remote host is cluster master
-    open (my $fh, '<', "$syncdir/cluster.conf") ||
-	die "unable to open synced cluster.conf - $!\n";
+    open(my $fh, '<', "$syncdir/cluster.conf")
+        || die "unable to open synced cluster.conf - $!\n";
 
     my $cinfo = PMG::ClusterConfig::read_cluster_conf('cluster.conf', $fh);
 
     if (!$cinfo->{master} || ($cinfo->{master}->{ip} ne $master_ip)) {
-	die "host '$master_ip' is not cluster master\n";
+        die "host '$master_ip' is not cluster master\n";
     }
 
     my $role = $cinfo->{'local'}->{type} // '-';
     die "local node '$cinfo->{local}->{name}' not part of cluster\n"
-	if $role eq '-';
+        if $role eq '-';
 
     die "local node '$cinfo->{local}->{name}' is new cluster master\n"
-	if $role eq 'master';
+        if $role eq 'master';
 
     $cond_commit_synced_file->('cluster.conf');
 
@@ -456,48 +469,45 @@ sub sync_config_from_master {
     PMG::Fetchmail::update_fetchmail_default(0); # disable on slave
 
     my $files = [
-	'pmg-authkey.key',
-	'pmg-authkey.pub',
-	'pmg-csrf.key',
-	'ldap.conf',
-	'user.conf',
-	'realms.conf',
-	'tfa.json',
-	'domains',
-	'mynetworks',
-	'transport',
-	'tls_policy',
-	'tls_inbound_domains',
-	'fetchmailrc',
-	];
+        'pmg-authkey.key',
+        'pmg-authkey.pub',
+        'pmg-csrf.key',
+        'ldap.conf',
+        'user.conf',
+        'realms.conf',
+        'tfa.json',
+        'domains',
+        'mynetworks',
+        'transport',
+        'tls_policy',
+        'tls_inbound_domains',
+        'fetchmailrc',
+    ];
 
     foreach my $filename (@$files) {
-	$cond_commit_synced_file->($filename);
+        $cond_commit_synced_file->($filename);
     }
 
     my $dirs = [
-	'templates',
-	'dkim',
-	'pbs',
-	'acme',
+        'templates', 'dkim', 'pbs', 'acme',
     ];
 
     foreach my $dir (@$dirs) {
-	my $srcdir = "$syncdir/$dir";
+        my $srcdir = "$syncdir/$dir";
 
-	if ( -d $srcdir ) {
-	    my $cmd = ['rsync', '-aq', '--delete-after', "$srcdir/", "$cfgdir/$dir"];
-	    PVE::Tools::run_command($cmd);
-	}
+        if (-d $srcdir) {
+            my $cmd = ['rsync', '-aq', '--delete-after', "$srcdir/", "$cfgdir/$dir"];
+            PVE::Tools::run_command($cmd);
+        }
 
     }
 
     my $force_restart = {};
 
     for my $file (($sa_custom_cf, $sa_rules_cf)) {
-	if ($cond_commit_synced_file->($file, "${sa_conf_dir}/${file}")) {
-	    $force_restart->{'pmg-smtp-filter'} = 1;
-	}
+        if ($cond_commit_synced_file->($file, "${sa_conf_dir}/${file}")) {
+            $force_restart->{'pmg-smtp-filter'} = 1;
+        }
     }
 
     $cond_commit_synced_file->('pmg.conf');
@@ -512,12 +522,13 @@ sub sync_ruledb_from_master {
     my $rulecache = PMG::RuleCache->new($ruledb);
 
     my $conn = PVE::APIClient::LWP->new(
-	ticket => $ticket,
-	cookie_name => 'PMGAuthCookie',
-	host => $ni->{ip},
-	cached_fingerprints => {
-	    $ni->{fingerprint} => 1,
-	});
+        ticket => $ticket,
+        cookie_name => 'PMGAuthCookie',
+        host => $ni->{ip},
+        cached_fingerprints => {
+            $ni->{fingerprint} => 1,
+        },
+    );
 
     my $digest = $conn->get("/config/ruledb/digest", {});
 
@@ -526,44 +537,44 @@ sub sync_ruledb_from_master {
     syslog('info', "detected rule database changes - starting sync from '$ni->{ip}'");
 
     eval {
-	$ldb->begin_work;
+        $ldb->begin_work;
 
-	$ldb->do("DELETE FROM Rule");
-	$ldb->do("DELETE FROM RuleGroup");
-	$ldb->do("DELETE FROM ObjectGroup");
-	$ldb->do("DELETE FROM Object");
-	$ldb->do("DELETE FROM Attribut");
+        $ldb->do("DELETE FROM Rule");
+        $ldb->do("DELETE FROM RuleGroup");
+        $ldb->do("DELETE FROM ObjectGroup");
+        $ldb->do("DELETE FROM Object");
+        $ldb->do("DELETE FROM Attribut");
 
-	eval {
-	    $rdb->begin_work;
+        eval {
+            $rdb->begin_work;
 
-	    # read a consistent snapshot
-	    $rdb->do("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+            # read a consistent snapshot
+            $rdb->do("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 
-	    PMG::DBTools::copy_table($ldb, $rdb, "Rule");
-	    PMG::DBTools::copy_table($ldb, $rdb, "RuleGroup");
-	    PMG::DBTools::copy_table($ldb, $rdb, "ObjectGroup");
-	    PMG::DBTools::copy_table($ldb, $rdb, "Object", 'value');
-	    PMG::DBTools::copy_table($ldb, $rdb, "Attribut", 'value');
-	    PMG::DBTools::copy_table($ldb, $rdb, "Rule_Attributes");
-	    PMG::DBTools::copy_table($ldb, $rdb, "Objectgroup_Attributes");
-	};
+            PMG::DBTools::copy_table($ldb, $rdb, "Rule");
+            PMG::DBTools::copy_table($ldb, $rdb, "RuleGroup");
+            PMG::DBTools::copy_table($ldb, $rdb, "ObjectGroup");
+            PMG::DBTools::copy_table($ldb, $rdb, "Object", 'value');
+            PMG::DBTools::copy_table($ldb, $rdb, "Attribut", 'value');
+            PMG::DBTools::copy_table($ldb, $rdb, "Rule_Attributes");
+            PMG::DBTools::copy_table($ldb, $rdb, "Objectgroup_Attributes");
+        };
 
-	$rdb->rollback; # end transaction
+        $rdb->rollback; # end transaction
 
-	die $@ if $@;
+        die $@ if $@;
 
-	# update sequences
+        # update sequences
 
-	$ldb->do("SELECT setval('rule_id_seq', max(id)+1) FROM Rule");
-	$ldb->do("SELECT setval('object_id_seq', max(id)+1) FROM Object");
-	$ldb->do("SELECT setval('objectgroup_id_seq', max(id)+1) FROM ObjectGroup");
+        $ldb->do("SELECT setval('rule_id_seq', max(id)+1) FROM Rule");
+        $ldb->do("SELECT setval('object_id_seq', max(id)+1) FROM Object");
+        $ldb->do("SELECT setval('objectgroup_id_seq', max(id)+1) FROM ObjectGroup");
 
-	$ldb->commit;
+        $ldb->commit;
     };
     if (my $err = $@) {
-	$ldb->rollback;
-	die $err;
+        $ldb->rollback;
+        die $err;
     }
 
     PMG::DBTools::reload_ruledb();
@@ -590,99 +601,105 @@ sub sync_quarantine_db {
 
     do { # get new values
 
-	$count = 0;
+        $count = 0;
 
-	my $flistname = "/tmp/quarantinefilelist.$$";
+        my $flistname = "/tmp/quarantinefilelist.$$";
 
-	eval {
-	    $ldb->begin_work;
+        eval {
+            $ldb->begin_work;
 
-	    open(my $flistfh, '>', $flistname) ||
-		die "unable to open file '$flistname' - $!\n";
+            open(my $flistfh, '>', $flistname)
+                || die "unable to open file '$flistname' - $!\n";
 
-	    my $lastid = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastid_CMailStore');
+            my $lastid = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastid_CMailStore');
 
-	    # sync CMailStore
+            # sync CMailStore
 
-	    my $sth = $rdb->prepare(
-		"SELECT * from CMailstore WHERE cid = ? AND rid > ? " .
-		"ORDER BY cid,rid LIMIT ?");
-	    $sth->execute($rcid, $lastid, $maxcount);
+            my $sth = $rdb->prepare("SELECT * from CMailstore WHERE cid = ? AND rid > ? "
+                . "ORDER BY cid,rid LIMIT ?");
+            $sth->execute($rcid, $lastid, $maxcount);
 
-	    my $maxid;
-	    my $callback = sub {
-		my $ref = shift;
-		$maxid = $ref->{rid};
-		my $filename = $ref->{file};
-		 # skip files generated before cluster was created
-		return if $filename !~ m!^cluster/!;
-		print $flistfh "$filename\n";
-	    };
+            my $maxid;
+            my $callback = sub {
+                my $ref = shift;
+                $maxid = $ref->{rid};
+                my $filename = $ref->{file};
+                # skip files generated before cluster was created
+                return if $filename !~ m!^cluster/!;
+                print $flistfh "$filename\n";
+            };
 
-	    my $attrs = [qw(cid rid time qtype bytes spamlevel info sender header file)];
-	    $count += PMG::DBTools::copy_selected_data($ldb, $sth, 'CMailStore', $attrs, $callback);
+            my $attrs = [qw(cid rid time qtype bytes spamlevel info sender header file)];
+            $count +=
+                PMG::DBTools::copy_selected_data($ldb, $sth, 'CMailStore', $attrs, $callback);
 
-	    close($flistfh);
+            close($flistfh);
 
-	    my $starttime = [ gettimeofday() ];
-	    sync_quarantine_files($ni->{ip}, $ni->{name}, $flistname, $rcid);
-	    $$rsynctime_ref += tv_interval($starttime);
+            my $starttime = [gettimeofday()];
+            sync_quarantine_files($ni->{ip}, $ni->{name}, $flistname, $rcid);
+            $$rsynctime_ref += tv_interval($starttime);
 
-	    if ($maxid) {
-		# sync CMSReceivers
+            if ($maxid) {
+                # sync CMSReceivers
 
-		$sth = $rdb->prepare(
-		    "SELECT * from CMSReceivers WHERE " .
-		    "CMailStore_CID = ? AND CMailStore_RID > ?  " .
-		    "AND CMailStore_RID <= ?");
-		$sth->execute($rcid, $lastid, $maxid);
+                $sth =
+                    $rdb->prepare("SELECT * from CMSReceivers WHERE "
+                        . "CMailStore_CID = ? AND CMailStore_RID > ?  "
+                        . "AND CMailStore_RID <= ?");
+                $sth->execute($rcid, $lastid, $maxid);
 
-		$attrs = [qw(cmailstore_cid cmailstore_rid pmail receiver ticketid status mtime)];
-		PMG::DBTools::copy_selected_data($ldb, $sth, 'CMSReceivers', $attrs);
+                $attrs =
+                    [qw(cmailstore_cid cmailstore_rid pmail receiver ticketid status mtime)];
+                PMG::DBTools::copy_selected_data($ldb, $sth, 'CMSReceivers', $attrs);
 
-		PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastid_CMailStore', $maxid);
-	    }
+                PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastid_CMailStore',
+                    $maxid);
+            }
 
-	    $ldb->commit;
-	};
-	my $err = $@;
+            $ldb->commit;
+        };
+        my $err = $@;
 
-	unlink $flistname;
+        unlink $flistname;
 
-	if ($err) {
-	    $ldb->rollback;
-	    die $err;
-	}
+        if ($err) {
+            $ldb->rollback;
+            die $err;
+        }
 
-	$mscount += $count;
+        $mscount += $count;
 
     } while (($count >= $maxcount) && ($mscount < $maxmails));
 
     PMG::DBTools::create_clusterinfo_default($ldb, $rcid, 'lastmt_CMSReceivers', 0, undef);
 
     eval { # synchronize status updates
-	$ldb->begin_work;
+        $ldb->begin_work;
 
-	my $lastmt = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers');
+        my $lastmt = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers');
 
-	my $sth = $rdb->prepare ("SELECT * from CMSReceivers WHERE mtime >= ? AND status != 'N'");
-	$sth->execute($lastmt);
+        my $sth =
+            $rdb->prepare("SELECT * from CMSReceivers WHERE mtime >= ? AND status != 'N'");
+        $sth->execute($lastmt);
 
-	my $update_sth = $ldb->prepare(
-	    "UPDATE CMSReceivers SET status = ? WHERE " .
-	    "CMailstore_CID = ? AND CMailstore_RID = ? AND TicketID = ?");
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    $update_sth->execute($ref->{status}, $ref->{cmailstore_cid},
-				 $ref->{cmailstore_rid}, $ref->{ticketid});
-	}
+        my $update_sth = $ldb->prepare("UPDATE CMSReceivers SET status = ? WHERE "
+            . "CMailstore_CID = ? AND CMailstore_RID = ? AND TicketID = ?");
+        while (my $ref = $sth->fetchrow_hashref()) {
+            $update_sth->execute(
+                $ref->{status},
+                $ref->{cmailstore_cid},
+                $ref->{cmailstore_rid},
+                $ref->{ticketid},
+            );
+        }
 
-	PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers', $ctime);
+        PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers', $ctime);
 
-	$ldb->commit;
+        $ldb->commit;
     };
     if (my $err = $@) {
-	$ldb->rollback;
-	die $err;
+        $ldb->rollback;
+        die $err;
     }
 
     return $mscount;
@@ -701,58 +718,56 @@ sub sync_statistic_db {
 
     my $count;
 
-    PMG::DBTools::create_clusterinfo_default(
-	$ldb, $rcid, 'lastid_CStatistic', -1, undef);
+    PMG::DBTools::create_clusterinfo_default($ldb, $rcid, 'lastid_CStatistic', -1, undef);
 
     do { # get new values
 
-	$count = 0;
+        $count = 0;
 
-	eval {
-	    $ldb->begin_work;
+        eval {
+            $ldb->begin_work;
 
-	    my $lastid = PMG::DBTools::read_int_clusterinfo(
-		$ldb, $rcid, 'lastid_CStatistic');
+            my $lastid = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastid_CStatistic');
 
-	    # sync CStatistic
+            # sync CStatistic
 
-	    my $sth = $rdb->prepare(
-		"SELECT * from CStatistic " .
-		"WHERE cid = ? AND rid > ? " .
-		"ORDER BY cid, rid LIMIT ?");
-	    $sth->execute($rcid, $lastid, $maxcount);
+            my $sth =
+                $rdb->prepare("SELECT * from CStatistic "
+                    . "WHERE cid = ? AND rid > ? "
+                    . "ORDER BY cid, rid LIMIT ?");
+            $sth->execute($rcid, $lastid, $maxcount);
 
-	    my $maxid;
-	    my $callback = sub {
-		my $ref = shift;
-		$maxid = $ref->{rid};
-	    };
+            my $maxid;
+            my $callback = sub {
+                my $ref = shift;
+                $maxid = $ref->{rid};
+            };
 
-	    my $attrs = [qw(cid rid time bytes direction spamlevel ptime virusinfo sender)];
-	    $count += PMG::DBTools::copy_selected_data($ldb, $sth, 'CStatistic', $attrs, $callback);
+            my $attrs = [qw(cid rid time bytes direction spamlevel ptime virusinfo sender)];
+            $count +=
+                PMG::DBTools::copy_selected_data($ldb, $sth, 'CStatistic', $attrs, $callback);
 
-	    if ($maxid) {
-		# sync CReceivers
+            if ($maxid) {
+                # sync CReceivers
 
-		$sth = $rdb->prepare(
-		    "SELECT * from CReceivers WHERE " .
-		    "CStatistic_CID = ? AND CStatistic_RID > ? AND CStatistic_RID <= ?");
-		$sth->execute($rcid, $lastid, $maxid);
+                $sth = $rdb->prepare("SELECT * from CReceivers WHERE "
+                    . "CStatistic_CID = ? AND CStatistic_RID > ? AND CStatistic_RID <= ?");
+                $sth->execute($rcid, $lastid, $maxid);
 
-		$attrs = [qw(cstatistic_cid cstatistic_rid blocked receiver)];
-		PMG::DBTools::copy_selected_data($ldb, $sth, 'CReceivers', $attrs);
-	    }
+                $attrs = [qw(cstatistic_cid cstatistic_rid blocked receiver)];
+                PMG::DBTools::copy_selected_data($ldb, $sth, 'CReceivers', $attrs);
+            }
 
-	    PMG::DBTools::write_maxint_clusterinfo ($ldb, $rcid, 'lastid_CStatistic', $maxid);
+            PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastid_CStatistic', $maxid);
 
-	    $ldb->commit;
-	};
-	if (my $err = $@) {
-	    $ldb->rollback;
-	    die $err;
-	}
+            $ldb->commit;
+        };
+        if (my $err = $@) {
+            $ldb->rollback;
+            die $err;
+        }
 
-	$mscount += $count;
+        $mscount += $count;
 
     } while (($count >= $maxcount) && ($mscount < $maxmails));
 
@@ -777,24 +792,24 @@ my $sync_generic_mtime_db = sub {
     my $updates = 0;
 
     eval {
-	# use transaction to speedup things
-	my $max = 1000; # UPDATE MAX ENTRIES AT ONCE
-	my $count = 0;
-	while (my $ref = $sth->fetchrow_hashref()) {
-	    $ldb->begin_work if !$count;
-	    $mergefunc->($ref);
-	    if (++$count >= $max) {
-		$count = 0;
-		$ldb->commit;
-	    }
-	    $updates++;
-	}
+        # use transaction to speedup things
+        my $max = 1000; # UPDATE MAX ENTRIES AT ONCE
+        my $count = 0;
+        while (my $ref = $sth->fetchrow_hashref()) {
+            $ldb->begin_work if !$count;
+            $mergefunc->($ref);
+            if (++$count >= $max) {
+                $count = 0;
+                $ldb->commit;
+            }
+            $updates++;
+        }
 
-	$ldb->commit if $count;
+        $ldb->commit if $count;
     };
     if (my $err = $@) {
-	$ldb->rollback;
-	die $err;
+        $ldb->rollback;
+        die $err;
     }
 
     PMG::DBTools::write_maxint_clusterinfo($ldb, $ni->{cid}, "lastmt_$table", $ctime);
@@ -808,20 +823,27 @@ sub sync_localstat_db {
     my $rcid = $ni->{cid};
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
-	return "SELECT * from LocalStat WHERE mtime >= $lastmt AND cid = $rcid";
+        my ($ctime, $lastmt) = @_;
+        return "SELECT * from LocalStat WHERE mtime >= $lastmt AND cid = $rcid";
     };
 
-    my $merge_sth = $dbh->prepare(
-	'INSERT INTO LocalStat (Time, RBLCount, PregreetCount, CID, MTime) ' .
-	'VALUES (?, ?, ?, ?, ?) ' .
-	'ON CONFLICT (Time, CID) DO UPDATE SET ' .
-	'RBLCount = excluded.RBLCount, PregreetCount = excluded.PregreetCount, MTime = excluded.MTime');
+    my $merge_sth =
+        $dbh->prepare('INSERT INTO LocalStat (Time, RBLCount, PregreetCount, CID, MTime) '
+            . 'VALUES (?, ?, ?, ?, ?) '
+            . 'ON CONFLICT (Time, CID) DO UPDATE SET '
+            . 'RBLCount = excluded.RBLCount, PregreetCount = excluded.PregreetCount, MTime = excluded.MTime'
+        );
 
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	$merge_sth->execute($ref->{time}, $ref->{rblcount}, $ref->{pregreetcount}, $ref->{cid}, $ref->{mtime});
+        $merge_sth->execute(
+            $ref->{time},
+            $ref->{rblcount},
+            $ref->{pregreetcount},
+            $ref->{cid},
+            $ref->{mtime},
+        );
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'LocalStat', $selectfunc, $mergefunc);
@@ -831,21 +853,30 @@ sub sync_greylist_db {
     my ($dbh, $rdb, $ni) = @_;
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
-	return "SELECT * from CGreylist WHERE extime >= $ctime AND " .
-	    "mtime >= $lastmt AND CID != 0";
+        my ($ctime, $lastmt) = @_;
+        return "SELECT * from CGreylist WHERE extime >= $ctime AND "
+            . "mtime >= $lastmt AND CID != 0";
     };
 
     my $merge_sth = $dbh->prepare(PMG::DBTools::cgreylist_merge_sql());
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	my $ipnet = $ref->{ipnet};
-	$ipnet .= '.0/24' if $ipnet !~ /\/\d+$/;
-	$merge_sth->execute(
-	    $ipnet, $ref->{sender}, $ref->{receiver},
-	    $ref->{instance}, $ref->{rctime}, $ref->{extime}, $ref->{delay},
-	    $ref->{blocked}, $ref->{passed}, 0, $ref->{cid});
+        my $ipnet = $ref->{ipnet};
+        $ipnet .= '.0/24' if $ipnet !~ /\/\d+$/;
+        $merge_sth->execute(
+            $ipnet,
+            $ref->{sender},
+            $ref->{receiver},
+            $ref->{instance},
+            $ref->{rctime},
+            $ref->{extime},
+            $ref->{delay},
+            $ref->{blocked},
+            $ref->{passed},
+            0,
+            $ref->{cid},
+        );
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'CGreylist', $selectfunc, $mergefunc);
@@ -855,23 +886,25 @@ sub sync_userprefs_db {
     my ($dbh, $rdb, $ni) = @_;
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
+        my ($ctime, $lastmt) = @_;
 
-	return "SELECT * from UserPrefs WHERE mtime >= $lastmt";
+        return "SELECT * from UserPrefs WHERE mtime >= $lastmt";
     };
 
     my $merge_sth = $dbh->prepare(
-	"INSERT INTO UserPrefs (PMail, Name, Data, MTime) " .
-	'VALUES (?, ?, ?, ?) ' .
-	'ON CONFLICT (PMail, Name) DO UPDATE SET ' .
-	# Note: MTime = 0 ==> this is just a copy from somewhere else, not modified
-	'MTime = CASE WHEN excluded.MTime >= UserPrefs.MTime THEN 0 ELSE UserPrefs.MTime END, ' .
-	'Data = CASE WHEN excluded.MTime >= UserPrefs.MTime THEN excluded.Data ELSE UserPrefs.Data END');
+        "INSERT INTO UserPrefs (PMail, Name, Data, MTime) "
+            . 'VALUES (?, ?, ?, ?) '
+            . 'ON CONFLICT (PMail, Name) DO UPDATE SET '
+            .
+            # Note: MTime = 0 ==> this is just a copy from somewhere else, not modified
+            'MTime = CASE WHEN excluded.MTime >= UserPrefs.MTime THEN 0 ELSE UserPrefs.MTime END, '
+            . 'Data = CASE WHEN excluded.MTime >= UserPrefs.MTime THEN excluded.Data ELSE UserPrefs.Data END'
+    );
 
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	$merge_sth->execute($ref->{pmail}, $ref->{name}, $ref->{data}, $ref->{mtime});
+        $merge_sth->execute($ref->{pmail}, $ref->{name}, $ref->{data}, $ref->{mtime});
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'UserPrefs', $selectfunc, $mergefunc);
@@ -881,31 +914,42 @@ sub sync_domainstat_db {
     my ($dbh, $rdb, $ni) = @_;
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
-	return "SELECT * from DomainStat WHERE mtime >= $lastmt";
+        my ($ctime, $lastmt) = @_;
+        return "SELECT * from DomainStat WHERE mtime >= $lastmt";
     };
 
-    my $merge_sth = $dbh->prepare(
-	'INSERT INTO Domainstat ' .
-	'(Time,Domain,CountIn,CountOut,BytesIn,BytesOut,VirusIn,VirusOut,SpamIn,SpamOut,' .
-	'BouncesIn,BouncesOut,PTimeSum,Mtime) ' .
-	'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' .
-	'ON CONFLICT (Time, Domain) DO UPDATE SET ' .
-	'CountIn = excluded.CountIn, CountOut = excluded.CountOut, ' .
-	'BytesIn = excluded.BytesIn, BytesOut = excluded.BytesOut, ' .
-	'VirusIn = excluded.VirusIn, VirusOut = excluded.VirusOut, ' .
-	'SpamIn = excluded.SpamIn, SpamOut = excluded.SpamOut, ' .
-	'BouncesIn = excluded.BouncesIn, BouncesOut = excluded.BouncesOut, ' .
-	'PTimeSum = excluded.PTimeSum, MTime = excluded.MTime');
+    my $merge_sth =
+        $dbh->prepare('INSERT INTO Domainstat '
+            . '(Time,Domain,CountIn,CountOut,BytesIn,BytesOut,VirusIn,VirusOut,SpamIn,SpamOut,'
+            . 'BouncesIn,BouncesOut,PTimeSum,Mtime) '
+            . 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) '
+            . 'ON CONFLICT (Time, Domain) DO UPDATE SET '
+            . 'CountIn = excluded.CountIn, CountOut = excluded.CountOut, '
+            . 'BytesIn = excluded.BytesIn, BytesOut = excluded.BytesOut, '
+            . 'VirusIn = excluded.VirusIn, VirusOut = excluded.VirusOut, '
+            . 'SpamIn = excluded.SpamIn, SpamOut = excluded.SpamOut, '
+            . 'BouncesIn = excluded.BouncesIn, BouncesOut = excluded.BouncesOut, '
+            . 'PTimeSum = excluded.PTimeSum, MTime = excluded.MTime');
 
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	$merge_sth->execute(
-	    $ref->{time}, $ref->{domain}, $ref->{countin}, $ref->{countout},
-	    $ref->{bytesin}, $ref->{bytesout},
-	    $ref->{virusin}, $ref->{virusout}, $ref->{spamin}, $ref->{spamout},
-	    $ref->{bouncesin}, $ref->{bouncesout}, $ref->{ptimesum}, $ref->{mtime});
+        $merge_sth->execute(
+            $ref->{time},
+            $ref->{domain},
+            $ref->{countin},
+            $ref->{countout},
+            $ref->{bytesin},
+            $ref->{bytesout},
+            $ref->{virusin},
+            $ref->{virusout},
+            $ref->{spamin},
+            $ref->{spamout},
+            $ref->{bouncesin},
+            $ref->{bouncesout},
+            $ref->{ptimesum},
+            $ref->{mtime},
+        );
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'DomainStat', $selectfunc, $mergefunc);
@@ -915,34 +959,46 @@ sub sync_dailystat_db {
     my ($dbh, $rdb, $ni) = @_;
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
-	return "SELECT * from DailyStat WHERE mtime >= $lastmt";
+        my ($ctime, $lastmt) = @_;
+        return "SELECT * from DailyStat WHERE mtime >= $lastmt";
     };
 
-    my $merge_sth = $dbh->prepare(
-	'INSERT INTO DailyStat ' .
-	'(Time,CountIn,CountOut,BytesIn,BytesOut,VirusIn,VirusOut,SpamIn,SpamOut,' .
-	'BouncesIn,BouncesOut,GreylistCount,SPFCount,RBLCount,PTimeSum,Mtime) ' .
-	'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ' .
-	'ON CONFLICT (Time) DO UPDATE SET ' .
-	'CountIn = excluded.CountIn, CountOut = excluded.CountOut, ' .
-	'BytesIn = excluded.BytesIn, BytesOut = excluded.BytesOut, ' .
-	'VirusIn = excluded.VirusIn, VirusOut = excluded.VirusOut, ' .
-	'SpamIn = excluded.SpamIn, SpamOut = excluded.SpamOut, ' .
-	'BouncesIn = excluded.BouncesIn, BouncesOut = excluded.BouncesOut, ' .
-	'GreylistCount = excluded.GreylistCount, SPFCount = excluded.SpfCount, ' .
-	'RBLCount = excluded.RBLCount, ' .
-	'PTimeSum = excluded.PTimeSum, MTime = excluded.MTime');
+    my $merge_sth =
+        $dbh->prepare('INSERT INTO DailyStat '
+            . '(Time,CountIn,CountOut,BytesIn,BytesOut,VirusIn,VirusOut,SpamIn,SpamOut,'
+            . 'BouncesIn,BouncesOut,GreylistCount,SPFCount,RBLCount,PTimeSum,Mtime) '
+            . 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) '
+            . 'ON CONFLICT (Time) DO UPDATE SET '
+            . 'CountIn = excluded.CountIn, CountOut = excluded.CountOut, '
+            . 'BytesIn = excluded.BytesIn, BytesOut = excluded.BytesOut, '
+            . 'VirusIn = excluded.VirusIn, VirusOut = excluded.VirusOut, '
+            . 'SpamIn = excluded.SpamIn, SpamOut = excluded.SpamOut, '
+            . 'BouncesIn = excluded.BouncesIn, BouncesOut = excluded.BouncesOut, '
+            . 'GreylistCount = excluded.GreylistCount, SPFCount = excluded.SpfCount, '
+            . 'RBLCount = excluded.RBLCount, '
+            . 'PTimeSum = excluded.PTimeSum, MTime = excluded.MTime');
 
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	$merge_sth->execute(
-	    $ref->{time}, $ref->{countin}, $ref->{countout},
-	    $ref->{bytesin}, $ref->{bytesout},
-	    $ref->{virusin}, $ref->{virusout}, $ref->{spamin}, $ref->{spamout},
-	    $ref->{bouncesin}, $ref->{bouncesout}, $ref->{greylistcount},
-	    $ref->{spfcount}, $ref->{rblcount}, $ref->{ptimesum}, $ref->{mtime});
+        $merge_sth->execute(
+            $ref->{time},
+            $ref->{countin},
+            $ref->{countout},
+            $ref->{bytesin},
+            $ref->{bytesout},
+            $ref->{virusin},
+            $ref->{virusout},
+            $ref->{spamin},
+            $ref->{spamout},
+            $ref->{bouncesin},
+            $ref->{bouncesout},
+            $ref->{greylistcount},
+            $ref->{spfcount},
+            $ref->{rblcount},
+            $ref->{ptimesum},
+            $ref->{mtime},
+        );
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'DailyStat', $selectfunc, $mergefunc);
@@ -952,20 +1008,20 @@ sub sync_virusinfo_db {
     my ($dbh, $rdb, $ni) = @_;
 
     my $selectfunc = sub {
-	my ($ctime, $lastmt) = @_;
-	return "SELECT * from VirusInfo WHERE mtime >= $lastmt";
+        my ($ctime, $lastmt) = @_;
+        return "SELECT * from VirusInfo WHERE mtime >= $lastmt";
     };
 
-    my $merge_sth = $dbh->prepare(
-	'INSERT INTO VirusInfo (Time,Name,Count,MTime) ' .
-	'VALUES (?,?,?,?) ' .
-	'ON CONFLICT (Time,Name) DO UPDATE SET ' .
-	'Count = excluded.Count , MTime = excluded.MTime');
+    my $merge_sth =
+        $dbh->prepare('INSERT INTO VirusInfo (Time,Name,Count,MTime) '
+            . 'VALUES (?,?,?,?) '
+            . 'ON CONFLICT (Time,Name) DO UPDATE SET '
+            . 'Count = excluded.Count , MTime = excluded.MTime');
 
     my $mergefunc = sub {
-	my ($ref) = @_;
+        my ($ref) = @_;
 
-	$merge_sth->execute($ref->{time}, $ref->{name}, $ref->{count}, $ref->{mtime});
+        $merge_sth->execute($ref->{time}, $ref->{name}, $ref->{count}, $ref->{mtime});
     };
 
     return $sync_generic_mtime_db->($dbh, $rdb, $ni, 'VirusInfo', $selectfunc, $mergefunc);
@@ -977,8 +1033,8 @@ sub sync_deleted_nodes_from_master {
     my $rsynctime = 0;
 
     my $cid_hash = {}; # fast lookup
-    foreach my $ni (values %{$cinfo->{ids}}) {
-	$cid_hash->{$ni->{cid}} = $ni;
+    foreach my $ni (values %{ $cinfo->{ids} }) {
+        $cid_hash->{ $ni->{cid} } = $ni;
     }
 
     my $spooldir = $PMG::MailQueue::spooldir;
@@ -986,31 +1042,30 @@ sub sync_deleted_nodes_from_master {
     my $maxcid = $cinfo->{master}->{maxcid} // 0;
 
     for (my $rcid = 1; $rcid <= $maxcid; $rcid++) {
-	next if $cid_hash->{$rcid};
+        next if $cid_hash->{$rcid};
 
-	my $done_marker = "$spooldir/cluster/$rcid/.synced-deleted-node";
+        my $done_marker = "$spooldir/cluster/$rcid/.synced-deleted-node";
 
-	next if -f $done_marker; # already synced
+        next if -f $done_marker; # already synced
 
-	syslog('info', "syncing deleted node $rcid from master '$masterni->{ip}'");
+        syslog('info', "syncing deleted node $rcid from master '$masterni->{ip}'");
 
-	my $starttime = [ gettimeofday() ];
-	sync_spooldir($masterni->{ip}, $masterni->{name}, $rcid);
-	$$rsynctime_ref += tv_interval($starttime);
+        my $starttime = [gettimeofday()];
+        sync_spooldir($masterni->{ip}, $masterni->{name}, $rcid);
+        $$rsynctime_ref += tv_interval($starttime);
 
-	my $fake_ni = {
-	    ip => $masterni->{ip},
-	    name => $masterni->{name},
-	    cid => $rcid,
-	};
+        my $fake_ni = {
+            ip => $masterni->{ip},
+            name => $masterni->{name},
+            cid => $rcid,
+        };
 
-	sync_quarantine_db($ldb, $masterdb, $fake_ni);
+        sync_quarantine_db($ldb, $masterdb, $fake_ni);
 
-	sync_statistic_db ($ldb, $masterdb, $fake_ni);
+        sync_statistic_db($ldb, $masterdb, $fake_ni);
 
-	open(my $fh, ">>",  $done_marker);
-   }
+        open(my $fh, ">>", $done_marker);
+    }
 }
-
 
 1;
