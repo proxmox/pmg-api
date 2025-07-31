@@ -77,6 +77,7 @@ my $decompressors = {
     # 'application/x-compressed-tar' => [ 'guzip', \&uncompress_file ], # unpack_tar is faster
     'application/x-tarz' => ['uncompress', \&uncompress_file],
     'application/x-bzip' => ['bunzip2', \&uncompress_file],
+    'application/x-bzip2' => ['bunzip2', \&uncompress_file],
     'application/x-bzip-compressed-tar' => ['bunzip2', \&uncompress_file],
 };
 
