@@ -698,13 +698,15 @@ sub init_ruledb {
     $ruledb->group_add_object($office_content, $obj);
 
     # Dangerous Content
-    $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-ms-dos-executable');
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/vnd\.microsoft\.portable-executable');
     my $exe_content = $ruledb->create_group_with_obj(
         $obj,
         'Dangerous Content',
         'executable files and partial messages',
     );
 
+    $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-msdownload');
+    $ruledb->group_add_object($exe_content, $obj);
     $obj = PMG::RuleDB::ContentTypeFilter->new('application/x-java');
     $ruledb->group_add_object($exe_content, $obj);
     $obj = PMG::RuleDB::ContentTypeFilter->new('application/javascript');
