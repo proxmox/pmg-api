@@ -12,7 +12,8 @@ use PMG::RuleDB::MatchField;
 use base qw(PMG::RuleDB::MatchField);
 
 my $oldtypemap = {
-    'application/x-msdos-program' => 'application/x-ms-dos-executable',
+    'application/x-msdos-program' => 'application/vnd\.microsoft\.portable-executable',
+    'application/x-ms-dos-executable' => 'application/vnd\.microsoft\.portable-executable',
     'application/java-vm' => 'application/x-java',
     'application/x-javascript' => 'application/javascript',
 };
