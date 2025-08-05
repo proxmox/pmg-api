@@ -214,8 +214,8 @@ install: $(SOURCES) $(addsuffix .service-bash-completion, $(SERVICES)) $(addsuff
 	for i in $(CONF_MANS); do install -D -m 0644 $$i $(DESTDIR)/usr/share/man/man5/$$i; done
 	for i in $(SERVICE_MANS); do install -D -m 0644 $$i $(DESTDIR)/usr/share/man/man8/$$i; done
 	for i in $(CRONSCRIPTS); do install -D -m 0755 bin/$$i $(DESTDIR)/usr/lib/pmg/bin/$$i; done
-	install -d -m 0755 $(DESTDIR)/lib/systemd/system
-	for i in $(TIMER_UNITS); do install -m 0644 $$i $(DESTDIR)/lib/systemd/system/; done
+	install -d -m 0755 $(DESTDIR)/usr/lib/systemd/system
+	for i in $(TIMER_UNITS); do install -m 0644 $$i $(DESTDIR)/usr/lib/systemd/system/; done
 	install -D -m 0644 pmg-initramfs.conf $(DESTDIR)/etc/initramfs-tools/conf.d/pmg-initramfs.conf
 
 .PHONY: tidy
