@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use PMG::CLI::pmg8to9;
+
+PMG::CLI::pmg8to9->run_cli_handler();

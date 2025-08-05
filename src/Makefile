@@ -7,7 +7,7 @@ DOCDIR=$(DESTDIR)/usr/share/doc/pmg-api/
 BASHCOMPLDIR=$(DESTDIR)/usr/share/bash-completion/completions/
 
 SERVICES = pmgdaemon pmgproxy pmgtunnel pmgmirror
-CLITOOLS = pmgdb pmgconfig pmgperf pmgcm pmgqm pmgreport pmgversion pmgupgrade pmgsubscription pmgbackup pmg7to8
+CLITOOLS = pmgdb pmgconfig pmgperf pmgcm pmgqm pmgreport pmgversion pmgupgrade pmgsubscription pmgbackup pmg7to8 pmg8to9
 CLISCRIPTS = pmg-smtp-filter pmgsh pmgpolicy pmgbanner pmg-system-report
 CRONSCRIPTS = pmg-hourly pmg-daily
 
@@ -242,6 +242,15 @@ pmg7to8.1: bin/pmg7to8
 	printf "Any failure must be addressed before the upgrade, and any warning must be addressed, \
 	 or at least carefully evaluated, if a false-positive is suspected\n" >> $@.tmp
 	printf ".SH SYNOPSIS\npmg7to8\n" >> $@.tmp
+	mv $@.tmp $@
+
+pmg8to9.1: bin/pmg8to9
+	printf ".TH PMG8TO9 1\n.SH NAME\npmg8to9 \- Proxmox Mail Gateway upgrade checker script for 8.2+ to current 9.x\n" > $@.tmp
+	printf ".SH DESCRIPTION\nThis tool will help you to detect common pitfalls and misconfguration\
+	 before, and during the upgrade of a Proxmox Mail Gateway system\n" >> $@.tmp
+	printf "Any failure must be addressed before the upgrade, and any warning must be addressed, \
+	 or at least carefully evaluated, if a false-positive is suspected\n" >> $@.tmp
+	printf ".SH SYNOPSIS\npmg8to9\n" >> $@.tmp
 	mv $@.tmp $@
 
 %.1: bin/%
