@@ -804,10 +804,6 @@ sub find_local_network_for_ip {
     die "unable to detect local network for ip '$ip'\n";
 }
 
-my $service_aliases = {
-    'postfix' => 'postfix@-',
-};
-
 sub lookup_real_service_name {
     my $alias = shift;
 
@@ -816,7 +812,7 @@ sub lookup_real_service_name {
         return "postgresql\@${pg_ver}-main";
     }
 
-    return $service_aliases->{$alias} // $alias;
+    return $alias;
 }
 
 sub get_full_service_state {
