@@ -76,7 +76,7 @@
 scan      unix  -       -       n       -       [% pmg.mail.max_filters %]      lmtp
   -o lmtp_send_xforward_command=yes
   -o lmtp_connection_cache_on_demand=no
-  -o disable_dns_lookups=yes
+  -o smtp_dns_support_level=disabled
 [% END -%]
 
 [% pmg.mail.int_port %]       inet  n -       -       -       [% pmg.mail.max_smtpd_out %]      smtpd
