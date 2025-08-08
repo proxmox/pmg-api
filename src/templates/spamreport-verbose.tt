@@ -1,6 +1,8 @@
 [%- IF timespan == 'week' -%]
 [%- SET title = "Weekly Spam Report for '${pmail}' - ${date}'" -%]
-[%- ELSE %]
+[%- ELSIF timespan.substr(timespan.length - 1) == 'h' -%]
+[%- SET title = "Spam Report (last ${timespan}) for '${pmail}' - ${date}" -%]
+[%- ELSE -%]
 [%- SET title = "Daily Spam Report for '${pmail}' - ${date}" -%]
 [%- END -%]
 

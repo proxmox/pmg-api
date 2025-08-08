@@ -1389,13 +1389,19 @@ sub finalize_report {
 sub lookup_timespan {
     my ($timespan) = @_;
 
-    my (undef, undef, undef, $mday, $mon, $year) = localtime(time());
+    my $now = time();
+    my (undef, undef, undef, $mday, $mon, $year) = localtime($now);
     my $daystart = timelocal(0, 0, 0, $mday, $mon, $year);
 
     my $start;
     my $end;
 
-    if ($timespan eq 'today') {
+    if ($timespan =~ m/^(\d{1,2})h$/) {
+        my $hours = int($1);
+        die "invalid hour timespan '$timespan'\n" if $hours < 1 || $hours > 24;
+        $end = $now;
+        $start = $end - $hours * 3600;
+    } elsif ($timespan eq 'today') {
         $start = $daystart;
         $end = $start + 86400;
     } elsif ($timespan eq 'yesterday') {
