@@ -391,9 +391,12 @@ sub check_apt_repos {
     # TODO: check that (original) debian and Proxmox MG mirrors are present.
 
     my ($found_suite, $found_suite_where);
-    my ($mismatches, $strange_suite);
+    my ($mismatches, $strange_suites);
 
-    my $check_file = sub {
+    my ($found_pmg_test_repo, $found_legacy_spelled_pmg_test_repo) = (0, 0);
+    my $found_pmg_test_repo_suite;
+
+    my $check_list_file = sub {
         my ($file) = @_;
 
         $file = "${dir}/${file}" if $in_dir;
@@ -412,23 +415,27 @@ sub check_apt_repos {
 
             next if $line !~ m/^deb[[:space:]]/; # is case sensitive
 
-            my $suite;
-            if ($line =~ m|deb\s+\w+://\S+\s+(\S*)|i) {
-                $suite = $1;
+            my ($url, $suite, $component);
+            if ($line =~ m|deb\s+(?:\[[^\]]*\]\s+)?(\w+://\S+)\s+(?:(\S+)(?:\s+(\S+))?)?|i) {
+                ($url, $suite, $component) = ($1, $2, $3);
             } else {
                 next;
             }
             my $where = "in ${file}:${number}";
 
-            $suite =~ s/-(?:(?:proposed-)?updates|backports|security)$//;
+            if (defined($component)) {
+                if ($component =~ /pmg-?test/) {
+                    $found_pmg_test_repo = 1;
+                    # just safe one, mismatched suite check will handle multiple different ones already
+                    $found_pmg_test_repo_suite = $suite;
+                    $found_legacy_spelled_pmg_test_repo = 1 if $component eq 'pmgtest';
+                }
+            }
+
+            $suite =~ s/-(?:(?:proposed-)?updates|backports|debug|security)(?:-debug)?$//;
             $suite =~ s/^debian-//;
             if ($suite ne $old_suite && $suite ne $new_suite) {
-                log_notice(
-                    "found unusual suite '$suite', neither old '$old_suite' nor new '$new_suite'.."
-                        . "\n    Affected file:line $where"
-                        . "\n    Please assure this is shipping compatible packages for the upgrade!"
-                );
-                $strange_suite = 1;
+                push $strange_suites->@*, { suite => $suite, where => $where };
                 next;
             }
 
@@ -448,23 +455,64 @@ sub check_apt_repos {
         }
     };
 
-    $check_file->("/etc/apt/sources.list");
+    $check_list_file->("/etc/apt/sources.list");
 
     $in_dir = 1;
 
-    PVE::Tools::dir_glob_foreach($dir, '^.*\.list$', $check_file);
+    PVE::Tools::dir_glob_foreach($dir, '^.*\.list$', $check_list_file);
 
+    if ($strange_suites) {
+        my @strange_list = map { "found suite $_->{suite} at $_->{where}" } $strange_suites->@*;
+        log_notice(
+            "found unusual suites that are neither old '$old_suite' nor new '$new_suite':"
+                . "\n    "
+                . join("\n    ", @strange_list)
+                . "\n  Please ensure these repositories are shipping compatible packages for the upgrade!"
+        );
+    }
     if (defined($mismatches)) {
         my @mismatch_list = map { "found suite $_->{suite} at $_->{where}" } $mismatches->@*;
 
         log_fail(
             "Found mixed old and new package repository suites, fix before upgrading! Mismatches:"
                 . "\n    "
-                . join("\n    ", @mismatch_list));
-    } elsif ($strange_suite) {
+                . join("\n    ", @mismatch_list)
+                . "\n  Configure the same base-suite for all Proxmox and Debian provided repos and ask"
+                . " original vendor for any third-party repos."
+                . "\n  E.g., for the upgrade to Proxmox Mail Gateway "
+                . ($min_pmg_major + 1)
+                . " use the '$new_suite' suite.");
+    } elsif (defined($strange_suites)) {
         log_notice("found no suite mismatches, but found at least one strange suite");
     } else {
         log_pass("found no suite mismatch");
+    }
+
+    if ($found_pmg_test_repo) {
+        log_info(
+            "Found test repo for Proxmox Mail Gateway, checking compatibility with updated 'pmg-test' spelling."
+        );
+        if ($found_legacy_spelled_pmg_test_repo) {
+            my $_log = $found_pmg_test_repo_suite eq $new_suite ? \&log_fail : \&log_warn;
+            $_log->(
+                "Found legacy spelling 'pmgtest' of the pmg-test repo. Change the repo to use"
+                    . " 'pmg-test' when updating the repos to the '$new_suite' suite for Proxmox Mail Gateway 9!"
+            );
+        } elsif ($found_pmg_test_repo_suite eq $new_suite) {
+            log_pass(
+                "Found modern spelling 'pmg-test' of the pmg-test repo for new suite '$new_suite'."
+            );
+        } elsif ($found_pmg_test_repo_suite eq $old_suite) {
+            log_fail(
+                "Found modern spelling 'pmg-test' but old suite '$old_suite', did you forgot to update the suite?"
+            );
+        } else {
+            # TODO: remove the whole check with PMail Gateway 10, one cannot really update to latest 9.4 with
+            # an old test repo anyway
+            log_fail(
+                "Found modern spelling 'pmg-test' but unexpected suite '$found_pmg_test_repo_suite'"
+            );
+        }
     }
 }
 
