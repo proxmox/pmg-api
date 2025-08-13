@@ -543,30 +543,70 @@ sub check_bootloader {
     log_info("Checking bootloader configuration...");
 
     if (!-d '/sys/firmware/efi') {
+        if (-f "/usr/share/doc/systemd-boot/changelog.Debian.gz") {
+            log_info(
+                "systemd-boot package installed on legacy-boot system is not necessary, consider removing it"
+            );
+            return;
+        }
         log_skip("System booted in legacy-mode - no need for additional packages");
         return;
     }
 
+    my $boot_ok = 1;
     if (-f "/etc/kernel/proxmox-boot-uuids") {
         if (!$upgraded) {
-            log_skip("not yet upgraded, no need to check the presence of systemd-boot");
+            log_skip("not yet upgraded, systemd-boot still needed for bootctl");
             return;
         }
         if (-f "/usr/share/doc/systemd-boot/changelog.Debian.gz") {
-            log_pass("bootloader packages installed correctly");
+            log_fail("systemd-boot meta-package installed this will cause issues on upgrades of"
+                . " boot-related packages. Install 'systemd-boot-efi' and 'systemd-boot-tools' explicitly"
+                . " and remove 'systemd-boot'");
             return;
         }
-        log_warn("proxmox-boot-tool is used for bootloader configuration in uefi mode"
-            . " but the separate systemd-boot package is not installed,"
-            . " initializing new ESPs will not work until the package is installed");
-        return;
-    } elsif (!-f "/usr/share/doc/grub-efi-amd64/changelog.Debian.gz") {
-        log_warn("System booted in uefi mode but grub-efi-amd64 meta-package not installed,"
-            . " new grub versions will not be installed to /boot/efi!"
-            . " Install grub-efi-amd64.");
-        return;
-    } else {
         log_pass("bootloader packages installed correctly");
+    } else {
+        if (-f "/usr/share/doc/systemd-boot/changelog.Debian.gz") {
+            log_fail(
+                "systemd-boot meta-package installed. This will cause problems on upgrades of other"
+                    . " boot-related packages. Remove 'systemd-boot' See"
+                    . " https://pve.proxmox.com/wiki/Upgrade_from_8_to_9#sd-boot-warning for more information."
+            );
+            $boot_ok = 0;
+        }
+        if (!-f "/usr/share/doc/grub-efi-amd64/changelog.Debian.gz") {
+            log_warn("System booted in uefi mode but grub-efi-amd64 meta-package not installed,"
+                . " new grub versions will not be installed to /boot/efi! Install grub-efi-amd64."
+            );
+            $boot_ok = 0;
+        }
+        if (-f "/boot/efi/EFI/BOOT/BOOTX64.efi") {
+            my $update_removable_missing = 1;
+            my $exit_code = eval {
+                run_command(
+                    ['debconf-show', '--db', 'configdb', 'grub-efi-amd64', 'grub-pc'],
+                    outfunc => sub {
+                        my ($line) = @_;
+                        if ($line =~ m|grub2/force_efi_extra_removable: +true$|) {
+                            $update_removable_missing = 0;
+                        }
+                    },
+                    noerr => 1,
+                );
+            };
+            if ($update_removable_missing) {
+                log_warn(
+                    "Removable bootloader found at '/boot/efi/EFI/BOOT/BOOTX64.efi', but GRUB packages"
+                        . " not set up to update it!\nRun the following command:\n"
+                        . "echo 'grub-efi-amd64 grub2/force_efi_extra_removable boolean true' | debconf-set-selections -v -u\n"
+                        . "Then reinstall GRUB with 'apt install --reinstall grub-efi-amd64'");
+                $boot_ok = 0;
+            }
+        }
+        if ($boot_ok) {
+            log_pass("bootloader packages installed correctly");
+        }
     }
 }
 
