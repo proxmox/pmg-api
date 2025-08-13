@@ -540,6 +540,11 @@ sub check_time_sync {
 }
 
 sub check_bootloader {
+    if (defined($get_pkg->('proxmox-mailgateway-container'))) {
+        log_skip("Ignore boot-loader issues in containers.");
+        return;
+    }
+
     log_info("Checking bootloader configuration...");
 
     if (!-d '/sys/firmware/efi') {
