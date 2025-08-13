@@ -574,6 +574,37 @@ sub upgradedb {
                 . " AND value = 'content-type:application/x-java-vm';");
     };
 
+    eval {
+        my $insert_sth =
+            $dbh->prepare(
+                "INSERT INTO Object (objecttype, objectgroup_id, value) VALUES (?, ?, ?)");
+        my $select_sth =
+            $dbh->prepare(
+                "SELECT objecttype, objectgroup_id FROM object WHERE objecttype IN (3003, 3005)"
+                . " AND value = 'content-type:application/x-ms-dos-executable'");
+
+        $dbh->begin_work();
+        $select_sth->execute();
+        while (my $ref = $select_sth->fetchrow_hashref()) {
+            $insert_sth->execute(
+                $ref->{objecttype},
+                $ref->{objectgroup_id},
+                "application/vnd\.microsoft\.portable-executable",
+            );
+        }
+
+        $dbh->do(
+            "UPDATE Object SET value = 'content-type:application/x-msdownload' WHERE objecttype in (3003, 3005)"
+                . " AND value = 'content-type:application/x-ms-dos-executable';");
+
+        $dbh->commit();
+    };
+
+    if (my $err = $@) {
+        $dbh->rollback;
+        die $err;
+    }
+
     # increase column size of cgreylist.ipnet for ipv6 support and transfer data
     eval {
         my $sth =
