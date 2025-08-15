@@ -124,7 +124,7 @@ sub check_addrlist {
     return 0;
 }
 
-sub get_blackwhite {
+sub get_blockwelcome {
     my ($dbh, $entity, $msginfo) = @_;
 
     my $target_info = {};
@@ -149,10 +149,10 @@ sub get_blackwhite {
         while (my $ref = $sth->fetchrow_hashref()) {
             my $pmail = lc(PMG::Utils::try_decode_utf8($ref->{pmail}));
             if ($ref->{name} eq 'WL') {
-                $target_info->{$pmail}->{whitelist} =
+                $target_info->{$pmail}->{welcomelist} =
                     parse_addrlist(PMG::Utils::try_decode_utf8($ref->{data}));
             } elsif ($ref->{name} eq 'BL') {
-                $target_info->{$pmail}->{blacklist} =
+                $target_info->{$pmail}->{blocklist} =
                     parse_addrlist(PMG::Utils::try_decode_utf8($ref->{data}));
             }
         }
@@ -173,7 +173,7 @@ sub what_match_targets {
 
     if (!$queue->{spam_analyzed}) {
         $self->analyze_spam($queue, $entity, $msginfo);
-        $queue->{blackwhite} = get_blackwhite($dbh, $entity, $msginfo);
+        $queue->{blockwelcome} = get_blockwelcome($dbh, $entity, $msginfo);
         $queue->{spam_analyzed} = 1;
     }
 
@@ -200,8 +200,8 @@ sub what_match_targets {
             my $list;
             my $pmail = $msginfo->{pmail}->{$t} || $t;
             if (
-                $queue->{blackwhite}->{$pmail}
-                && ($list = $queue->{blackwhite}->{$pmail}->{whitelist})
+                $queue->{blockwelcome}->{$pmail}
+                && ($list = $queue->{blockwelcome}->{$pmail}->{welcomelist})
                 && check_addrlist($list, $queue->{all_from_addrs})
             ) {
                 syslog(
@@ -233,8 +233,8 @@ sub what_match_targets {
             my $list;
             my $pmail = $msginfo->{pmail}->{$t} || $t;
             if (
-                $queue->{blackwhite}->{$pmail}
-                && ($list = $queue->{blackwhite}->{$pmail}->{blacklist})
+                $queue->{blockwelcome}->{$pmail}
+                && ($list = $queue->{blockwelcome}->{$pmail}->{blocklist})
                 && check_addrlist($list, $queue->{all_from_addrs})
             ) {
                 $target_info->{$t}->{marks} = [];

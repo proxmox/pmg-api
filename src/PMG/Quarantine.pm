@@ -12,7 +12,7 @@ use PMG::RuleDB;
 use PMG::MailQueue;
 use PMG::MIMEUtils;
 
-sub add_to_blackwhite {
+sub add_to_blockwelcome {
     my ($dbh, $username, $listname, $addrs, $delete) = @_;
 
     my $name = $listname eq 'BL' ? 'BL' : 'WL';
@@ -64,9 +64,9 @@ sub add_to_blackwhite {
 
         if (!$delete) {
             my $maxlen = 200000;
-            die "whitelist size exceeds limit (> $maxlen bytes)\n"
+            die "welcomelist size exceeds limit (> $maxlen bytes)\n"
                 if length($wlist) > $maxlen;
-            die "blacklist size exceeds limit (> $maxlen bytes)\n"
+            die "blocklist size exceeds limit (> $maxlen bytes)\n"
                 if length($blist) > $maxlen;
         }
 
