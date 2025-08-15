@@ -216,17 +216,15 @@ __PACKAGE__->register_method({
             die "no options specified\n"
                 if !$delete_str && !scalar(keys %$param);
 
+            die "use /access/password for password changes\n"
+                if defined($param->{password});
+
             foreach my $k (PVE::Tools::split_list($delete_str)) {
                 delete $entry->{$k};
             }
 
             foreach my $k (keys %$param) {
-                my $v = $param->{$k};
-                if ($k eq 'password') {
-                    $entry->{crypt_pass} = PVE::Tools::encrypt_pw($v);
-                } else {
-                    $entry->{$k} = $v;
-                }
+                $entry->{$k} = $param->{$k};
             }
 
             $cfg->write();
