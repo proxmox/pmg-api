@@ -1118,11 +1118,8 @@ sub read_pmg_mynetworks {
             if ($line =~ m!^((?:$IPV4RE|$IPV6RE))/(\d+)\s*(?:#(.*)\s*)?$!) {
                 my ($network, $prefix_size, $comment) = ($1, $2, $3);
                 my $cidr = "$network/${prefix_size}";
-                # FIXME: Drop unused `network_address` and `prefix_size` with PMG 8.0
                 $mynetworks->{$cidr} = {
                     cidr => $cidr,
-                    network_address => $network,
-                    prefix_size => $prefix_size,
                     comment => $comment // '',
                 };
             } else {
