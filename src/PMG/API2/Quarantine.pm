@@ -420,6 +420,199 @@ __PACKAGE__->register_method({
     },
 });
 
+# FIXME: drop white-/blacklist compatibility calls with PMG 10
+
+__PACKAGE__->register_method({
+    name => 'whitelist',
+    path => 'whitelist',
+    method => 'GET',
+    proxyto => 'master',
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    description => "Show user welcomelist.",
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+        },
+    },
+    returns => {
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                address => {
+                    type => "string",
+                },
+            },
+        },
+    },
+    code => sub {
+        my ($param) = @_;
+
+        return $read_or_modify_user_bw_list->('WL', $param);
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'whitelist_add',
+    path => 'whitelist',
+    method => 'POST',
+    proxyto => 'master',
+    description => "Add user welcomelist entries.",
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+            address => get_standard_option(
+                'pmg-welcomeblocklist-entry-list',
+                {
+                    description => "The address you want to add.",
+                },
+            ),
+        },
+    },
+    returns => { type => 'null' },
+    code => sub {
+        my ($param) = @_;
+
+        my $addresses = [split(',', $param->{address})];
+        $read_or_modify_user_bw_list->('WL', $param, $addresses);
+
+        return undef;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'whitelist_delete_base',
+    path => 'whitelist',
+    method => 'DELETE',
+    proxyto => 'master',
+    description => "Delete user welcomelist entries.",
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+            address => get_standard_option(
+                'pmg-welcomeblocklist-entry-list',
+                {
+                    pattern => '',
+                    description =>
+                        "The address, or comma-separated list of addresses, you want to remove.",
+                },
+            ),
+        },
+    },
+    returns => { type => 'null' },
+    code => sub {
+        my ($param) = @_;
+
+        my $addresses = [split(',', $param->{address})];
+        $read_or_modify_user_bw_list->('WL', $param, $addresses, 1);
+
+        return undef;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'blacklist',
+    path => 'blacklist',
+    method => 'GET',
+    proxyto => 'master',
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    description => "Show user blocklist.",
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+        },
+    },
+    returns => {
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                address => {
+                    type => "string",
+                },
+            },
+        },
+    },
+    code => sub {
+        my ($param) = @_;
+
+        return $read_or_modify_user_bw_list->('BL', $param);
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'blacklist_add',
+    path => 'blacklist',
+    method => 'POST',
+    proxyto => 'master',
+    description => "Add user blocklist entries.",
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+            address => get_standard_option(
+                'pmg-welcomeblocklist-entry-list',
+                {
+                    description => "The address you want to add.",
+                },
+            ),
+        },
+    },
+    returns => { type => 'null' },
+    code => sub {
+        my ($param) = @_;
+
+        my $addresses = [split(',', $param->{address})];
+        $read_or_modify_user_bw_list->('BL', $param, $addresses);
+
+        return undef;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'blacklist_delete_base',
+    path => 'blacklist',
+    method => 'DELETE',
+    proxyto => 'master',
+    description => "Delete user blocklist entries.",
+    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            pmail => $pmail_param_type,
+            address => get_standard_option(
+                'pmg-welcomeblocklist-entry-list',
+                {
+                    pattern => '',
+                    description =>
+                        "The address, or comma-separated list of addresses, you want to remove.",
+                },
+            ),
+        },
+    },
+    returns => { type => 'null' },
+    code => sub {
+        my ($param) = @_;
+
+        my $addresses = [split(',', $param->{address})];
+        $read_or_modify_user_bw_list->('BL', $param, $addresses, 1);
+
+        return undef;
+    },
+});
+# FIXME: END: drop white-/blacklist compatibility calls with PMG 10
+
 my $quar_type_map = {
     spam => 'S',
     attachment => 'A',
