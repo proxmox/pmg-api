@@ -108,11 +108,8 @@ LIBSOURCES =				\
 	PMG/RuleDB/ArchiveFilter.pm	\
 	PMG/RuleDB/Spam.pm		\
 	PMG/RuleDB/Virus.pm		\
-	PMG/RuleDB/ReportSpam.pm	\
 	PMG/RuleDB/Remove.pm		\
-	PMG/RuleDB/Attach.pm		\
 	PMG/RuleDB/BCC.pm		\
-	PMG/RuleDB/Counter.pm		\
 	PMG/RuleDB/Notify.pm		\
 	PMG/RuleDB/Disclaimer.pm	\
 	PMG/RuleDB/Accept.pm		\

@@ -28,7 +28,6 @@ use PMG::RuleDB::LDAP;
 use PMG::RuleDB::LDAPUser;
 use PMG::RuleDB::TimeFrame;
 use PMG::RuleDB::Spam;
-use PMG::RuleDB::ReportSpam;
 use PMG::RuleDB::Virus;
 use PMG::RuleDB::Accept;
 use PMG::RuleDB::Remove;
@@ -36,12 +35,10 @@ use PMG::RuleDB::ModField;
 use PMG::RuleDB::MatchField;
 use PMG::RuleDB::MatchFilename;
 use PMG::RuleDB::MatchArchiveFilename;
-use PMG::RuleDB::Attach;
 use PMG::RuleDB::Disclaimer;
 use PMG::RuleDB::BCC;
 use PMG::RuleDB::Quarantine;
 use PMG::RuleDB::Block;
-use PMG::RuleDB::Counter;
 use PMG::RuleDB::Notify;
 use PMG::RuleDB::Rule;
 use PMG::RuleDB::ContentTypeFilter;
@@ -373,13 +370,6 @@ sub get_object {
 
     my $obj;
 
-    # FIXME: remove deprecated types and files with PMG 8.0
-    my $deprecated_types = {
-        4004 => "Attach",
-        4008 => "ReportSpam",
-        4999 => "Counter",
-    };
-
     # WHO OBJECTS
     if ($otype == PMG::RuleDB::Domain::otype()) {
         $obj = PMG::RuleDB::Domain->new();
@@ -427,10 +417,6 @@ sub get_object {
         $obj = PMG::RuleDB::ModField->new();
     } elsif ($otype == PMG::RuleDB::Accept::otype()) {
         $obj = PMG::RuleDB::Accept->new();
-    } elsif ($otype == PMG::RuleDB::ReportSpam::otype()) {
-        $obj = PMG::RuleDB::ReportSpam->new();
-    } elsif ($otype == PMG::RuleDB::Attach::otype) {
-        $obj = PMG::RuleDB::Attach->new();
     } elsif ($otype == PMG::RuleDB::Disclaimer::otype) {
         $obj = PMG::RuleDB::Disclaimer->new();
     } elsif ($otype == PMG::RuleDB::BCC::otype) {
@@ -439,8 +425,6 @@ sub get_object {
         $obj = PMG::RuleDB::Quarantine->new();
     } elsif ($otype == PMG::RuleDB::Block::otype) {
         $obj = PMG::RuleDB::Block->new();
-    } elsif ($otype == PMG::RuleDB::Counter::otype) {
-        $obj = PMG::RuleDB::Counter->new();
     } elsif ($otype == PMG::RuleDB::Remove::otype) {
         $obj = PMG::RuleDB::Remove->new();
     } elsif ($otype == PMG::RuleDB::Notify::otype) {
@@ -449,38 +433,7 @@ sub get_object {
         die "proxmox: unknown object type: ERROR";
     }
 
-    if (grep($_ == $otype, keys %$deprecated_types)) {
-        syslog(
-            'warning',
-            "proxmox: deprecated object of type %s found!",
-            $deprecated_types->{$otype},
-        );
-    }
     return $obj;
-}
-
-# FIXME: remove with PMG 8.0
-sub load_counters_data {
-    my ($self) = @_;
-
-    my $sth =
-        $self->{dbh}->prepare("SELECT Object.id, Objectgroup.name, Object.Value, Objectgroup.info "
-            . "FROM Object, Objectgroup "
-            . "WHERE objectgroup.id = object.objectgroup_id and ObjectType = ? "
-            . "order by Objectgroup.name, Value");
-
-    my @data;
-
-    $sth->execute(PMG::RuleDB::Counter->otype());
-
-    while (my $ref = $sth->fetchrow_hashref()) {
-        my $tmp = [$ref->{id}, $ref->{name}, $ref->{value}, $ref->{info}];
-        push(@data, $tmp);
-    }
-
-    $sth->finish();
-
-    return @data;
 }
 
 sub load_object {
