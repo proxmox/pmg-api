@@ -40,8 +40,8 @@ File: [% d.file %]
 	  <td><a style='cursor:pointer;' href='[% item.href | url %]'><b>[% item.subject %]</b></a></td>
 	  <td align=right nowrap>
 	    <div style='font-size:xx-small;'>
-	      <a href='[% item.href | url %]&action=whitelist'>Whitelist</a>&nbsp;
-	      <a href='[% item.href | url %]&action=blacklist'>Blacklist</a>&nbsp;
+	      <a href='[% item.href | url %]&action=welcomelist'>Welcomelist</a>&nbsp;
+	      <a href='[% item.href | url %]&action=blocklist'>Blocklist</a>&nbsp;
 	      <a href='[% item.href | url %]&action=deliver'>Deliver</a>&nbsp;
 	      <a href='[% item.href | url %]&action=delete'>Delete</a>
 	    </div>
