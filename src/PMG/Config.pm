@@ -440,13 +440,6 @@ sub properties {
             minimum => 0,
             default => 0,
         },
-        # FIXME: remove for PMG 8.0 - https://blog.clamav.net/2021/04/are-you-still-attempting-to-download.html
-        safebrowsing => {
-            description =>
-                "Enables support for Google Safe Browsing. (deprecated option, will be ignored)",
-            type => 'boolean',
-            default => 0,
-        },
         scriptedupdates => {
             description => "Enables ScriptedUpdates (incremental download of signatures)",
             type => 'boolean',
@@ -464,7 +457,6 @@ sub options {
         maxscansize => { optional => 1 },
         dbmirror => { optional => 1 },
         maxcccount => { optional => 1 },
-        safebrowsing => { optional => 1 }, # FIXME: remove for PMG 8.0
         scriptedupdates => { optional => 1 },
     };
 }
