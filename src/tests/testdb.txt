@@ -1,5 +1,5 @@
-Found RULE 4: Blacklist
-  FOUND FROM GROUP 1: Blacklist
+Found RULE 4: Blocklist
+  FOUND FROM GROUP 1: Blocklist
     OBJECT 1: nomail@fromthisdomain.example
   FOUND ACTION GROUP 17: Block
     OBJECT 31: block message
@@ -48,8 +48,8 @@ Found RULE 11: Block Multimedia Files
     OBJECT 6: content-type=video/.*
   FOUND ACTION GROUP 14: Remove attachments
     OBJECT 28: remove matching attachments
-Found RULE 5: Whitelist
-  FOUND FROM GROUP 2: Whitelist
+Found RULE 5: Welcomelist
+  FOUND FROM GROUP 2: Welcomelist
     OBJECT 2: mail@fromthisdomain.example
   FOUND ACTION GROUP 16: Accept
     OBJECT 30: accept message

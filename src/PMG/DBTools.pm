@@ -279,8 +279,8 @@ my $cstatistic_ctablecmd = <<__EOD;
     CREATE INDEX CStatistic_ID_Index ON CReceivers (CStatistic_CID, CStatistic_RID);
 __EOD
 
-# user preferences (black an whitelists, ...)
-# Name: preference name ('BL' -> blacklist, 'WL' -> whitelist)
+# user preferences (block an welcomelists, ...)
+# Name: preference name ('BL' -> blocklist, 'WL' -> welcomelist)
 # Data: arbitrary data
 my $userprefs_ctablecmd = <<__EOD;
     CREATE TABLE UserPrefs
@@ -676,13 +676,13 @@ sub init_ruledb {
 
     # WHO Objects
 
-    # Blacklist
+    # Blocklist
     my $obj = PMG::RuleDB::EMail->new('nomail@fromthisdomain.example');
-    my $blacklist = $ruledb->create_group_with_obj($obj, 'Blacklist', 'Global blacklist');
+    my $blocklist = $ruledb->create_group_with_obj($obj, 'Blocklist', 'Global blocklist');
 
-    # Whitelist
+    # Welcomelist
     $obj = PMG::RuleDB::EMail->new('mail@fromthisdomain.example');
-    my $whitelist = $ruledb->create_group_with_obj($obj, 'Whitelist', 'Global whitelist');
+    my $welcomelist = $ruledb->create_group_with_obj($obj, 'Welcomelist', 'Global welcomelist');
 
     # WHEN Objects
 
@@ -874,11 +874,11 @@ sub init_ruledb {
     $ruledb->rule_add_action($rule, $notify_admin);
     $ruledb->rule_add_action($rule, $block);
 
-    ## Blacklist
-    $rule = PMG::RuleDB::Rule->new('Blacklist', 98, 1, 0);
+    ## Blocklist
+    $rule = PMG::RuleDB::Rule->new('Blocklist', 98, 1, 0);
     $ruledb->save_rule($rule);
 
-    $ruledb->rule_add_from_group($rule, $blacklist);
+    $ruledb->rule_add_from_group($rule, $blocklist);
     $ruledb->rule_add_action($rule, $block);
 
     ## Modify header
@@ -888,11 +888,11 @@ sub init_ruledb {
         $ruledb->rule_add_action($rule, $mod_spam_level);
     }
 
-    ## Whitelist
-    $rule = PMG::RuleDB::Rule->new('Whitelist', 85, 1, 0);
+    ## Welcomelist
+    $rule = PMG::RuleDB::Rule->new('Welcomelist', 85, 1, 0);
     $ruledb->save_rule($rule);
 
-    $ruledb->rule_add_from_group($rule, $whitelist);
+    $ruledb->rule_add_from_group($rule, $welcomelist);
     $ruledb->rule_add_action($rule, $accept);
 
     if ($testmode) {
@@ -1415,13 +1415,13 @@ sub load_mail_data {
 sub reload_ruledb {
     my ($ruledb) = @_;
 
-    # Note: we pass $ruledb when modifying SMTP whitelist
+    # Note: we pass $ruledb when modifying SMTP welcomelist
     if (defined($ruledb)) {
         eval {
             my $rulecache = PMG::RuleCache->new($ruledb);
-            PMG::Config::rewrite_postfix_whitelist($rulecache);
+            PMG::Config::rewrite_postfix_welcomelist($rulecache);
         };
-        warn "problems updating SMTP whitelist - $@" if $@;
+        warn "problems updating SMTP welcomelist - $@" if $@;
     }
 
     PMG::Utils::reload_smtp_filter();
