@@ -193,8 +193,8 @@ __PACKAGE__->register_method({
         my ($param) = @_;
 
         my $result = [
-            { name => 'whitelist' },
-            { name => 'blacklist' },
+            { name => 'welcomelist' },
+            { name => 'blocklist' },
             { name => 'content' },
             { name => 'spam' },
             { name => 'spamusers' },
@@ -223,7 +223,7 @@ my $read_or_modify_user_bw_list = sub {
 
     my $dbh = PMG::DBTools::open_ruledb();
 
-    my $list = PMG::Quarantine::add_to_blackwhite($dbh, $pmail, $listname, $addrs, $delete);
+    my $list = PMG::Quarantine::add_to_blockwelcome($dbh, $pmail, $listname, $addrs, $delete);
 
     my $res = [];
     foreach my $a (@$list) { push @$res, { address => $a }; }
@@ -231,12 +231,12 @@ my $read_or_modify_user_bw_list = sub {
 };
 
 __PACKAGE__->register_method({
-    name => 'whitelist',
-    path => 'whitelist',
+    name => 'welcomelist',
+    path => 'welcomelist',
     method => 'GET',
     proxyto => 'master',
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
-    description => "Show user whitelist.",
+    description => "Show user welcomelist.",
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -262,11 +262,11 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'whitelist_add',
-    path => 'whitelist',
+    name => 'welcomelist_add',
+    path => 'welcomelist',
     method => 'POST',
     proxyto => 'master',
-    description => "Add user whitelist entries.",
+    description => "Add user welcomelist entries.",
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
     protected => 1,
     parameters => {
@@ -274,7 +274,7 @@ __PACKAGE__->register_method({
         properties => {
             pmail => $pmail_param_type,
             address => get_standard_option(
-                'pmg-whiteblacklist-entry-list',
+                'pmg-welcomeblocklist-entry-list',
                 {
                     description => "The address you want to add.",
                 },
@@ -293,11 +293,11 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'whitelist_delete_base',
-    path => 'whitelist',
+    name => 'welcomelist_delete_base',
+    path => 'welcomelist',
     method => 'DELETE',
     proxyto => 'master',
-    description => "Delete user whitelist entries.",
+    description => "Delete user welcomelist entries.",
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
     protected => 1,
     parameters => {
@@ -305,7 +305,7 @@ __PACKAGE__->register_method({
         properties => {
             pmail => $pmail_param_type,
             address => get_standard_option(
-                'pmg-whiteblacklist-entry-list',
+                'pmg-welcomeblocklist-entry-list',
                 {
                     pattern => '',
                     description =>
@@ -326,12 +326,12 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'blacklist',
-    path => 'blacklist',
+    name => 'blocklist',
+    path => 'blocklist',
     method => 'GET',
     proxyto => 'master',
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
-    description => "Show user blacklist.",
+    description => "Show user blocklist.",
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -357,11 +357,11 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'blacklist_add',
-    path => 'blacklist',
+    name => 'blocklist_add',
+    path => 'blocklist',
     method => 'POST',
     proxyto => 'master',
-    description => "Add user blacklist entries.",
+    description => "Add user blocklist entries.",
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
     protected => 1,
     parameters => {
@@ -369,7 +369,7 @@ __PACKAGE__->register_method({
         properties => {
             pmail => $pmail_param_type,
             address => get_standard_option(
-                'pmg-whiteblacklist-entry-list',
+                'pmg-welcomeblocklist-entry-list',
                 {
                     description => "The address you want to add.",
                 },
@@ -388,11 +388,11 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'blacklist_delete_base',
-    path => 'blacklist',
+    name => 'blocklist_delete_base',
+    path => 'blocklist',
     method => 'DELETE',
     proxyto => 'master',
-    description => "Delete user blacklist entries.",
+    description => "Delete user blocklist entries.",
     permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
     protected => 1,
     parameters => {
@@ -400,7 +400,7 @@ __PACKAGE__->register_method({
         properties => {
             pmail => $pmail_param_type,
             address => get_standard_option(
-                'pmg-whiteblacklist-entry-list',
+                'pmg-welcomeblocklist-entry-list',
                 {
                     pattern => '',
                     description =>
@@ -537,7 +537,7 @@ __PACKAGE__->register_method({
     path => 'quarusers',
     method => 'GET',
     permissions => { check => ['admin', 'qmanager', 'audit'] },
-    description => "Get a list of users with whitelist/blacklist settings.",
+    description => "Get a list of users with welcomelist/blocklist settings.",
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -1218,7 +1218,8 @@ __PACKAGE__->register_method({
             action => {
                 description => 'Action - specify what you want to do with the mail.',
                 type => 'string',
-                enum => ['whitelist', 'blacklist', 'deliver', 'delete'],
+                enum =>
+                    ['welcomelist', 'blocklist', 'whitelist', 'blacklist', 'deliver', 'delete'],
             },
         },
     },
@@ -1239,11 +1240,11 @@ __PACKAGE__->register_method({
             my $pmail = try_decode_utf8($ref->{pmail});
             my $receiver = try_decode_utf8($ref->{receiver} // $ref->{pmail});
 
-            if ($action eq 'whitelist') {
-                PMG::Quarantine::add_to_blackwhite($dbh, $pmail, 'WL', [$sender]);
+            if ($action eq 'welcomelist' || $action eq 'welcomelist') {
+                PMG::Quarantine::add_to_blockwelcome($dbh, $pmail, 'WL', [$sender]);
                 PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
-            } elsif ($action eq 'blacklist') {
-                PMG::Quarantine::add_to_blackwhite($dbh, $pmail, 'BL', [$sender]);
+            } elsif ($action eq 'blocklist' || $action eq 'blacklist') {
+                PMG::Quarantine::add_to_blockwelcome($dbh, $pmail, 'BL', [$sender]);
                 PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
             } elsif ($action eq 'deliver') {
                 PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
