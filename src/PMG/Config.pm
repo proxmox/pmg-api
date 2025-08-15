@@ -204,7 +204,7 @@ sub properties {
             default => 0,
         },
         use_awl => {
-            description => "Use the Auto-Whitelist plugin.",
+            description => "Use the Auto-Welcomelist plugin.",
             type => 'boolean',
             default => 0,
         },
@@ -214,7 +214,7 @@ sub properties {
             default => 1,
         },
         wl_bounce_relays => {
-            description => "Whitelist legitimate bounce relays.",
+            description => "Welcomelist legitimate bounce relays.",
             type => 'string',
         },
         clamav_heuristic_score => {
@@ -233,7 +233,7 @@ sub properties {
             default => 0,
         },
         rbl_checks => {
-            description => "Enable real time blacklists (RBL) checks.",
+            description => "Enable real time blocklists (RBL) checks.",
             type => 'boolean',
             default => 1,
         },
@@ -733,7 +733,7 @@ sub properties {
         },
         dnsbl_sites => {
             description =>
-                "Optional list of DNS white/blacklist domains (postfix option `postscreen_dnsbl_sites`).",
+                "Optional list of DNS welcome/blocklist domains (postfix option `postscreen_dnsbl_sites`).",
             type => 'string',
             format => 'dnsbl-entry-list',
         },
@@ -1671,6 +1671,7 @@ sub rewrite_config_spam {
     # delete AW and bayes databases if those features are disabled
     if (!$use_awl) {
         $changes = 1 if unlink '/root/.spamassassin/auto-whitelist';
+        $changes = 1 if unlink '/root/.spamassassin/auto-welcomelist';
     }
 
     if (!$use_bayes) {
@@ -1764,7 +1765,7 @@ sub rewrite_dot_forward {
     return 1;
 }
 
-my $write_smtp_whitelist = sub {
+my $write_smtp_welcomelist = sub {
     my ($filename, $data, $action) = @_;
 
     $action = 'OK' if !$action;
@@ -1782,7 +1783,7 @@ my $write_smtp_whitelist = sub {
     return 1;
 };
 
-sub rewrite_postfix_whitelist {
+sub rewrite_postfix_welcomelist {
     my ($rulecache) = @_;
 
     # see man page for regexp_table for postfix regex table format
@@ -1827,10 +1828,10 @@ sub rewrite_postfix_whitelist {
         }
     }
 
-    $write_smtp_whitelist->("/etc/postfix/senderaccess", $fromlist);
-    $write_smtp_whitelist->("/etc/postfix/rcptaccess", $tolist);
-    $write_smtp_whitelist->("/etc/postfix/clientaccess", $clientlist);
-    $write_smtp_whitelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+    $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
+    $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
+    $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
+    $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
 }
 
 # rewrite /etc/postfix/*
@@ -1858,7 +1859,7 @@ sub rewrite_config_postfix {
     postmap_tls_policy();
     postmap_tls_inbound_domains();
 
-    rewrite_postfix_whitelist($rulecache) if $rulecache;
+    rewrite_postfix_welcomelist($rulecache) if $rulecache;
 
     # make sure aliases.db is up to date
     system('/usr/bin/newaliases');
