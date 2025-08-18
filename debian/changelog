@@ -1,3 +1,9 @@
+pmg-api (8.2.2) bookworm; urgency=medium
+
+  * pmgtunnel: adapt to read_etc_network_interfaces using run_command
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 18 Aug 2025 16:24:27 +0200
+
 pmg-api (8.2.1) bookworm; urgency=medium
 
   * schema: fix verification for transport-domain-or-nexthop type.
