@@ -180,7 +180,10 @@ sub run {
         $next_update = time() + $updatetime;
 
         eval {
+            # reset SIGCHLD handler as ClusterConfig::new uses run_command (for reading ip link)
+            $SIG{CHLD} = 'DEFAULT';
             my $cinfo = PMG::ClusterConfig->new(); # reload
+            $SIG{CHLD} = \&finish_children;
             $self->purge_tunnels($cinfo);
             $self->start_tunnels($cinfo);
         };
