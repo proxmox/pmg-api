@@ -21,6 +21,7 @@
 # rules will not hit anymore alongside the new ones.  For more information,
 # see: https://wiki.apache.org/spamassassin/WelcomelistBlocklist
 #
+# FIXME: disable this with PMG 10.0
 enable_compat welcomelist_blocklist
 
 # RelayCountry - add metadata for Bayes learning, marking the countries
