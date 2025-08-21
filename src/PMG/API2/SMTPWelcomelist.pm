@@ -1,4 +1,4 @@
-package PMG::API2::SMTPWhitelist;
+package PMG::API2::SMTPWelcomelist;
 
 use strict;
 use warnings;
@@ -67,7 +67,7 @@ __PACKAGE__->register_method({
     name => 'objects',
     path => 'objects',
     method => 'GET',
-    description => "Get list of all SMTP whitelist entries.",
+    description => "Get list of all SMTP welcomelist entries.",
     proxyto => 'master',
     permissions => { check => ['admin', 'audit'] },
     parameters => {
@@ -107,7 +107,7 @@ __PACKAGE__->register_method({
     name => 'delete_object',
     path => 'objects/{id}',
     method => 'DELETE',
-    description => "Remove an object from the SMTP whitelist.",
+    description => "Remove an object from the SMTP welcomelist.",
     proxyto => 'master',
     permissions => { check => ['admin'] },
     protected => 1,

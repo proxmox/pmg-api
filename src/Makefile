@@ -155,7 +155,7 @@ LIBSOURCES =				\
 	PMG/API2/ObjectGroupHelpers.pm	\
 	PMG/API2/Rules.pm		\
 	PMG/API2/RuleDB.pm		\
-	PMG/API2/SMTPWhitelist.pm	\
+	PMG/API2/SMTPWelcomelist.pm	\
 	PMG/API2/Who.pm			\
 	PMG/API2/When.pm		\
 	PMG/API2/What.pm		\

@@ -19,7 +19,7 @@ use PMG::API2::Domains;
 use PMG::API2::Transport;
 use PMG::API2::Cluster;
 use PMG::API2::MyNetworks;
-use PMG::API2::SMTPWhitelist;
+use PMG::API2::SMTPWelcomelist;
 use PMG::API2::MimeTypes;
 use PMG::API2::Fetchmail;
 use PMG::API2::DestinationTLSPolicy;
@@ -40,8 +40,8 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    subclass => "PMG::API2::SMTPWhitelist",
-    path => 'whitelist',
+    subclass => "PMG::API2::SMTPWelcomelist",
+    path => 'welcomelist',
 });
 
 __PACKAGE__->register_method({
@@ -155,7 +155,7 @@ __PACKAGE__->register_method({
         push @$res, { section => 'tls-inbound-domains' };
         push @$res, { section => 'transport' };
         push @$res, { section => 'users' };
-        push @$res, { section => 'whitelist' };
+        push @$res, { section => 'welcomelist' };
 
         return $res;
     },
