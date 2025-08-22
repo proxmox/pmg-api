@@ -43,6 +43,11 @@ __PACKAGE__->register_method({
     subclass => "PMG::API2::SMTPWelcomelist",
     path => 'welcomelist',
 });
+# FIXME: drop white-/blacklist compatibility calls with PMG 10
+__PACKAGE__->register_method({
+    subclass => "PMG::API2::SMTPWelcomelist",
+    path => 'whitelist',
+});
 
 __PACKAGE__->register_method({
     subclass => "PMG::API2::LDAP",
@@ -156,6 +161,8 @@ __PACKAGE__->register_method({
         push @$res, { section => 'transport' };
         push @$res, { section => 'users' };
         push @$res, { section => 'welcomelist' };
+        # FIXME: drop white-/blacklist compatibility calls with PMG 10
+        push @$res, { section => 'whitelist' };
 
         return $res;
     },
