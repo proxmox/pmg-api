@@ -8,7 +8,6 @@ use MIME::Head;
 use MIME::Entity;
 use MIME::Words qw(encode_mimewords);
 use Encode qw(decode encode);
-use POSIX qw(strftime);
 
 use PVE::SafeSyslog;
 
@@ -249,7 +248,7 @@ sub execute {
         From => $from_header,
         To => $to,
         Subject => encode_mimewords(encode('UTF-8', $subject), "Charset" => "UTF-8"),
-        Date => strftime("%a, %d %b %Y %T %z", localtime()),
+        Date => PMG::Utils::format_date_header(localtime()),
         Data => encode('UTF-8', $body),
     );
 

@@ -26,7 +26,7 @@ use MIME::Words;
 use Net::Cmd;
 use Net::IP;
 use Net::SMTP;
-use POSIX qw(strftime);
+use POSIX qw(strftime setlocale);
 use RRDs;
 use Socket;
 use Time::HiRes qw (gettimeofday);
@@ -1360,7 +1360,7 @@ sub finalize_report {
         Type => ($html && $plaintext) ? 'multipart/alternative' : 'multipart/related',
         To => $data->{pmail_raw},
         From => $mailfrom,
-        Date => strftime("%a, %d %b %Y %T %z", localtime()),
+        Date => format_date_header(localtime()),
         Subject => bencode_header(decode_entities($title)),
     );
 
@@ -1724,6 +1724,30 @@ sub test_regex {
     die "invalid regex: $@\n" if $@;
 
     return undef;
+}
+
+=head3 format_date_header
+
+Returns a RFC2822-formatted timestamp for usage in the Date header.
+
+Takes the same parameters as C<POSIX::strftime(fmt, ..)>, i.e. C<$sec>,
+C<$min>, C<$hour>, C<$mday>, C<$mon>, C<$year>, C<$wday>, C<$yday>, C<$isdst>
+in that exact order - as e.g. returned by C<localtime()>.
+
+For example:
+
+    use PMG::Utils;
+    my $date = PMG::Utils::format_date_header(localtime());
+
+=cut
+
+sub format_date_header {
+    # ensure that we always use the right locale for formatting `Date` headers
+    my $old_locale = setlocale(POSIX::LC_TIME, 'C') // 'C';
+    my $date = strftime('%a, %d %b %Y %T %z', @_);
+    setlocale(POSIX::LC_TIME, 'C');
+
+    return $date;
 }
 
 1;

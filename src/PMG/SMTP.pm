@@ -5,7 +5,6 @@ use warnings;
 use IO::Socket;
 use Encode;
 use MIME::Entity;
-use POSIX qw(strftime);
 
 use PVE::SafeSyslog;
 
@@ -295,7 +294,7 @@ EOF
         Type => 'multipart/report; report-type=delivery-status;',
         To => $sender,
         From => $from_header,
-        Date => strftime("%a, %d %b %Y %T %z", localtime()),
+        Date => PMG::Utils::format_date_header(localtime()),
         Subject => 'Undelivered Mail',
     );
 
