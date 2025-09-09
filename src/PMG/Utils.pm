@@ -1743,9 +1743,10 @@ For example:
 
 sub format_date_header {
     # ensure that we always use the right locale for formatting `Date` headers
-    my $old_locale = setlocale(POSIX::LC_TIME, 'C') // 'C';
-    my $date = strftime('%a, %d %b %Y %T %z', @_);
+    my $old_locale = setlocale(POSIX::LC_TIME) // 'C';
     setlocale(POSIX::LC_TIME, 'C');
+    my $date = strftime('%a, %d %b %Y %T %z', @_);
+    setlocale(POSIX::LC_TIME, $old_locale);
 
     return $date;
 }
