@@ -123,7 +123,7 @@ __PACKAGE__->register_method({
             $wa_config_schema->{properties}->%*,
             delete => {
                 type => 'string',
-                enum => [keys $wa_config_schema->{properties}->%*],
+                enum => [sort keys $wa_config_schema->{properties}->%*],
                 description => "A list of settings you want to delete.",
                 optional => 1,
             },
