@@ -35,6 +35,7 @@ Build-Depends: debhelper-compat (= 13),
                postgresql-17,
                proxmox-spamassassin,
                tnef,
+Rules-Requires-Root: binary-targets
 Standards-Version: 4.5.1
 Homepage: https://www.proxmox.com
 
