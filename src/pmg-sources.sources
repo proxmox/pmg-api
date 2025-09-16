@@ -3,4 +3,3 @@ URIs: https://enterprise.proxmox.com/debian/pmg
 Suites: trixie
 Components: pmg-enterprise
 Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
-
