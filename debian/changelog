@@ -3,7 +3,10 @@ pmg-api (9.0.0~1) trixie; urgency=medium
   * Initial bump for Debian 13 Trixie based version, not yet recommended to be
     used for production.
 
- -- Proxmox Support Team <support@proxmox.com>  Thu, 31 Jul 2025 13:23:24 +0200
+  * Replace dusted JavaScript and Framework7 based mobile spam quarantine UI
+    with modern Yew based UI written in the rust programming language.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 16 Sep 2025 21:24:46 +0200
 
 pmg-api (8.2.3) bookworm; urgency=medium
 
