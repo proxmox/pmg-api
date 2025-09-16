@@ -179,15 +179,7 @@ sub is_phone {
 
     return 0 if !$ua;
 
-    if (
-        $ua =~ m/(
-	iPhone|
-	iPod|
-	Windows\ Phone|
-	Android|
-	BlackBerry
-	)/xi
-    ) {
+    if ($ua =~ m/(iPhone|iPod|Windows Phone|Android|BlackBerry)/i) {
         return 1;
     }
 
