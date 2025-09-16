@@ -1,3 +1,12 @@
+pmg-api (9.0.0~2) trixie; urgency=medium
+
+  * update apt sources for Trixie based release and move to deb822
+    format
+
+  * d/postinst: ensure that clamav-freshclam is enabled.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 16 Sep 2025 23:07:18 +0200
+
 pmg-api (9.0.0~1) trixie; urgency=medium
 
   * Initial bump for Debian 13 Trixie based version, not yet recommended to be
