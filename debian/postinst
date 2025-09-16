@@ -126,6 +126,13 @@ case "$1" in
             fi
         fi
 
+        if ! systemctl --quiet is-enabled clamav-freshclam.service ; then
+            echo "Enabling clamav-freshclam to keep signatures updated"
+            deb-systemd-invoke enable clamav-freshclam.service 2>&1 >/dev/null || true
+        fi
+
+        deb-systemd-invoke restart postfix.service >/dev/null || true
+
         if test -n "$2" && dpkg --compare-versions "$2" 'lt' '8.2.0'; then
             old_score_location=/var/cache/pmg-scores.cf
             new_score_location=/etc/mail/spamassassin/pmg-scores.cf.new
