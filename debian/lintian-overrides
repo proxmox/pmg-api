@@ -1,4 +1,4 @@
-package-installs-apt-sources *etc/apt/sources.list.d/pmg-enterprise.list*
+package-installs-apt-sources *etc/apt/sources.list.d/pmg-enterprise.sources*
 uses-dpkg-database-directly *usr/share/perl5/PMG/API2/APT.pm*
 systemd-service-file-refers-to-unusual-wantedby-target *lib/systemd/system/pmgbanner.service*
 binary-without-manpage
