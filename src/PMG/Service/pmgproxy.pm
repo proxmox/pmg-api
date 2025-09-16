@@ -53,6 +53,7 @@ my $extjs_dir = "/usr/share/javascript/extjs/";
 my $fontawesome_dir = "/usr/share/fonts-font-awesome";
 my $xtermjs_dir = '/usr/share/pve-xtermjs';
 my $widgettoolkit_dir = '/usr/share/javascript/proxmox-widget-toolkit';
+my $i18n_dir = '/usr/share/pmg-i18n/';
 my $mobile_i18n_dir = '/usr/share/pmg-yew-quarantine-i18n/';
 
 sub init {
@@ -70,7 +71,7 @@ sub init {
 
     my $dirs = {};
 
-    add_dirs($dirs, '/pve2/locale/', '/usr/share/pmg-i18n/');
+    add_dirs($dirs, '/pve2/locale/', $i18n_dir);
     add_dirs($dirs, '/pve2/ext6/', $extjs_dir);
     add_dirs($dirs, '/pve2/images/' => "$gui_base_dir/images/");
     add_dirs($dirs, '/pve2/css/' => "$gui_base_dir/css/");
@@ -277,6 +278,7 @@ sub get_index {
 
     my $page = '';
 
+    my $i18n_js_mtime = get_path_mtime($i18n_dir);
     my $i18n_yew_mtime = get_path_mtime($mobile_i18n_dir);
     my $ui_yew_mtime = get_path_mtime($mobile_quarantine_ui_base_dir);
 
@@ -292,6 +294,7 @@ sub get_index {
         wtversion => $wtversion,
         quarantinelink => $quarantinelink,
         theme => $theme,
+        i18n_js_mtime => $i18n_js_mtime,
         i18n_yew_mobile_mtime => $i18n_yew_mtime,
         yew_mobile_mtime => $ui_yew_mtime,
         yew_mobile_base_path => '/mobile',
