@@ -636,7 +636,7 @@ __PACKAGE__->register_method({
                 type => 'string',
                 default => 'spam',
                 optional => 1,
-                enum => [keys $quar_type_map->%*],
+                enum => [sort keys $quar_type_map->%*],
             },
         },
     },
