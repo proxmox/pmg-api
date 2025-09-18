@@ -5,13 +5,12 @@ use warnings;
 use IO::File;
 use Data::Dumper;
 
-use Term::ReadLine;
-
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
 use PVE::INotify;
 use PVE::CLIHandler;
 use PVE::JSONSchema qw(get_standard_option);
+use PVE::PTY;
 
 use PMG::RESTEnvironment;
 use PMG::RuleDB;
@@ -277,13 +276,12 @@ __PACKAGE__->register_method({
             }
             print $i, ") Custom\n";
 
-            my $term = Term::ReadLine->new('pmgconfig');
             my $get_dir_selection = sub {
-                my $selection = $term->readline("Enter selection: ");
+                my $selection = PVE::PTY::read_line("Enter selection: ");
                 if ($selection =~ /^(\d+)$/) {
                     $selection = $1;
                     if ($selection == $i) {
-                        $param->{directory} = $term->readline("Enter custom URL: ");
+                        $param->{directory} = PVE::PTY::read_line("Enter custom URL: ");
                         return;
                     } elsif ($selection < $i && $selection >= 0) {
                         $param->{directory} = $directories->[$selection]->{url};
@@ -307,8 +305,7 @@ __PACKAGE__->register_method({
         if ($meta->{termsOfService}) {
             my $tos = $meta->{termsOfService};
             print "Terms of Service: $tos\n";
-            my $term = Term::ReadLine->new('pmgconfig');
-            my $agreed = $term->readline('Do you agree to the above terms? [y|N]: ');
+            my $agreed = PVE::PTY::read_line('Do you agree to the above terms? [y|N]: ');
             die "Cannot continue without agreeing to ToS, aborting.\n"
                 if ($agreed !~ /^y$/i);
 
@@ -319,18 +316,16 @@ __PACKAGE__->register_method({
 
         my $eab_enabled = $meta->{externalAccountRequired};
         if (!$eab_enabled && $custom_directory) {
-            my $term = Term::ReadLine->new('pmgconfig');
             my $agreed =
-                $term->readline('Do you want to use external account binding? [y|N]: ');
+                PVE::PTY::read_line('Do you want to use external account binding? [y|N]: ');
             $eab_enabled = ($agreed =~ /^y$/i);
         } elsif ($eab_enabled) {
             print "The CA requires external account binding.\n";
         }
         if ($eab_enabled) {
             print "You should have received a key id and a key from your CA.\n";
-            my $term = Term::ReadLine->new('pmgconfig');
-            my $eab_kid = $term->readline('Enter EAB key id: ');
-            my $eab_hmac_key = $term->readline('Enter EAB key: ');
+            my $eab_kid = PVE::PTY::read_line('Enter EAB key id: ');
+            my $eab_hmac_key = PVE::PTY::read_line('Enter EAB key: ');
 
             $param->{'eab-kid'} = $eab_kid;
             $param->{'eab-hmac-key'} = $eab_hmac_key;
