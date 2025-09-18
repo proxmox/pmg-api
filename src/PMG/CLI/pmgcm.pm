@@ -3,7 +3,6 @@ package PMG::CLI::pmgcm;
 use strict;
 use warnings;
 use Data::Dumper;
-use Term::ReadLine;
 use POSIX qw(strftime);
 use JSON;
 
@@ -11,6 +10,7 @@ use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
 use PVE::INotify;
 use PVE::CLIHandler;
+use PVE::PTY;
 
 use PMG::Utils;
 use PMG::Ticket;
@@ -188,10 +188,7 @@ __PACKAGE__->register_method({
 
             die "cluster already defined\n" if scalar(keys %{ $cinfo->{ids} });
 
-            my $term = new Term::ReadLine('pmgcm');
-            my $attribs = $term->Attribs;
-            $attribs->{redisplay_function} = $attribs->{shadow_redisplay};
-            my $password = $term->readline('Enter password: ');
+            my $password = PVE::PTY::read_password('Enter password: ');
 
             my $setup = {
                 username => 'root@pam',
