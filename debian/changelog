@@ -1,3 +1,14 @@
+pmg-api (9.0.0~3) trixie; urgency=medium
+
+  * pmgtunnel: do not set SIGCHLD handler to make code more robust.
+
+  * fix #2452: pmgqm: support timespan between 1 and 24 hours for checking the
+    status of the quarantine or sending an report.
+
+  * drop old pmg7to8 upgrade check-list tool, it is useless for PMG 9.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 18 Sep 2025 15:23:22 +0200
+
 pmg-api (9.0.0~2) trixie; urgency=medium
 
   * update apt sources for Trixie based release and move to deb822
