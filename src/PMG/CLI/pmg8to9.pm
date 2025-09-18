@@ -642,6 +642,7 @@ sub check_dkms_modules {
 }
 
 sub check_ruledb {
+    print_header("CHECKING THE DATABASE");
     log_info("Check the rulesystem...");
 
     my $rdb = PMG::RuleDB->new();
