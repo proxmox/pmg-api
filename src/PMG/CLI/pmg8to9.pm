@@ -654,7 +654,7 @@ sub check_ruledb {
         for my $obj ($objects->@*) {
             if ($obj->{address} =~ m/(?:no)?mail\@fromthisdomain.com/) {
                 log_warn("deprecated default entry in '$group_name' present: $obj->{address}\n"
-                    . "      Consider removing it");
+                    . "      Consider removing it, as fromthisdomain.com is not reserved");
             }
         }
     }
