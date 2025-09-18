@@ -1,3 +1,9 @@
+pmg-api (8.2.4) bookworm; urgency=medium
+
+  * add initial version of 8 to 9 upgrade check script.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 18 Sep 2025 16:17:51 +0200
+
 pmg-api (8.2.3) bookworm; urgency=medium
 
   * dkim: local mail: fix `Date` header formatting under different locales to
