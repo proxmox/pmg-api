@@ -79,7 +79,7 @@ scan      unix  -       -       n       -       [% pmg.mail.max_filters %]      
   -o smtp_dns_support_level=disabled
 [% END -%]
 
-[% pmg.mail.int_port %]       inet  n -       -       -       [% pmg.mail.max_smtpd_out %]      smtpd
+[% pmg.mail.int_port %]       inet  n -       n       -       [% pmg.mail.max_smtpd_out %]      smtpd
 [% IF pmg.mail.before_queue_filtering -%]
   -o smtpd_proxy_filter=127.0.0.1:10023
   -o smtpd_proxy_options=speed_adjust
@@ -94,9 +94,9 @@ scan      unix  -       -       n       -       [% pmg.mail.max_filters %]      
   -o smtpd_data_restrictions=
   -o smtpd_forbid_bare_newline=no
 
-[% pmg.mail.ext_port %]       inet  n -       -       -       1 postscreen
+[% pmg.mail.ext_port %]       inet  n -       n       -       1 postscreen
 
-smtpd       pass  - -       -       -       [% pmg.mail.max_smtpd_in %]      smtpd
+smtpd     pass  -       -       n       -       [% pmg.mail.max_smtpd_in %]      smtpd
 [% IF pmg.mail.before_queue_filtering -%]
   -o smtpd_proxy_filter=127.0.0.1:10024
   -o smtpd_proxy_options=speed_adjust
@@ -126,30 +126,30 @@ smtpd       pass  - -       -       -       [% pmg.mail.max_smtpd_in %]      smt
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8
   -o message_size_limit=[% (pmg.mail.maxsize*2) %]
 
-pickup    fifo  n       -       -       60      1       pickup
-cleanup   unix  n       -       -       -       0       cleanup
+pickup    fifo  n       -       n       60      1       pickup
+cleanup   unix  n       -       n       -       0       cleanup
   -o message_size_limit=[% (pmg.mail.maxsize*2) %]
 
-qmgr      fifo  n       -       -       300     1       qmgr
-rewrite   unix  -       -       -       -       -       trivial-rewrite
-bounce    unix  -       -       -       -       0       bounce
-defer     unix  -       -       -       -       0       bounce
-flush     unix  n       -       -       1000?   0       flush
+qmgr      fifo  n       -       n       300     1       qmgr
+rewrite   unix  -       -       n       -       -       trivial-rewrite
+bounce    unix  -       -       n       -       0       bounce
+defer     unix  -       -       n       -       0       bounce
+flush     unix  n       -       n       1000?   0       flush
 proxymap  unix  -       -       n       -       -       proxymap
-smtp      unix  -       -       -       -       -       smtp
-relay     unix  -       -       -       -       -       smtp
-showq     unix  n       -       -       -       -       showq
-error     unix  -       -       -       -       -       error
+smtp      unix  -       -       n       -       -       smtp
+relay     unix  -       -       n       -       -       smtp
+showq     unix  n       -       n       -       -       showq
+error     unix  -       -       n       -       -       error
 local     unix  -       n       n       -       -       local
 virtual   unix  -       n       n       -       -       virtual
 lmtp      unix  -       -       n       -       -       lmtp
-verify    unix  -       -       -       -       1       verify
+verify    unix  -       -       n       -       1       verify
 trace     unix  -       -       n       -       0       bounce
-tlsmgr    unix  -       -       -       1000?   1       tlsmgr
-anvil     unix  -       -       -       -       1       anvil
-scache    unix  -       -       -       -       1       scache
-discard   unix  -       -       -       -       -       discard
-retry     unix  -       -       -       -       -       error
-dnsblog   unix  -       -       -       -       0       dnsblog
-tlsproxy  unix  -       -       -       -       0       tlsproxy
+tlsmgr    unix  -       -       n       1000?   1       tlsmgr
+anvil     unix  -       -       n       -       1       anvil
+scache    unix  -       -       n       -       1       scache
+discard   unix  -       -       n       -       -       discard
+retry     unix  -       -       n       -       -       error
+dnsblog   unix  -       -       n       -       0       dnsblog
+tlsproxy  unix  -       -       n       -       0       tlsproxy
 
