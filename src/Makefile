@@ -26,6 +26,7 @@ CONF_MANS= pmg.conf.5 cluster.conf.5
 TEMPLATES =				\
 	fetchmailrc.tt			\
 	pmgreport.tt			\
+	pmgreport.plain.tt		\
 	spamreport-verbose.tt		\
 	spamreport-verbose.plain.tt	\
 	spamreport-short.tt		\

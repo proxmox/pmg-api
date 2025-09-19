@@ -1,0 +1,51 @@
+subject: Proxmox Status Report - [% date %] ([% fqdn %])
+[% IF cluster -%]
+Cluster Status
+[% FOREACH item IN cluster -%]
+- Hostname: [% item.hostname %]
+  IP Address: [% item.ip %]
+  Role: [% item.type %]
+  State: [% item.state %]
+  Load: [% item.loadavg1 %]
+  Memory: [% item.memory %]
+  Disk: [% item.disk %]
+[% IF !loop.last %]----
+[% END %]
+[% END %]
+[% END %]
+[% IF system -%]
+System Status
+[% FOREACH item IN system -%]
+- [% item.text %]: [% item.value %]
+[% END %]
+[% END %]
+[% IF incoming -%]
+Incoming Mails (24 hours)
+[% FOREACH item IN incoming -%]
+- [% item.text %][% IF item.percentage.defined %] ([% item.percentage %]%)[% END %]: [% item.value %]
+[% END %]
+[% END %]
+[% IF outgoing -%]
+Outgoing Mails (24 hours)
+[% FOREACH item IN outgoing -%]
+- [% item.text %][% IF item.percentage.defined %] ([% item.percentage %]%)[% END %]: [% item.value %]
+[% END %]
+[% END %]
+[% IF virusstat -%]
+Virus Charts (Top 10)
+[% FOREACH item IN virusstat -%]
+- [% item.name %]: [% item.count %]
+[% END %]
+[% END %]
+[% IF virusquar -%]
+Virus Quarantine
+[% FOREACH item IN virusquar -%]
+- [% item.text %]: [% item.value %]
+[% END %]
+[% END %]
+[% IF spamquar -%]
+Spam Quarantine
+[% FOREACH item IN spamquar -%]
+- [% item.text %]: [% item.value %]
+[% END %]
+[% END %]
