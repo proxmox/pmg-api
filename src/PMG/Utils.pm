@@ -1194,6 +1194,15 @@ sub decode_rfc1522 {
     return $res;
 }
 
+sub rfc1522_to_plain_utf8 {
+    my ($enc) = @_;
+
+    my $res = eval { Encode::encode('UTF-8', decode_rfc1522($enc)) };
+    return $enc if $@;
+
+    return $res;
+}
+
 sub rfc1522_to_html {
     my ($enc) = @_;
 

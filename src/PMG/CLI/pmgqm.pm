@@ -45,17 +45,25 @@ sub get_item_data {
 
     $item->{id} = sprintf("C%dR%dT%d", $ref->{cid}, $ref->{rid}, $ref->{ticketid});
 
-    $item->{subject} =
-        PMG::Utils::rfc1522_to_html(PVE::Tools::trim($head->get('subject')) || 'No Subject');
+    my $raw_subject = PVE::Tools::trim($head->get('subject')) || 'No Subject';
+    $item->{subject} = PMG::Utils::rfc1522_to_html($raw_subject);
+    $item->{subject_plain} = PMG::Utils::rfc1522_to_plain_utf8($raw_subject);
 
-    my $from = PMG::Utils::rfc1522_to_html(PVE::Tools::trim($head->get('from') // $ref->{sender}));
-    my $sender = PMG::Utils::rfc1522_to_html(PVE::Tools::trim($head->get('sender')));
+    my $raw_from = PVE::Tools::trim($head->get('from') // $ref->{sender});
+    my $from = PMG::Utils::rfc1522_to_html($raw_from);
+    my $from_plain = PMG::Utils::rfc1522_to_plain_utf8($raw_from);
+
+    my $raw_sender = PVE::Tools::trim($head->get('sender'));
+    my $sender = PMG::Utils::rfc1522_to_html($raw_sender);
+    my $sender_plain = PMG::Utils::rfc1522_to_plain_utf8($raw_sender);
 
     if ($sender) {
         $item->{sender} = $sender;
         $item->{from} = sprintf("%s on behalf of %s", $sender, $from);
+        $item->{from_plain} = sprintf("%s on behalf of %s", $sender_plain, $from_plain);
     } else {
         $item->{from} = $from;
+        $item->{from_plain} = $from_plain;
     }
 
     $item->{envelope_sender} = $ref->{sender};
