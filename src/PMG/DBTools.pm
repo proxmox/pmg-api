@@ -589,7 +589,7 @@ sub upgradedb {
             $insert_sth->execute(
                 $ref->{objecttype},
                 $ref->{objectgroup_id},
-                "application/vnd\.microsoft\.portable-executable",
+                "content-type:application/vnd\.microsoft\.portable-executable",
             );
         }
 
