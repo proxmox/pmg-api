@@ -27,7 +27,9 @@ TEMPLATES =				\
 	fetchmailrc.tt			\
 	pmgreport.tt			\
 	spamreport-verbose.tt		\
+	spamreport-verbose.plain.tt	\
 	spamreport-short.tt		\
+	spamreport-short.plain.tt	\
 	main.cf.in			\
 	main.cf.in.demo			\
 	master.cf.in			\
