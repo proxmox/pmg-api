@@ -1,15 +1,15 @@
 [% IF timespan == 'week' -%]
-[% SET title = "Weekly Spam Report for '${pmail}' - ${date}'" -%]
+[% SET title = "Weekly Spam Report for '${pmail_plain}' - ${date}'" -%]
 [% ELSIF timespan.substr(timespan.length - 1) == 'h' -%]
-[% SET title = "Spam Report (last ${timespan}) for '${pmail}' - ${date}" -%]
+[% SET title = "Spam Report (last ${timespan}) for '${pmail_plain}' - ${date}" -%]
 [% ELSE -%]
-[% SET title = "Daily Spam Report for '${pmail}' - ${date}" -%]
+[% SET title = "Daily Spam Report for '${pmail_plain}' - ${date}" -%]
 [% END -%]
 subject: [% title %]
 [% IF mailcount == 1 -%]
-There is a message for [% pmail %] in the spam quarantine.
+There is a message for [% pmail_plain %] in the spam quarantine.
 [% ELSE -%]
-There are [% mailcount %] messages for [% pmail %] in the spam quarantine.
+There are [% mailcount %] messages for [% pmail_plain %] in the spam quarantine.
 [% END -%]
 
 Manage your spam quarantine:
