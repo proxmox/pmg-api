@@ -6,12 +6,15 @@
 [% SET title = "Daily Spam Report for '${pmail}' - ${date}" -%]
 [% END -%]
 subject: [% title %]
-You received [% mailcount %] spam mail(s).
+[% IF mailcount == 1 -%]
+There is a message for [% pmail %] in the spam quarantine.
+[% ELSE -%]
+There are [% mailcount %] messages for [% pmail %] in the spam quarantine.
+[% END -%]
 
-[% SET links = [] %]
-Manage your spam quarantine: [% n = links.size + 1; links.push(managehref); %][[% n %]]
-Powered by Proxmox: [% n = links.size + 1; links.push('http://www.proxmox.com'); %][[% n %]]
+Manage your spam quarantine:
+[% managehref %]
 
-Links:
-[% FOREACH l IN links %][% loop.index + 1 %]: [% l %]
-[% END %]
+-- 
+Powered by Proxmox Mail Gateway
+https://www.proxmox.com
