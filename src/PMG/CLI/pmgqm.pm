@@ -330,11 +330,11 @@ __PACKAGE__->register_method({
                 $mailcount = 0;
 
                 $data->{pmail} = encode_entities($decoded_pmail);
-                $data->{pmail_raw} = $ref->{pmail};
+                $data->{pmail_plain} = $ref->{pmail};
                 $data->{managehref} = "$protocol_fqdn_port/quarantine";
                 if ($data->{authmode} ne 'ldap') {
                     $data->{ticket} =
-                        PMG::Ticket::assemble_quarantine_ticket($data->{pmail_raw});
+                        PMG::Ticket::assemble_quarantine_ticket($data->{pmail_plain});
                     my $esc_ticket = uri_escape($data->{ticket});
                     $data->{managehref} .= "?ticket=${esc_ticket}";
                 }

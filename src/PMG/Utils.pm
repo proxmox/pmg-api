@@ -1364,7 +1364,7 @@ sub finalize_report {
 
     my $top = MIME::Entity->build(
         Type => ($html && $plaintext) ? 'multipart/alternative' : 'multipart/related',
-        To => $data->{pmail_raw},
+        To => $data->{pmail_plain},
         From => $mailfrom,
         Date => format_date_header(localtime()),
         Subject => bencode_header(decode_entities($title)),
