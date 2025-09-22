@@ -226,10 +226,12 @@ sub get_index {
 
         my $ticket = PVE::APIServer::Formatter::extract_auth_value($cookie, $server->{cookie_name});
 
-        if ($ticket =~ m/^PMGQUAR:/) {
-            $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
-        } else {
-            $username = PMG::Ticket::verify_ticket($ticket, undef, 1);
+        if (defined($ticket)) {
+            if ($ticket =~ m/^PMGQUAR:/) {
+                $username = PMG::Ticket::verify_quarantine_ticket($ticket, 1);
+            } else {
+                $username = PMG::Ticket::verify_ticket($ticket, undef, 1);
+            }
         }
     } else {
         if (defined($args->{ticket})) {
