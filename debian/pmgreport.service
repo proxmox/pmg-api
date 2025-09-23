@@ -1,6 +1,10 @@
 [Unit]
 Description=Send Daily System Report Mail
 ConditionPathExists=/usr/bin/pmgreport
+After=postfix.service
+After=postgresql.service
+Wants=postfix.service
+Wants=postgresql.service
 
 [Service]
 Type=oneshot

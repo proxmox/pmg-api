@@ -1,6 +1,10 @@
 [Unit]
 Description=Send Daily Spam Report Mails
 ConditionPathExists=/usr/bin/pmgqm
+After=postfix.service
+After=postgresql.service
+Wants=postfix.service
+Wants=postgresql.service
 
 [Service]
 Type=oneshot
