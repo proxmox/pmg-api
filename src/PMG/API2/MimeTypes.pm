@@ -73,6 +73,7 @@ __PACKAGE__->register_method({
     path => '',
     method => 'GET',
     description => "Get Mime Types List",
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
     },
