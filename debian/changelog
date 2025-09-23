@@ -1,3 +1,27 @@
+pmg-api (9.0.0~4) trixie; urgency=medium
+
+  * ruledb: updatedb: fix missing 'content-type:' prefix on update to avoid
+    "undefined object attribute" errors in the journal.
+
+  * fix #5323: templates: postfix: explicitly disable chroot as upstream
+    intended, as this is what PMG does since version 5.0 anyway.
+
+  * fix #1621: templates: add plain-text variant of short/verbose spam report.
+
+  * fix #4023: templates: add plain-text variant of admin report.
+
+  * partially fix #2077: pmgcm and pmgconfig: remove dependency on
+    Term::ReadLine, as a side-effect, this also fixes #6748.
+
+  * pmgproxy: fix matching against potentially uninitialized ticket value due
+    to a cookie header without an PMG authentication cookie being send along.
+
+  * fix #5438: api: allow admin users access to mime types endpoint.
+
+  * d/control: recommend proxomox-network-interface-pinning.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 23 Sep 2025 16:43:29 +0200
+
 pmg-api (9.0.0~3) trixie; urgency=medium
 
   * pmgtunnel: do not set SIGCHLD handler to make code more robust.
