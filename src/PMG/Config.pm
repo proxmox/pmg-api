@@ -1910,7 +1910,7 @@ sub compare_smtp_filter_config {
     eval { $old = PVE::Tools::file_get_contents($smtp_filter_cfg); };
 
     if (my $err = $@) {
-        syslog('warning', "reloading pmg-smtp-filter: $err");
+        syslog('warning', "reloading pmg-smtp-filter: $err") if !$!{ENOENT};
         $ret = 1;
     } else {
         my $new = $self->dump_smtp_filter_config();
