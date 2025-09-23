@@ -67,6 +67,14 @@ case "$1" in
 
         if test ! -e /proxmox_install_mode ; then
 
+            # FIXME: remove after beta is over and add hunk to actively remove the repo
+            BETA_SOURCES="/etc/apt/sources.list.d/pmg-test-for-beta.sources"
+            if test -e /proxmox_install_mode && ! test -f "$BETA_SOURCES"; then
+                echo "Adding pmg-test repo to '$BETA_SOURCES' to enable updates during Proxmox Mail Gateway 9.0 BETA"
+                printf 'Types: deb\nURIs: http://download.proxmox.com/debian/pmg\nSuites: trixie\nComponents: pmg-test\nSigned-By: /usr/share/keyrings/proxmox-archive-keyring.gpg\n' \
+                    | tee "$BETA_SOURCES"
+            fi
+
             pmgconf="/etc/pmg/pmg.conf"
             if test -n "$2" && dpkg --compare-versions "$2" 'lt' '8.0.2'; then
                 # on upgrade add pre 8.0 default values for advfilter, use_awl and use_bayes
