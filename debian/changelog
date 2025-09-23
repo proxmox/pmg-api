@@ -1,3 +1,11 @@
+pmg-api (8.2.5) bookworm; urgency=medium
+
+  * pmg8to9: improve output format layout slightly
+
+  * pmg8to9: add context and adapt deprecated who object entry warning.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 23 Sep 2025 21:38:51 +0200
+
 pmg-api (8.2.4) bookworm; urgency=medium
 
   * add initial version of 8 to 9 upgrade check script.
