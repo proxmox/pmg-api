@@ -1,3 +1,14 @@
+pmg-api (9.0.0~5) trixie; urgency=medium
+
+  * config: silence logging error when comparing SMTP filter config and
+    the current pmg-smtp-filter.cfg file does not yet exist.
+
+  * system report and spam report: improve systemd timer units to ensure they
+    only start after the postgres DB and postfix services have been started to
+    avoid that the report services fail.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 23 Sep 2025 22:01:43 +0200
+
 pmg-api (9.0.0~4) trixie; urgency=medium
 
   * ruledb: updatedb: fix missing 'content-type:' prefix on update to avoid
