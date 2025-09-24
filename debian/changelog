@@ -1,3 +1,14 @@
+pmg-api (9.0.0~6) trixie; urgency=medium
+
+  * d/postinst: setup pmg-test apt repo for getting updates during the
+    beta.
+
+  * d/postinst: drop outdated apt auth.conf migration from during the PMG 7
+    release, as there is no support to upgrade a PMG 7 directly to PMG 9
+    anyway.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Sep 2025 13:34:23 +0200
+
 pmg-api (9.0.0~5) trixie; urgency=medium
 
   * config: silence logging error when comparing SMTP filter config and
