@@ -1,3 +1,10 @@
+pmg-api (9.0.0~7) trixie; urgency=medium
+
+  * d/postinst: fix setting up pmg-test apt repo in installer environment to
+    ensure testers are getting updates during the beta.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 Sep 2025 14:37:18 +0200
+
 pmg-api (9.0.0~6) trixie; urgency=medium
 
   * d/postinst: setup pmg-test apt repo for getting updates during the
