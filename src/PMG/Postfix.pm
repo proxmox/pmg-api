@@ -221,6 +221,30 @@ sub delete_queue {
     PVE::Tools::run_command($cmd);
 }
 
+# delete multiple mails by queue IDs
+sub delete_queue_ids {
+    my ($queue, $ids) = @_;
+
+    return if !$ids || ref($ids) ne 'ARRAY' || !@$ids;
+
+    my $input = join("\n", @$ids) . "\n";
+    my $cmd = ['/usr/sbin/postsuper', '-d', '-'];
+    push @$cmd, $queue if defined($queue);
+
+    PVE::Tools::run_command($cmd, input => $input);
+}
+
+# flush multiple mails by queue IDs
+sub flush_queue_ids {
+    my ($ids) = @_;
+
+    return if !$ids || ref($ids) ne 'ARRAY' || !@$ids;
+
+    for my $qid (@$ids) {
+        PVE::Tools::run_command(['/usr/sbin/postqueue', '-i', $qid]);
+    }
+}
+
 sub discard_verify_cache {
     unlink "/var/lib/postfix/verify_cache.db";
 

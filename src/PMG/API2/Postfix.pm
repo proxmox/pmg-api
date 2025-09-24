@@ -336,6 +336,46 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
+    name => 'queue_action',
+    path => 'queue/{queue}',
+    method => 'POST',
+    description => "Perform an action on the given queue IDs (delete/deliver).",
+    proxyto => 'node',
+    permissions => { check => ['admin'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            queue => $queue_name_option,
+            action => {
+                description => 'Operation to perform on the given IDs.',
+                type => 'string',
+                enum => ['delete', 'deliver'],
+            },
+            ids => {
+                description => 'Queue ID(s), separated by semicolons (;).',
+                type => 'string',
+                pattern => '[a-zA-Z0-9]{8,20}(;[a-zA-Z0-9]{8,20})*',
+            },
+        },
+    },
+    returns => { type => 'null' },
+    code => sub {
+        my ($param) = @_;
+        my @id_list = PVE::Tools::split_list($param->{ids});
+
+        if ($param->{action} eq 'delete') {
+            PMG::Postfix::delete_queue_ids($param->{queue}, \@id_list);
+        } elsif ($param->{action} eq 'deliver') {
+            PMG::Postfix::flush_queue_ids(\@id_list);
+        }
+
+        return undef;
+    },
+});
+
+__PACKAGE__->register_method({
     name => 'delete_queue',
     path => 'queue/{queue}',
     method => 'DELETE',
