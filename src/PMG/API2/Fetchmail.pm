@@ -203,6 +203,7 @@ __PACKAGE__->register_method({
             $fmcfg->{$id} = $entry;
 
             PVE::INotify::write_file('fetchmailrc', $fmcfg);
+            PMG::Utils::service_cmd('fetchmail', 'restart')
         };
 
         PMG::Config::lock_config($code, "update fechtmail configuration failed");
@@ -242,6 +243,7 @@ __PACKAGE__->register_method({
             }
 
             PVE::INotify::write_file('fetchmailrc', $fmcfg);
+            PMG::Utils::service_cmd('fetchmail', 'restart')
         };
 
         PMG::Config::lock_config($code, "update fechtmail configuration failed");
@@ -280,6 +282,7 @@ __PACKAGE__->register_method({
             delete $fmcfg->{$id};
 
             PVE::INotify::write_file('fetchmailrc', $fmcfg);
+            PMG::Utils::service_cmd('fetchmail', 'restart')
         };
 
         PMG::Config::lock_config($code, "delete fechtmail configuration failed");
