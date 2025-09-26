@@ -9,6 +9,9 @@ defaults:
 
 smtphost [% ipconfig.int_ip %]/[% pmg.mail.ext_port %]
 
+# add manually configured accounts below and before 'proxmox settings'
+
+
 # proxmox settings (Do not delete this marker!!)
 [% FOREACH item IN fetchmail_users.list('values') %]
 [% IF item.enable %]poll[% ELSE %]skip[% END -%]
