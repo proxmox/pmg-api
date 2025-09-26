@@ -143,6 +143,11 @@ sub read_fetchmail_conf {
 
         my $finalize_item = sub {
             my ($item) = @_;
+
+            if ($item->{ssl} && !$item->{ssl_proto}) {
+                die "conflicting SSL settings for $item->{id}\n" if $item->{enabled};
+            }
+
             $cfg->{ $item->{id} } = $item;
         };
 
@@ -174,6 +179,8 @@ sub read_fetchmail_conf {
                 $item->{port} = $get_token_argument->();
             } elsif ($token eq 'interval') {
                 $item->{interval} = $get_token_argument->();
+            } elsif ($token eq 'sslproto') {
+                $item->{sslproto} = $get_token_argument->();
             } elsif (
                 $token eq 'ssl'
                 || $token eq 'keep'
@@ -210,7 +217,11 @@ sub write_fetchmail_conf {
         }
         $set_fetchmail_defaults->($item);
         my $options = ['dropdelivered'];
-        push @$options, 'ssl' if $item->{ssl};
+        if ($item->{ssl}) {
+            push @$options, 'ssl';
+        } else {
+            push @$options, ('sslproto', '\'\'');
+        }
         push @$options, 'keep' if $item->{keep};
         $item->{options} = join(' ', @$options);
         $data->{$id} = $item;
