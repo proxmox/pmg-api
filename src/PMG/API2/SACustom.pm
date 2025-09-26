@@ -54,7 +54,6 @@ __PACKAGE__->register_method({
     path => '',
     method => 'GET',
     description => "List custom scores.",
-    #    protected => 1,
     permissions => { check => ['admin', 'audit'] },
     proxyto => 'master',
     parameters => {
@@ -184,6 +183,7 @@ __PACKAGE__->register_method({
     description => "Create custom SpamAssassin score",
     protected => 1,
     proxyto => 'master',
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => json_config_properties({
@@ -226,8 +226,8 @@ __PACKAGE__->register_method({
     path => '{name}',
     method => 'GET',
     description => "Get custom SpamAssassin score",
-    protected => 1,
     proxyto => 'master',
+    permissions => { check => ['admin', 'audit'] },
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -262,6 +262,7 @@ __PACKAGE__->register_method({
     description => "Edit custom SpamAssassin score",
     protected => 1,
     proxyto => 'master',
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => json_config_properties({
@@ -303,9 +304,10 @@ __PACKAGE__->register_method({
     name => 'delete_score',
     path => '{name}',
     method => 'DELETE',
-    description => "Edit custom SpamAssassin score",
+    description => "Delete custom SpamAssassin score",
     protected => 1,
     proxyto => 'master',
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => {
