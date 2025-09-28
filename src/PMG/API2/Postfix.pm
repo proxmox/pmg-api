@@ -22,12 +22,23 @@ my $queue_name_option = {
     enum => $postfix_queues,
 };
 
+PVE::JSONSchema::register_format(
+    'pmg-postfix-queue-id',
+    sub {
+        my ($qid, $noerr) = @_;
+
+        if ($qid !~ m/[a-zA-Z0-9]{8,20}/) {
+            return undef if $noerr;
+            die "value does not look like a valid postfix queue-id\n";
+        }
+        return $qid;
+    },
+);
+
 my $queue_id_option = {
     description => "The Message queue ID.",
     type => 'string',
-    pattern => '[a-zA-Z0-9]+',
-    minLength => 8,
-    maxLength => 20,
+    format => 'pmg-postfix-queue-id',
 };
 
 __PACKAGE__->register_method({
@@ -354,9 +365,9 @@ __PACKAGE__->register_method({
                 enum => ['delete', 'deliver'],
             },
             ids => {
-                description => 'Queue ID(s), separated by semicolons (;).',
+                description => 'Queue ID(s).',
                 type => 'string',
-                pattern => '[a-zA-Z0-9]{8,20}(;[a-zA-Z0-9]{8,20})*',
+                format => 'pmg-postfix-queue-id-list',
             },
         },
     },
