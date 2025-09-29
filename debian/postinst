@@ -98,7 +98,7 @@ case "$1" in
 
         if ! systemctl --quiet is-enabled clamav-freshclam.service ; then
             echo "Enabling clamav-freshclam to keep signatures updated"
-            deb-systemd-invoke enable clamav-freshclam.service 2>&1 >/dev/null || true
+            deb-systemd-invoke enable clamav-freshclam.service >/dev/null 2>&1 || true
         fi
 
         if test -n "$2" && dpkg --compare-versions "$2" 'lt' '8.2.0'; then
