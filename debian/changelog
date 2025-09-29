@@ -1,3 +1,9 @@
+pmg-api (9.0.1) trixie; urgency=medium
+
+  * drop pmg-test apt repository source again when added during the beta.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 29 Sep 2025 19:30:48 +0200
+
 pmg-api (9.0.0) trixie; urgency=medium
 
   * bump version for stable release.
