@@ -1,3 +1,19 @@
+pmg-api (9.0.0~8) trixie; urgency=medium
+
+  * fix #3450: api: queue: add POST endpoint for batch deletion/delivery.
+
+  * fix #6798: fetchmail: adapt to changed semantics of the 'sslproto'
+    configuration key which resulted in only trying TLS. This fixes a
+    regression when using servers that only support STARTTLS.
+
+  * templates: fetchmail: add comment where users can add manual accounts.
+
+  * api: fetchmail: restart fetchmail service on config changes.
+
+  * fix #5367 api: sa-custom-score: add missing permissions to api-calls.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 29 Sep 2025 15:52:57 +0200
+
 pmg-api (9.0.0~7) trixie; urgency=medium
 
   * d/postinst: fix setting up pmg-test apt repo in installer environment to
