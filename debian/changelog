@@ -1,3 +1,9 @@
+pmg-api (9.0.0) trixie; urgency=medium
+
+  * bump version for stable release.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 29 Sep 2025 18:16:45 +0200
+
 pmg-api (9.0.0~8) trixie; urgency=medium
 
   * fix #3450: api: queue: add POST endpoint for batch deletion/delivery.
