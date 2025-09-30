@@ -653,8 +653,10 @@ sub check_ruledb {
         my $objects = $rdb->load_group_objects($who->{id});
         for my $obj ($objects->@*) {
             if ($obj->{address} =~ m/(?:no)?mail\@fromthisdomain.com/) {
-                log_warn("deprecated default entry in '$group_name' present: $obj->{address}\n"
-                    . "      Consider removing it, as fromthisdomain.com is not reserved");
+                log_warn("deprecated default entry '$obj->{address}' in '$group_name' Who-Object still present in rule database\n"
+                    . "\tPMG added this address as an example, but as it is not reserved for use as an example only, it should be removed.\n"
+                    . "\tYou can use the web UI to remove this address from the '$group_name' Who-Object."
+                );
             }
         }
     }
