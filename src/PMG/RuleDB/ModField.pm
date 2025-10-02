@@ -6,6 +6,8 @@ use DBI;
 use Digest::SHA;
 use Encode qw(encode decode);
 
+use PVE::SafeSyslog;
+
 use PMG::Utils;
 use PMG::ModGroup;
 use PMG::RuleDB::Object;
@@ -100,9 +102,20 @@ sub execute {
 
     my $subgroups = $mod_group->subgroups($targets);
 
+    my $rulename = encode('UTF-8', $vars->{RULE} // 'unknown');
+
     foreach my $ta (@$subgroups) {
         my ($tg, $e) = (@$ta[0], @$ta[1]);
         $e->head->replace($self->{field}, $fvalue);
+        my $targets = join('>, <', @$tg);
+        syslog(
+            'info',
+            "%s: modified header '%s' for <%s> (rule: %s)",
+            $queue->{logid},
+            encode('UTF-8', $self->{field}),
+            encode('UTF-8', $targets),
+            $rulename,
+        );
     }
 }
 
