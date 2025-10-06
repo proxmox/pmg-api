@@ -1,3 +1,10 @@
+pmg-api (8.2.6) bookworm; urgency=medium
+
+  * 8to9: clarify warning for deprecated legacy-default Who-Object and provide
+    actually actionable steps.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 06 Oct 2025 09:45:17 +0200
+
 pmg-api (8.2.5) bookworm; urgency=medium
 
   * pmg8to9: improve output format layout slightly
