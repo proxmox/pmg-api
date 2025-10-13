@@ -1433,7 +1433,7 @@ __PACKAGE__->register_method({
             my $pmail = try_decode_utf8($ref->{pmail});
             my $receiver = try_decode_utf8($ref->{receiver} // $ref->{pmail});
 
-            if ($action eq 'welcomelist' || $action eq 'welcomelist') {
+            if ($action eq 'welcomelist' || $action eq 'whitelist') {
                 PMG::Quarantine::add_to_blockwelcome($dbh, $pmail, 'WL', [$sender]);
                 PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
             } elsif ($action eq 'blocklist' || $action eq 'blacklist') {
