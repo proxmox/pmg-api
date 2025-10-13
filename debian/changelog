@@ -1,3 +1,14 @@
+pmg-api (9.0.2) trixie; urgency=medium
+
+  * api: quarantine: fix wrong backward-compatible fallback value mapping.
+
+  * report mail: order plain-text part first, as recommended by the MIME-RFC
+    #2046.
+
+  * fix #5966: ruledb: log modify header action.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 13 Oct 2025 18:39:18 +0200
+
 pmg-api (9.0.1) trixie; urgency=medium
 
   * drop pmg-test apt repository source again when added during the beta.
