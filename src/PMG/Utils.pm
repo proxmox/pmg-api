@@ -1370,18 +1370,18 @@ sub finalize_report {
         Subject => bencode_header(decode_entities($title)),
     );
 
-    if ($html) {
-        $top->attach(
-            Data => $html,
-            Type => "text/html",
-            Encoding => $debug ? 'binary' : 'quoted-printable',
-        );
-    }
     if ($plaintext) {
         $top->attach(
             Data => $plaintext,
             Type => 'text/plain; charset=utf-8',
             Encoding => '8-bit',
+        );
+    }
+    if ($html) {
+        $top->attach(
+            Data => $html,
+            Type => "text/html",
+            Encoding => $debug ? 'binary' : 'quoted-printable',
         );
     }
 
