@@ -247,7 +247,9 @@ sub properties {
             default => 0,
         },
         use_awl => {
-            description => "Use the Auto-Welcomelist plugin.",
+            description =>
+                "Use the Auto-Welcomelist (AWL) plugin. This keeps track of the average score of a"
+                . " sender and adjusts the score of new mails from that sender towards the average.",
             type => 'boolean',
             default => 0,
         },
