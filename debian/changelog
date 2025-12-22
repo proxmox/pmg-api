@@ -1,3 +1,11 @@
+pmg-api (8.2.7) bookworm; urgency=medium
+
+  * api: apt changelog: check for odd package name and ensure arguments are
+    separated from options.
+  * config: fallback to 8G physical memory if query fails
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 22 Dec 2025 16:18:08 +0100
+
 pmg-api (8.2.6) bookworm; urgency=medium
 
   * 8to9: clarify warning for deprecated legacy-default Who-Object and provide
