@@ -4,9 +4,12 @@ use strict;
 use warnings;
 
 use Test::More;
-use POSIX qw(setlocale strftime);
+use POSIX qw(setlocale strftime tzset);
 
 use PMG::Utils;
+
+$ENV{TZ} = 'Europe/Vienna';
+tzset();
 
 subtest 'format_date_header works' => sub {
     cmp_ok(length(PMG::Utils::format_date_header(localtime())), '>=', 30);
