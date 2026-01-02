@@ -1,9 +1,16 @@
 export PERLLIB = ..
 
+# realpath returns an empty string for non-existing files
+SKIP_INTEGRATION_TESTS ?= $(realpath /run/lock/sbuild)
+
 all:
 
 .PHONY: check
+ifeq ($(strip $(SKIP_INTEGRATION_TESTS)),)
 check: test-utils test-sa-channel integration-tests
+else
+check: test-utils test-sa-channel
+endif
 
 .PHONY: test-utils
 test-utils:
