@@ -1374,7 +1374,7 @@ sub finalize_report {
         $top->attach(
             Data => $plaintext,
             Type => 'text/plain; charset=utf-8',
-            Encoding => '8-bit',
+            Encoding => '8bit',
         );
     }
     if ($html) {
