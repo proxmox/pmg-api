@@ -662,7 +662,7 @@ __PACKAGE__->register_method({
         my $ctime = time();
         my $ltime = timegm_nocheck(localtime($ctime));
         my $res = {
-            timezone => PVE::INotify::read_file('timezone'),
+            timezone => PVE::Systemd::get_timezone(),
             time => time(),
             localtime => $ltime,
         };
@@ -693,7 +693,7 @@ __PACKAGE__->register_method({
     code => sub {
         my ($param) = @_;
 
-        PVE::INotify::write_file('timezone', $param->{timezone});
+        PVE::Systemd::set_timezone($param->{timezone});
 
         return undef;
     },
