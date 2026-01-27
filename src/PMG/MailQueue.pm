@@ -392,6 +392,12 @@ sub parse_mail {
 
     die "$self->{logid}: unable to parse message - $@" if $@;
 
+    # use the method on MIME::Parser instead of parsing again - see
+    # https://metacpan.org/pod/MIME::Parser#ambiguous_content
+    if (!$accept_broken_mime && $parser->ambiguous_content()) {
+        die "$self->{logid}: message has ambiguous content: ERROR\n";
+    }
+
     PMG::MIMEUtils::fixup_multipart($entity);
 
     if ((my $idcount = $entity->head->count('Message-Id')) > 0) {
