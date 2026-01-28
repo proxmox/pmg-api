@@ -1,3 +1,13 @@
+pmg-api (9.0.4) trixie; urgency=medium
+
+  * quarantine report: fix encoding marker for plain-text parts, use "8bit"
+    over wrong "8-bit" as per RFC 2045.
+
+  * add option for accepting broken MIME structures when parsing mails and
+    turn it off by default.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 28 Jan 2026 17:52:57 +0100
+
 pmg-api (9.0.3) trixie; urgency=medium
 
   * api: apt changelog: check for odd package name and ensure arguments are
