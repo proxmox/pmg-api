@@ -360,11 +360,11 @@ sub close {
 }
 
 sub _new_mime_parser {
-    my ($self, $maxfiles) = shift;
+    my ($self, $maxfiles, $accept_broken_mime) = @_;
 
     my $parser = PMG::MIMEUtils::new_mime_parser({
         nested => 1,
-        ignore_errors => 1,
+        ignore_errors => $accept_broken_mime,
         extract_uuencode => 0,
         decode_bodies => 0,
         maxfiles => $maxfiles,
@@ -375,12 +375,12 @@ sub _new_mime_parser {
 }
 
 sub parse_mail {
-    my ($self, $maxfiles) = shift;
+    my ($self, $maxfiles, $accept_broken_mime) = @_;
 
     my $entity;
     my $ctime = time;
 
-    my $parser = $self->_new_mime_parser($maxfiles);
+    my $parser = $self->_new_mime_parser($maxfiles, $accept_broken_mime);
 
     $self->{fh}->seek(0, 0);
 

@@ -786,6 +786,12 @@ sub properties {
             minimum => 2,
             maximum => 86400,
         },
+        'accept-broken-mime' => {
+            description => "Accept e-mails with broken MIME structure (insecure)",
+            type => 'boolean',
+            default => 0,
+        },
+
     };
 }
 
@@ -828,6 +834,7 @@ sub options {
         ndr_on_block => { optional => 1 },
         smtputf8 => { optional => 1 },
         'filter-timeout' => { optional => 1 },
+        'accept-broken-mime' => { optional => 1 },
     };
 }
 
