@@ -7,6 +7,7 @@ use Encode qw(encode);
 use PVE::SafeSyslog;
 use PVE::Tools;
 
+use PMG::Config;
 use PMG::Utils;
 use PMG::RuleDB;
 use PMG::MailQueue;
@@ -104,11 +105,15 @@ sub deliver_quarantined_mail {
         return 1;
     }
 
+    my $cfg = PMG::Config->new();
+    my $accept_broken_mime = $cfg->get('mail', 'accept-broken-mime');
+
     my $parser = PMG::MIMEUtils::new_mime_parser({
         nested => 1,
         decode_bodies => 0,
         extract_uuencode => 0,
         dumpdir => "/tmp/.quarantine-$id-$receiver-$$/",
+        ignore_errors => $accept_broken_mime,
     });
 
     my $entity = $parser->parse_open("$path");
