@@ -980,9 +980,11 @@ __PACKAGE__->register_method({
             my $cfg = PMG::Config->new();
             my $viewimages = $cfg->get('spamquar', 'viewimages');
             my $allowhref = $cfg->get('spamquar', 'allowhrefs');
+            my $accept_broken_mime = $cfg->get('mail', 'accept-broken-mime');
 
-            $res->{content} = PMG::HTMLMail::email_to_html($path, $raw, $viewimages, $allowhref)
-                // 'unable to parse mail';
+            $res->{content} = PMG::HTMLMail::email_to_html(
+                $path, $raw, $viewimages, $allowhref, $accept_broken_mime,
+            ) // 'unable to parse mail';
 
             # to make result verification happy
             $res->{file} = '';
