@@ -1219,11 +1219,14 @@ my $get_attachments = sub {
     my $filename = $ref->{file};
     my $spooldir = $PMG::MailQueue::spooldir;
 
+    my $cfg = PMG::Config->new();
+    my $accept_broken_mime = $cfg->get('mail', 'accept-broken-mime');
     my $parser = PMG::MIMEUtils::new_mime_parser({
         nested => 1,
         decode_bodies => 0,
         extract_uuencode => 0,
         dumpdir => $dumpdir,
+        ignore_errors => $accept_broken_mime,
     });
 
     my $entity = $parser->parse_open("$spooldir/$filename");
