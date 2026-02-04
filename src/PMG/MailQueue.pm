@@ -360,11 +360,11 @@ sub close {
 }
 
 sub _new_mime_parser {
-    my ($self, $maxfiles, $accept_broken_mime) = @_;
+    my ($self, $maxfiles) = @_;
 
     my $parser = PMG::MIMEUtils::new_mime_parser({
         nested => 1,
-        ignore_errors => $accept_broken_mime,
+        ignore_errors => 0,
         extract_uuencode => 0,
         decode_bodies => 0,
         maxfiles => $maxfiles,
@@ -378,24 +378,49 @@ sub parse_mail {
     my ($self, $maxfiles, $accept_broken_mime) = @_;
 
     my $entity;
+    my $logid = $self->{logid};
     my $ctime = time;
 
-    my $parser = $self->_new_mime_parser($maxfiles, $accept_broken_mime);
+    my $parser = $self->_new_mime_parser($maxfiles);
 
     $self->{fh}->seek(0, 0);
 
     eval {
+        # returns undef on too many parts/maxfiles
         if (!($entity = $parser->read($self->{fh}))) {
-            die "$self->{logid}: unable to parse message: ERROR";
+            die "too many parts\n";
         }
     };
+    if (my $err = $@) {
+        if ($accept_broken_mime) {
+            # if accept_broken_mime is set parse again and add a header
+            $parser->ignore_errors(1);
+            $self->{fh}->seek(0, 0);
 
-    die "$self->{logid}: unable to parse message - $@" if $@;
+            eval {
+                if (!($entity = $parser->read($self->{fh}))) {
+                    die "too many parts\n";
+                }
+            };
+            die "$logid: unable to parse message ignoring errors: $@\n";
+
+            syslog('warn', "$logid: message caused errors during parsing: $err adding header");
+            $entity->head()->add("X-Proxmox-Broken-Message", "caused errors while parsing");
+            $parser->ignore_errors(0);
+        } else {
+            die "$logid: unable to parse message - $@" if $@;
+        }
+    }
 
     # use the method on MIME::Parser instead of parsing again - see
     # https://metacpan.org/pod/MIME::Parser#ambiguous_content
-    if (!$accept_broken_mime && $parser->ambiguous_content()) {
-        die "$self->{logid}: message has ambiguous content: ERROR\n";
+    if ($parser->ambiguous_content()) {
+        if ($accept_broken_mime) {
+            syslog('warn', "$logid: message has ambiguous content - adding header");
+            $entity->head()->add("X-Proxmox-Broken-Message", "ambiguous content");
+        } else {
+            die "$logid: message has ambiguous content\n";
+        }
     }
 
     PMG::MIMEUtils::fixup_multipart($entity);
@@ -408,7 +433,7 @@ sub parse_mail {
     my $parse_time = time() - $ctime;
 
     # also save decoded data
-    decode_entities($parser, $self->{logid}, $entity);
+    decode_entities($parser, $logid, $entity);
 
     # we also remove all proxmox-marks from the mail and add an unique
     # id to each attachment.
