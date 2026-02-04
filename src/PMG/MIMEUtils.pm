@@ -15,7 +15,7 @@ sub new_mime_parser {
     my $parser = new MIME::Parser;
 
     $parser->extract_nested_messages($params->{nested} // 0);
-    $parser->ignore_errors($params->{ignore_errors} // 1);
+    $parser->ignore_errors($params->{ignore_errors} // 0);
     $parser->extract_uuencode($params->{extract_uuencode})
         if defined($params->{extract_uuencode});
     $parser->decode_bodies($params->{decode_bodies})
