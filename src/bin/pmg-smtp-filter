@@ -44,7 +44,6 @@ use PMG::MailQueue;
 use PMG::Unpack;
 use PMG::SMTP;
 
-use PMG::Unpack;
 use PMG::Statistic;
 
 use base qw(Net::Server::PreFork);
