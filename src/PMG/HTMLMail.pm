@@ -318,7 +318,7 @@ sub entity_to_html {
 }
 
 sub email_to_html {
-    my ($path, $raw, $viewimages, $allowhref) = @_;
+    my ($path, $raw, $viewimages, $allowhref, $accept_broken_mime) = @_;
 
     my $dumpdir = "/tmp/.proxdumpview_$$";
 
@@ -339,6 +339,7 @@ sub email_to_html {
 
             my $parser = PMG::MIMEUtils::new_mime_parser({
                 dumpdir => $dumpdir,
+                ignore_errors => $accept_broken_mime,
             });
 
             my $entity = $parser->parse_open($path);
