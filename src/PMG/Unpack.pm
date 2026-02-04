@@ -540,6 +540,9 @@ sub unpack_mime {
                     $max = $self->{maxfiles} - $self->{files};
                 }
 
+                # explicitly ignore_errors - Unpack is only reached in pmg-smtp-filter with
+                # messages containing errors when accept-broken-mime is set, and then we
+                # we ignore them here as well.
                 my $parser = PMG::MIMEUtils::new_mime_parser(
                     {
                         dumpdir => $tmpdir,
