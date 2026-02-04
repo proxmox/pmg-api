@@ -44,7 +44,7 @@ my $run_pmg_log_tracker = sub {
     my $logids = {};
 
     if (defined(my $id = $includelog)) {
-        if ($id =~ m/^Q([a-f0-9]+)R([a-f0-9]+)$/i) {
+        if ($id =~ m/^Q([0-9a-zA-Z]+):([0-9a-zA-Z]+)$/) {
             $logids->{$1} = 1;
             $logids->{$2} = 1;
             push @$args, '-q', $1, '-q', $2;
@@ -84,7 +84,7 @@ my $run_pmg_log_tracker = sub {
                 return;
             }
 
-            if ($line =~ m/^QENTRY:\s+([0-9A-F]+)$/) {
+            if ($line =~ m/^QENTRY:\s+([0-9a-zA-Z]+)$/) {
                 $state = 'qentry';
                 $entry = { qid => $1 };
                 return;
@@ -106,7 +106,7 @@ my $run_pmg_log_tracker = sub {
                 $state = 'start';
             } elsif ($line =~ m/^(SMTP|FILTER|QMGR):/) {
                 # skip
-            } elsif ($line =~ m/^(L[A-F0-9]+)\s(.*)$/) {
+            } elsif ($line =~ m/^(L[A-Za-z0-9]+)\s(.*)$/) {
                 push @$logs, { linenr => $1, text => $2 };
             } else {
                 die "got unexpected data: $line";
@@ -124,7 +124,7 @@ my $run_pmg_log_tracker = sub {
             } elsif ($line =~ m/^CTIME:\s+([0-9A-F]+)$/) {
                 # ignore ?
             } elsif ($line =~
-                m/^TO:([0-9A-F]+):([0-9A-F]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]+)>\s+\((\S+)\)$/
+                m/^TO:([0-9A-F]+):([0-9a-zA-Z]+):([0-9A-Z]):\s+from <([^>]*)>\s+to\s+<([^>]+)>\s+\((\S+)\)$/
             ) {
                 my $new = {
                     size => $entry->{size} // 0,
@@ -216,7 +216,7 @@ my $run_pmg_log_tracker = sub {
             if (my $relay = $e->{relay}) {
                 if (my $ref = $lookup_hash->{$relay}->{ $e->{to} }) {
                     $ref->{is_relay} = 1;
-                    $id = 'Q' . $e->{qid} . 'R' . $e->{relay};
+                    $id = 'Q' . $e->{qid} . ':' . $e->{relay};
                     if ($e->{dstatus} eq 'A') {
                         $e->{rstatus} = $ref->{dstatus};
                     }
