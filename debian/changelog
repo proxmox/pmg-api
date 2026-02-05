@@ -1,3 +1,10 @@
+pmg-api (8.2.8) bookworm; urgency=medium
+
+  * add option for accepting broken MIME structures when parsing mails and
+    turn it off by default.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 05 Feb 2026 16:14:44 +0100
+
 pmg-api (8.2.7) bookworm; urgency=medium
 
   * api: apt changelog: check for odd package name and ensure arguments are
