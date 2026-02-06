@@ -771,7 +771,9 @@ sub properties {
             maximum => 86400,
         },
         'accept-broken-mime' => {
-            description => "Accept e-mails with broken MIME structure (insecure)",
+            description => 'Accept e-mails with broken MIME structure (insecure). If enabled,'
+                . ' a `X-Proxmox-Broken-Message` header is added to each mail with broken MIME'
+                . ' structure.',
             type => 'boolean',
             default => 0,
         },
