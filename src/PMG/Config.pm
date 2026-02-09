@@ -494,7 +494,7 @@ sub physical_memory {
         warn "Failed to determine total physical memory - $@\n" if $physicalmem_warn;
         warn "Calculating defaults using 8GB assumption\n" if $physicalmem_warn;
         $physicalmem_warn = 0;
-        $info = { memtotal => 8 * 1024*1024*1024 };
+        $info = { memtotal => 8 * 1024 * 1024 * 1024 };
     }
 
     my $total = int($info->{memtotal} / (1024 * 1024));
