@@ -1,3 +1,18 @@
+pmg-api (9.0.5) trixie; urgency=medium
+
+  * html mail: consider accept-broken-mime for rendering html.
+
+  * quarantine: consider accept-broken-mime setting for delivery and
+    attachment parsing.
+
+  * mime utils: default to not ignoring errors in the parser.
+
+  * parser: broken mime: add warning and set `X-Proxmox-Broken-Message` header
+    if mail is broken. The header can be used in the rule system for
+    selectively accepting, blocking or quarantining such messages.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Feb 2026 12:54:24 +0100
+
 pmg-api (9.0.4) trixie; urgency=medium
 
   * quarantine report: fix encoding marker for plain-text parts, use "8bit"
