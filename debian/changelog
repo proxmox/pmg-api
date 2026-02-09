@@ -1,3 +1,11 @@
+pmg-api (8.2.10) bookworm; urgency=medium
+
+  * parser: broken mime: fix error handling.
+
+  * config: add accept-broken-mime to pmg-smtp-filter parameters.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Feb 2026 18:22:52 +0100
+
 pmg-api (8.2.9) bookworm; urgency=medium
 
   * html mail: consider accept-broken-mime for rendering html.
