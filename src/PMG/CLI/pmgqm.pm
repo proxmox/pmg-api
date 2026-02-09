@@ -98,7 +98,8 @@ __PACKAGE__->register_method({
         additionalProperties => 0,
         properties => {
             timespan => {
-                description => "Select time span. Accepts 'today', 'yesterday', 'week' or '1h'..'24h' for the last N hours.",
+                description => "Select time span. Accepts 'today', 'yesterday', 'week' or 'Nh'"
+                    . " for the last N hours, e.g., '1h' or '16h'.",
                 type => 'string',
                 pattern => '^(today|yesterday|week|([1-9]|1[0-9]|2[0-4])h)$',
                 default => 'today',
@@ -175,7 +176,8 @@ __PACKAGE__->register_method({
                 },
             ),
             timespan => {
-                description => "Select time span. Accepts 'today', 'yesterday', 'week' or '1h'..'24h' for the last N hours.",
+                description => "Select time span. Accepts 'today', 'yesterday', 'week' or 'Nh'"
+                    . " for the last N hours, e.g., '1h' or '16h'.",
                 type => 'string',
                 pattern => '^(today|yesterday|week|([1-9]|1[0-9]|2[0-4])h)$',
                 default => 'today',
