@@ -1,3 +1,18 @@
+pmg-api (8.2.9) bookworm; urgency=medium
+
+  * html mail: consider accept-broken-mime for rendering html.
+
+  * quarantine: consider accept-broken-mime setting for delivery and
+    attachment parsing.
+
+  * mime utils: default to not ignoring errors in the parser.
+
+  * parser: broken mime: add warning and set `X-Proxmox-Broken-Message` header
+    if mail is broken. The header can be used in the rule system for
+    selectively accepting, blocking or quarantining such messages.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Feb 2026 13:38:45 +0100
+
 pmg-api (8.2.8) bookworm; urgency=medium
 
   * add option for accepting broken MIME structures when parsing mails and
