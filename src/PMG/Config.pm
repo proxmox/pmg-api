@@ -1900,6 +1900,7 @@ my $pmg_service_params = {
         hide_received => 1,
         ndr_on_block => 1,
         smtputf8 => 1,
+        'accept-broken-mime' => 1,
     },
     admin => {
         dkim_selector => 1,
