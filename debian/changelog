@@ -1,3 +1,11 @@
+pmg-api (9.0.6) trixie; urgency=medium
+
+  * parser: broken mime: fix error handling.
+
+  * config: add accept-broken-mime to pmg-smtp-filter parameters
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 09 Feb 2026 18:17:44 +0100
+
 pmg-api (9.0.5) trixie; urgency=medium
 
   * html mail: consider accept-broken-mime for rendering html.
