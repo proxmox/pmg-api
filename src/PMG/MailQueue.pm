@@ -402,7 +402,7 @@ sub parse_mail {
                     die "too many parts\n";
                 }
             };
-            die "$logid: unable to parse message ignoring errors: $@\n";
+            die "$logid: unable to parse message ignoring errors: $@\n" if $@;
 
             syslog('warn', "$logid: message caused errors during parsing: $err adding header");
             $entity->head()->add("X-Proxmox-Broken-Message", "caused errors while parsing");
