@@ -1437,7 +1437,8 @@ sub reload_ruledb {
     if (defined($ruledb)) {
         eval {
             my $rulecache = PMG::RuleCache->new($ruledb);
-            PMG::Config::rewrite_postfix_welcomelist($rulecache);
+            my $changed = PMG::Config::rewrite_postfix_welcomelist($rulecache);
+            PMG::Utils::service_cmd('postfix', 'reload') if $changed;
         };
         warn "problems updating SMTP welcomelist - $@" if $@;
     }

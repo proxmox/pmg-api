@@ -1842,10 +1842,13 @@ sub rewrite_postfix_welcomelist {
         }
     }
 
-    $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
-    $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
-    $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
-    $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+    my $changes = 0;
+    $changes ||= $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
+    $changes ||= $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
+    $changes ||= $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
+    $changes ||= $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+
+    return $changes;
 }
 
 # rewrite /etc/postfix/*
@@ -1873,7 +1876,7 @@ sub rewrite_config_postfix {
     postmap_tls_policy();
     postmap_tls_inbound_domains();
 
-    rewrite_postfix_welcomelist($rulecache) if $rulecache;
+    $changes ||= rewrite_postfix_welcomelist($rulecache) if $rulecache;
 
     # make sure aliases.db is up to date
     system('/usr/bin/newaliases');
