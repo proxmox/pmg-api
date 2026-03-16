@@ -72,7 +72,7 @@ sub dir2text {
         sub {
             my ($file) = @_;
             $report .= "\n# cat $target_dir$file\n";
-            $report .= PVE::Tools::file_get_contents($target_dir . $file) . "\n";
+            $report .= PVE::Tools::file_get_contents($target_dir . $file, 4096 * 1024) . "\n";
         },
     );
 }

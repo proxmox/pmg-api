@@ -266,10 +266,10 @@ my $cond_commit_synced_file = sub {
         return;
     }
 
-    my $new = PVE::Tools::file_get_contents($srcfn, 1024 * 1024);
+    my $new = PVE::Tools::file_get_contents($srcfn, 4096 * 1024);
 
     if (-f $dstfn) {
-        my $old = PVE::Tools::file_get_contents($dstfn, 1024 * 1024);
+        my $old = PVE::Tools::file_get_contents($dstfn, 4096 * 1024);
         return 0 if $new eq $old;
     }
 
