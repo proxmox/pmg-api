@@ -1,3 +1,18 @@
+pmg-api (9.0.7) trixie; urgency=medium
+
+  * fix #7175: replace timezone handling with systemd timedatectl.
+
+  * api: access control: add 'vncticket' endpoint similar to the 'vncticket'
+    endpoint in PVE.
+
+  * api: vnc: bind VNC tickets to the listen port to harden authentication for
+    interactive console sessions.
+
+  * api: termproxy: pin the accepted ticket in the spawned termproxy process
+    as an additional defense-in-depth measure.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Apr 2026 23:07:52 +0200
+
 pmg-api (9.0.6) trixie; urgency=medium
 
   * parser: broken mime: fix error handling.
