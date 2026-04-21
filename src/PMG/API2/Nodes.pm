@@ -2,7 +2,9 @@ package PMG::API2::NodeInfo;
 
 use strict;
 use warnings;
+
 use Time::Local qw(timegm_nocheck);
+use Fcntl qw(F_GETFD F_SETFD FD_CLOEXEC);
 use Filesys::Df;
 use Data::Dumper;
 
@@ -457,26 +459,40 @@ __PACKAGE__->register_method({
 
         my $shcmd = get_shell_command($user, $param->{cmd}, $param->{'cmd-opts'});
 
-        my $cmd = [
-            '/usr/bin/termproxy',
-            $port,
-            '--path',
-            $authpath,
-            '--vncticket-endpoint',
-            '--verify-port',
-            '--',
-            @$shcmd,
-        ];
-
         my $realcmd = sub {
             my $upid = shift;
 
             syslog('info', "starting termproxy $upid\n");
 
+            pipe(my $ticket_rd, my $ticket_wr) or die "failed to create pipe: $!\n";
+
+            my $flags = fcntl($ticket_rd, F_GETFD, 0)
+                // die "failed to get file descriptor flags: $!\n";
+            fcntl($ticket_rd, F_SETFD, $flags & ~FD_CLOEXEC)
+                // die "failed to remove CLOEXEC flag from fd: $!\n";
+
+            my $cmd = [
+                '/usr/bin/termproxy',
+                $port,
+                '--path',
+                $authpath,
+                '--vncticket-endpoint',
+                '--verify-port',
+                '--ticket-fd',
+                fileno($ticket_rd),
+                '--',
+                @$shcmd,
+            ];
+
             my $cmdstr = join(' ', @$cmd);
             syslog('info', "launch command: $cmdstr");
 
-            PVE::Tools::run_command($cmd);
+            my $afterfork = sub {
+                print {$ticket_wr} $ticket;
+                close($ticket_wr);
+            };
+
+            PVE::Tools::run_command($cmd, afterfork => $afterfork);
 
             return;
         };
