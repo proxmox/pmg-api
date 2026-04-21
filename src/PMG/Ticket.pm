@@ -220,23 +220,26 @@ sub verify_ticket : prototype($$$) {
 
 # VNC tickets
 # - they do not contain the username in plain text
-# - they are restricted to a specific resource path (example: '/vms/100')
+# - they are restricted to a specific resource path (example: '/vms/100') and port
 sub assemble_vnc_ticket {
-    my ($username, $path) = @_;
+    my ($username, $path, $port) = @_;
+
+    die "missing required port parameter for assembling VNC ticket\n" if !defined($port);
 
     my $rsa_priv = PVE::INotify::read_file('auth_priv_key');
 
-    my $secret_data = "$username:$path";
+    my $secret_data = "$username:$path:$port";
 
     return PVE::Ticket::assemble_rsa_ticket($rsa_priv, 'PMGVNC', undef, $secret_data);
 }
 
 sub verify_vnc_ticket {
-    my ($ticket, $username, $path, $noerr) = @_;
+    my ($ticket, $username, $path, $port, $noerr) = @_;
 
     my $rsa_pub = PVE::INotify::read_file('auth_pub_key');
 
     my $secret_data = "$username:$path";
+    $secret_data .= ":$port" if defined($port);
 
     return PVE::Ticket::verify_rsa_ticket($rsa_pub, 'PMGVNC', $ticket, $secret_data, -20, 40,
         $noerr);

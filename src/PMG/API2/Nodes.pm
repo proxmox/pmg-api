@@ -450,14 +450,23 @@ __PACKAGE__->register_method({
             raise_perm_exc('user != root@pam');
         }
 
-        my $ticket = PMG::Ticket::assemble_vnc_ticket($user, $authpath);
-
         my $family = PVE::Tools::get_host_address_family($node);
         my $port = PVE::Tools::next_vnc_port($family);
 
+        my $ticket = PMG::Ticket::assemble_vnc_ticket($user, $authpath, $port);
+
         my $shcmd = get_shell_command($user, $param->{cmd}, $param->{'cmd-opts'});
 
-        my $cmd = ['/usr/bin/termproxy', $port, '--path', $authpath, '--', @$shcmd];
+        my $cmd = [
+            '/usr/bin/termproxy',
+            $port,
+            '--path',
+            $authpath,
+            '--vncticket-endpoint',
+            '--verify-port',
+            '--',
+            @$shcmd,
+        ];
 
         my $realcmd = sub {
             my $upid = shift;
@@ -522,9 +531,9 @@ __PACKAGE__->register_method({
         my $restenv = PMG::RESTEnvironment->get();
         my $user = $restenv->get_user();
 
-        PMG::Ticket::verify_vnc_ticket($param->{vncticket}, $user, $authpath);
-
         my $port = $param->{port};
+
+        PMG::Ticket::verify_vnc_ticket($param->{vncticket}, $user, $authpath, $port);
 
         return { port => $port };
     },
