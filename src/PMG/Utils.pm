@@ -135,8 +135,7 @@ PVE::JSONSchema::register_standard_option(
 PVE::JSONSchema::register_standard_option(
     'pmg-welcomeblocklist-entry-list',
     {
-        description =>
-            "Welcome/Blocklist entry list (allow most characters). Can contain globs",
+        description => "Welcome/Blocklist entry list (allow most characters). Can contain globs",
         type => 'string',
         pattern => '(?:[^\s\/\\\;\,]+)(?:\,[^\s\/\\\;\,]+)*',
         minLength => 3,

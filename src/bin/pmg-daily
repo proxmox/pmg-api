@@ -116,7 +116,9 @@ eval {
 
                 if (PVE::Certificate::check_expiry($cert, time() + 30 * 24 * 60 * 60)) {
                     PMG::API2::Certificates->renew_acme_cert({
-                        node => $nodename, type => $type });
+                        node => $nodename,
+                        type => $type,
+                    });
                 } else {
                     syslog(
                         'info',
