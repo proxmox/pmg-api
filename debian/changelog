@@ -1,3 +1,16 @@
+pmg-api (8.2.11) bookworm; urgency=medium
+
+  * api: access control: add 'vncticket' endpoint similar to the 'vncticket'
+    endpoint in PVE.
+
+  * api: vnc: bind VNC tickets to the listen port to harden authentication for
+    interactive console sessions.
+
+  * api: termproxy: pin the accepted ticket in the spawned termproxy process as
+    an additional defense-in-depth measure.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Apr 2026 23:12:11 +0200
+
 pmg-api (8.2.10) bookworm; urgency=medium
 
   * parser: broken mime: fix error handling.
