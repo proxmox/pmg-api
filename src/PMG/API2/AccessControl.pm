@@ -74,6 +74,7 @@ __PACKAGE__->register_method({
             { subdir => 'oidc' },
             { subdir => 'password' },
             { subdir => 'users' },
+            { subdir => 'vncticket' },
         ];
 
         return $res;
@@ -350,6 +351,66 @@ __PACKAGE__->register_method({
         syslog('info', "changed password for user '$userid'");
 
         return undef;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'verify_vnc_ticket',
+    path => 'vncticket',
+    method => 'POST',
+    permissions => {
+        description => "You need to pass valid credientials.",
+        user => 'world',
+    },
+    protected => 1, # else we can't access authkey files
+    description => "verify VNC authentication ticket.",
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            authid => {
+                description => "User ID.",
+                type => 'string',
+                maxLength => 64,
+            },
+            vncticket => {
+                description => "The VNC ticket.",
+                type => 'string',
+            },
+            path => {
+                description => "Verify ticket, and check that it was created for this 'path'.",
+                type => 'string',
+                maxLength => 64,
+            },
+            port => {
+                description => "Verify that the ticket is valid for this port.",
+                type => 'integer',
+                optional => 1,
+            },
+        },
+    },
+    returns => { type => "null" },
+    code => sub {
+        my ($param) = @_;
+
+        my $auth_id = $param->{authid};
+
+        my $rpcenv = PMG::RESTEnvironment->get();
+
+        my $res = eval {
+            PMG::Ticket::verify_vnc_ticket(
+                $param->{vncticket}, $auth_id, $param->{path}, $param->{port},
+            );
+        };
+        if (my $err = $@) {
+            my $clientip = $rpcenv->get_client_ip() || '';
+            syslog('err', "authentication failure; rhost=$clientip user=$auth_id msg=$err");
+            # do not return any info to prevent user enumeration attacks
+            die PVE::Exception->new("authentication failure\n", code => 401);
+        }
+
+        syslog('info', "successful auth for user '$auth_id'");
+
+        return;
     },
 });
 

@@ -63,6 +63,7 @@ sub auth_handler {
         || ($rel_uri eq '/access/oidc/auth-url' && $method eq 'POST')
         || ($rel_uri eq '/quarantine/sendlink' && ($method eq 'GET' || $method eq 'POST'))
         || ($rel_uri eq '/access/ticket' && ($method eq 'GET' || $method eq 'POST'))
+        || ($rel_uri eq '/access/vncticket' && $method eq 'POST')
     ) {
         $require_auth = 0;
     }
