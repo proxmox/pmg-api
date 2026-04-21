@@ -112,8 +112,12 @@ my sub create_or_verify_ticket : prototype($$$$$$) {
 
         if ($ticketuser && ($ticketuser eq 'root@pam' || $ticketuser eq $username)) {
             # valid ticket. Note: root@pam can create tickets for other users
-        } elsif ($path && PMG::Ticket::verify_vnc_ticket($pw_or_ticket, $username, $path, 1)) {
-            # valid vnc ticket for $path
+        } elsif (
+            $path && PMG::Ticket::verify_vnc_ticket($pw_or_ticket, $username, $path, undef, 1)
+        ) {
+            # FIXME: MAJOR VERSION: Drop this check, require always using 'vncticket' endpoint
+            # valid old-stlye vnc ticket without port - for tickets with port, use the 'vncticket'
+            # endpoint
         } else {
             ($username, $tfa_challenge) =
                 PMG::AccessControl::authenticate_user($username, $pw_or_ticket, 0);
