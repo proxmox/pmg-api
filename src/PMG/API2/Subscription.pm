@@ -33,7 +33,7 @@ sub parse_key {
 }
 
 sub read_etc_subscription {
-    my $server_id = PMG::Utils::get_hwaddress();
+    my $server_id_candidates = Proxmox::RS::Subscription::get_hardware_address_candidates();
 
     my $info = Proxmox::RS::Subscription::read_subscription($filename);
     return $info if !$info;
@@ -50,7 +50,7 @@ sub read_etc_subscription {
 sub write_etc_subscription {
     my ($info) = @_;
 
-    my $server_id = PMG::Utils::get_hwaddress();
+    my $server_id_candidates = Proxmox::RS::Subscription::get_hardware_address_candidates();
 
     Proxmox::RS::Subscription::write_subscription(
         $filename,
@@ -77,7 +77,8 @@ __PACKAGE__->register_method({
     code => sub {
         my ($param) = @_;
 
-        my $server_id = PMG::Utils::get_hwaddress();
+        my $server_id_candidates = Proxmox::RS::Subscription::get_hardware_address_candidates();
+        my $server_id = $server_id_candidates->[0]->[1];
         my $url = "https://www.proxmox.com/proxmox-mail-gateway/pricing";
         my $info = read_etc_subscription();
         if (!$info) {
@@ -89,7 +90,13 @@ __PACKAGE__->register_method({
             };
         }
 
-        $info->{serverid} = $server_id;
+        # none set yet
+        $info->{serverid} = $server_id if !defined($info->{serverid});
+
+        if ((grep { my $id = $_->[1]; $id eq $info->{serverid} } $server_id_candidates->@*) < 1) {
+            # mismatch, reset
+            $info->{serverid} = $server_id;
+        }
         $info->{url} = $url;
 
         return $info;
@@ -124,8 +131,13 @@ __PACKAGE__->register_method({
         my $info = read_etc_subscription();
         return undef if !$info;
 
-        my $server_id = PMG::Utils::get_hwaddress();
+        my $server_id_candidates = Proxmox::RS::Subscription::get_hardware_address_candidates();
         my $key = $info->{key};
+        my $server_id = $info->{serverid} // $server_id_candidates->[0]->[1];
+        if ((grep { my $id = $_->[1]; $id eq $server_id } $server_id_candidates->@*) < 1) {
+            die "no matching server ID found\n";
+        }
+
 
         # key has been recently checked
         return undef
@@ -179,7 +191,10 @@ __PACKAGE__->register_method({
             checktime => time(),
         };
 
-        my $server_id = PMG::Utils::get_hwaddress();
+        my $server_id_candidates = Proxmox::RS::Subscription::get_hardware_address_candidates();
+        my $server_id = $server_id_candidates->[0]->[1];
+
+        die "Failed to generate server ID\n" if !$server_id;
 
         write_etc_subscription($info);
 
