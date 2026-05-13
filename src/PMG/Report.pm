@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Mail::SpamAssassin::DnsResolver;
 
+use PVE::IPRoute2;
 use PVE::Tools;
 use PMG::Utils;
 
@@ -57,6 +58,20 @@ my $report_def = {
         'pmgdb dump',
     ],
 };
+
+eval {
+    my $interfaces = PVE::IPRoute2::ip_link_details();
+
+    for my $iface (sort keys %{$interfaces}) {
+        if (PVE::IPRoute2::ip_link_is_physical($interfaces->{$iface})) {
+            push @{ $report_def->{network} }, "ethtool " . PVE::Tools::shellquote($iface);
+        }
+    }
+};
+
+if ($@) {
+    print STDERR "building ethtool commands failed: $@";
+}
 
 my @report_order = ('general', 'storage', 'network', 'firewall', 'cluster', 'pmg');
 
