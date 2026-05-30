@@ -116,7 +116,7 @@ my sub create_or_verify_ticket : prototype($$$$$$) {
             $path && PMG::Ticket::verify_vnc_ticket($pw_or_ticket, $username, $path, undef, 1)
         ) {
             # FIXME: MAJOR VERSION: Drop this check, require always using 'vncticket' endpoint
-            # valid old-stlye vnc ticket without port - for tickets with port, use the 'vncticket'
+            # valid old-style vnc ticket without port - for tickets with port, use the 'vncticket'
             # endpoint
         } else {
             ($username, $tfa_challenge) =
@@ -201,7 +201,7 @@ __PACKAGE__->register_method({
     path => 'ticket',
     method => 'GET',
     permissions => { user => 'world' },
-    description => "Dummy. Useful for formatters which want to priovde a login page.",
+    description => "Dummy. Useful for formatters which want to provide a login page.",
     parameters => {
         additionalProperties => 0,
     },
@@ -214,7 +214,7 @@ __PACKAGE__->register_method({
     path => 'ticket',
     method => 'POST',
     permissions => {
-        description => "You need to pass valid credientials.",
+        description => "You need to pass valid credentials.",
         user => 'world',
     },
     protected => 1, # else we can't access shadow files
@@ -308,7 +308,7 @@ __PACKAGE__->register_method({
 });
 
 __PACKAGE__->register_method({
-    name => 'change_passsword',
+    name => 'change_password',
     path => 'password',
     method => 'PUT',
     protected => 1, # else we can't access shadow files
@@ -363,7 +363,7 @@ __PACKAGE__->register_method({
     path => 'vncticket',
     method => 'POST',
     permissions => {
-        description => "You need to pass valid credientials.",
+        description => "You need to pass valid credentials.",
         user => 'world',
     },
     protected => 1, # else we can't access authkey files

@@ -515,7 +515,7 @@ __PACKAGE__->register_method({
     path => 'vncwebsocket',
     method => 'GET',
     permissions => { check => ['admin'] },
-    description => "Opens a weksocket for VNC traffic.",
+    description => "Opens a websocket for VNC traffic.",
     parameters => {
         additionalProperties => 0,
         properties => {
