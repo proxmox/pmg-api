@@ -968,6 +968,35 @@ sub recent_receivers {
     return $res;
 }
 
+sub recent_senders {
+    my ($self, $rdb, $limit) = @_;
+    my $res = [];
+
+    my ($from, $to) = $self->timespan();
+
+    # 'sender' is a column on CStatistic itself, unlike 'receiver' which lives in
+    # the per-recipient CReceivers table, so counting senders needs no join -
+    # joining would also count each sender once per recipient of the mail.
+    my $cmd =
+        "SELECT "
+        . "COUNT(sender) as count, sender "
+        . "FROM CStatistic "
+        . "WHERE time >= ? "
+        . "AND direction = true "
+        . "AND sender != '' "
+        . "GROUP BY sender ORDER BY count DESC LIMIT ?;";
+
+    my $sth = $rdb->{dbh}->prepare($cmd);
+
+    $sth->execute($from, $limit);
+    while (my $ref = $sth->fetchrow_hashref()) {
+        push @$res, user_stat_to_perlstring($ref);
+    }
+    $sth->finish();
+
+    return $res;
+}
+
 sub traffic_stat_graph {
     my ($self, $rdb, $span) = @_;
     my $res;

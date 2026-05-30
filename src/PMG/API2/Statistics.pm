@@ -50,6 +50,7 @@ __PACKAGE__->register_method({
             { name => "mailcount" },
             { name => "recent" },
             { name => "recentreceivers" },
+            { name => "recentsenders" },
             { name => "maildistribution" },
             { name => "spamscores" },
             { name => "sender" },
@@ -865,6 +866,68 @@ __PACKAGE__->register_method({
         my $rdb = PMG::RuleDB->new();
 
         my $res = $stat->recent_receivers($rdb, $limit);
+
+        return $res;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'recentsenders',
+    path => 'recentsenders',
+    method => 'GET',
+    description => "Top recent Mail Senders (including spam)",
+    permissions => { check => ['admin', 'qmanager', 'audit'] },
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            hours => {
+                description => "How many hours you want to get",
+                type => 'integer',
+                minimum => 1,
+                maximum => 24,
+                optional => 1,
+                default => 12,
+            },
+            limit => {
+                description => "The maximum number of senders to return.",
+                type => 'integer',
+                minimum => 1,
+                maximum => 50,
+                optional => 1,
+                default => 5,
+            },
+        },
+    },
+    returns => {
+        type => 'array',
+        items => {
+            type => "object",
+            properties => {
+                count => {
+                    description => "The count of incoming E-Mails (including blocked ones)",
+                    type => 'integer',
+                },
+                sender => {
+                    description => "The sender",
+                    type => 'string',
+                },
+            },
+        },
+    },
+    code => sub {
+        my ($param) = @_;
+
+        my $hours = $param->{hours} // 12;
+
+        my $limit = $param->{limit} // 5;
+
+        my $end = time();
+        my $start = $end - 3600 * $hours;
+
+        my $stat = PMG::Statistic->new($start, $end);
+        my $rdb = PMG::RuleDB->new();
+
+        my $res = $stat->recent_senders($rdb, $limit);
 
         return $res;
     },
