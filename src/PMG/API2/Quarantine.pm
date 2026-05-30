@@ -91,6 +91,30 @@ sub decode_spaminfo {
     return $res;
 }
 
+# Sum the positive and negative scores separately, as seeing both sums (instead of only the net
+# level) gives a better feel for borderline mails, where a few strong negative tests can mask many
+# small positive hits. Parses the raw 'rule:score,...' info column directly to avoid the description
+# lookup that decode_spaminfo() does, which matters when rendering large lists.
+my sub sum_spaminfo_scores {
+    my ($info) = @_;
+
+    my ($positive, $negative) = (0, 0);
+    return ($positive, $negative) if !defined($info);
+
+    for my $test (split(',', $info)) {
+        my (undef, $score) = split(':', $test);
+        next if !defined($score);
+        $score += 0;
+        if ($score >= 0) {
+            $positive += $score;
+        } else {
+            $negative += $score;
+        }
+    }
+
+    return ($positive, $negative);
+}
+
 my $extract_email = sub {
     my $data = shift;
 
@@ -157,6 +181,9 @@ my $parse_header_info = sub {
         $res->{spamlevel} = 0;
     } elsif ($qtype eq 'S') {
         $res->{spamlevel} = $ref->{spamlevel} // 0;
+        my ($positive, $negative) = sum_spaminfo_scores($ref->{info});
+        $res->{spamlevel_positive} = $positive;
+        $res->{spamlevel_negative} = $negative;
     }
 
     return $res;
@@ -880,6 +907,16 @@ __PACKAGE__->register_method({
                     description => "Spam score.",
                     type => 'number',
                 },
+                spamlevel_positive => {
+                    description => "Sum of all positive spam test scores.",
+                    type => 'number',
+                    optional => 1,
+                },
+                spamlevel_negative => {
+                    description => "Sum of all negative spam test scores.",
+                    type => 'number',
+                    optional => 1,
+                },
             },
         },
     },
@@ -1141,6 +1178,16 @@ __PACKAGE__->register_method({
             spamlevel => {
                 description => "Spam score.",
                 type => 'number',
+            },
+            spamlevel_positive => {
+                description => "Sum of all positive spam test scores.",
+                type => 'number',
+                optional => 1,
+            },
+            spamlevel_negative => {
+                description => "Sum of all negative spam test scores.",
+                type => 'number',
+                optional => 1,
             },
             spaminfo => {
                 description => "Information about matched spam tests (name, score, desc, url).",
