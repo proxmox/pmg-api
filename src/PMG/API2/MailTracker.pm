@@ -198,7 +198,11 @@ my $run_pmg_log_tracker = sub {
         }
     };
 
-    my $cmd = ['/usr/bin/pmg-log-tracker', '-v', '-l', 2000];
+    my $cmd = ['/usr/bin/pmg-log-tracker', '-v'];
+
+    # keep the historic 2000 entry cap for callers that do not set a limit
+    # themselves (the single-message lookup), to bound the work on busy hosts
+    push @$args, '-l', 2000 if !grep { $_ eq '-l' } @$args;
 
     PVE::Tools::run_command([@$cmd, @$args], timeout => 25, outfunc => $parser);
 
@@ -332,6 +336,15 @@ __PACKAGE__->register_method({
                 optional => 1,
                 default => 0,
             },
+            limit => {
+                description => "The maximum number of entries to return. Use '0' for no limit,"
+                    . " but be aware that this can take a long time and use a lot of memory.",
+                type => 'integer',
+                minimum => 0,
+                maximum => 100000,
+                optional => 1,
+                default => 2000,
+            },
         },
     },
     returns => {
@@ -357,6 +370,8 @@ __PACKAGE__->register_method({
         push @$args, '-n' if !$param->{ndr};
 
         push @$args, '-g' if !$param->{greylist};
+
+        push @$args, '-l', $param->{limit} // 2000;
 
         push @$args, '-x', $param->{xfilter} if defined($param->{xfilter});
 
