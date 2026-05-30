@@ -587,6 +587,12 @@ sub sync_quarantine_db {
 
     my $rcid = $ni->{cid};
 
+    # An older remote node may still lack the Seen/SeenMTime columns during a rolling upgrade, so
+    # only replicate the seen flag once it has them; otherwise selecting or inserting them fails.
+    # The reverse direction needs no such guard, as older nodes just ignore our extra columns.
+    my $remote_has_seen = PMG::DBTools::database_column_exists($rdb, 'CMSReceivers', 'Seen')
+        && PMG::DBTools::database_column_exists($rdb, 'CMSReceivers', 'SeenMTime');
+
     my $maxmails = 100000;
 
     my $mscount = 0;
@@ -650,6 +656,7 @@ sub sync_quarantine_db {
 
                 $attrs =
                     [qw(cmailstore_cid cmailstore_rid pmail receiver ticketid status mtime)];
+                push @$attrs, 'seen', 'seenmtime' if $remote_has_seen;
                 PMG::DBTools::copy_selected_data($ldb, $sth, 'CMSReceivers', $attrs);
 
                 PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastid_CMailStore',
@@ -678,19 +685,49 @@ sub sync_quarantine_db {
 
         my $lastmt = PMG::DBTools::read_int_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers');
 
-        my $sth =
+        # Status is monotonic (N -> D), so only sync a non-default status and never reset to 'N'.
+        # Keep it separate from the seen sync below: folding them would let a concurrent mark-seen
+        # (status still 'N') on another node revert a local delivery or deletion ('D').
+        my $status_sth =
             $rdb->prepare("SELECT * from CMSReceivers WHERE mtime >= ? AND status != 'N'");
-        $sth->execute($lastmt);
+        $status_sth->execute($lastmt);
 
-        my $update_sth = $ldb->prepare("UPDATE CMSReceivers SET status = ? WHERE "
+        my $update_status_sth = $ldb->prepare("UPDATE CMSReceivers SET status = ? WHERE "
             . "CMailstore_CID = ? AND CMailstore_RID = ? AND TicketID = ?");
-        while (my $ref = $sth->fetchrow_hashref()) {
-            $update_sth->execute(
+        while (my $ref = $status_sth->fetchrow_hashref()) {
+            $update_status_sth->execute(
                 $ref->{status},
                 $ref->{cmailstore_cid},
                 $ref->{cmailstore_rid},
                 $ref->{ticketid},
             );
+        }
+
+        # The seen flag toggles both ways, so unlike the monotonic status it is synced on its own
+        # (never touching status, so it cannot revert a delete). Concurrent (un)seen marks resolve
+        # via last-writer-wins on the dedicated SeenMTime, which travels with the value and so
+        # converges regardless of pull order or hop count; an equal-timestamp tie resolves to 'S'.
+        # Skipped via $remote_has_seen when the remote does not have the columns yet.
+        if ($remote_has_seen) {
+            my $seen_sth = $rdb->prepare("SELECT * from CMSReceivers WHERE mtime >= ?");
+            $seen_sth->execute($lastmt);
+
+            my $update_seen_sth =
+                $ldb->prepare("UPDATE CMSReceivers SET seen = ?, seenmtime = ? WHERE "
+                    . "CMailstore_CID = ? AND CMailstore_RID = ? AND TicketID = ?"
+                    . " AND (seenmtime < ? OR (seenmtime = ? AND seen < ?))");
+            while (my $ref = $seen_sth->fetchrow_hashref()) {
+                $update_seen_sth->execute(
+                    $ref->{seen},
+                    $ref->{seenmtime},
+                    $ref->{cmailstore_cid},
+                    $ref->{cmailstore_rid},
+                    $ref->{ticketid},
+                    $ref->{seenmtime},
+                    $ref->{seenmtime},
+                    $ref->{seen},
+                );
+            }
         }
 
         PMG::DBTools::write_maxint_clusterinfo($ldb, $rcid, 'lastmt_CMSReceivers', $ctime);

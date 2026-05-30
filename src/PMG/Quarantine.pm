@@ -188,4 +188,35 @@ sub delete_quarantined_mail {
     return 1;
 }
 
+# Mark a quarantined mail as seen (or unseen) for its receiver, without removing
+# it. This lets users of a shared mailbox signal that a message was already
+# processed while keeping it available for reference. MTime is bumped so the
+# change is picked up by the cluster synchronization; SeenMTime records when the
+# flag itself changed, so the cluster can resolve concurrent (un)seen marks on
+# different nodes via last-writer-wins (see PMG::Cluster::sync_quarantine_db).
+sub set_quarantined_mail_seen {
+    my ($dbh, $ref, $seen) = @_;
+
+    my $pmail = $ref->{pmail};
+    my $id = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};
+
+    my $value = $seen ? 'S' : 'N';
+    my $now = time();
+
+    eval {
+        my $sth =
+            $dbh->prepare("UPDATE CMSReceivers SET Seen = ?, SeenMTime = ?, MTime = ? WHERE "
+                . "CMailStore_CID = ? AND CMailStore_RID = ? AND TicketID = ?");
+        $sth->execute($value, $now, $now, $ref->{cid}, $ref->{rid}, $ref->{ticketid});
+        $sth->finish;
+    };
+    if (my $err = $@) {
+        my $msg = "marking quarantined mail '$id' as seen failed for $pmail: $err";
+        syslog('err', $msg);
+        die "$msg\n";
+    }
+
+    return 1;
+}
+
 1;

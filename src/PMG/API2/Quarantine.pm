@@ -173,6 +173,7 @@ my $parse_header_info = sub {
     $res->{id} = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};
     $res->{time} = $ref->{time};
     $res->{bytes} = $ref->{bytes};
+    $res->{seen} = (defined($ref->{seen}) && $ref->{seen} eq 'S') ? 1 : 0;
 
     my $qtype = $ref->{qtype};
 
@@ -917,6 +918,11 @@ __PACKAGE__->register_method({
                     type => 'number',
                     optional => 1,
                 },
+                seen => {
+                    description => "Whether the mail was marked as seen.",
+                    type => 'boolean',
+                    optional => 1,
+                },
             },
         },
     },
@@ -1187,6 +1193,11 @@ __PACKAGE__->register_method({
             spamlevel_negative => {
                 description => "Sum of all negative spam test scores.",
                 type => 'number',
+                optional => 1,
+            },
+            seen => {
+                description => "Whether the mail was marked as seen.",
+                type => 'boolean',
                 optional => 1,
             },
             spaminfo => {
@@ -1463,8 +1474,16 @@ __PACKAGE__->register_method({
             action => {
                 description => 'Action - specify what you want to do with the mail.',
                 type => 'string',
-                enum =>
-                    ['welcomelist', 'blocklist', 'whitelist', 'blacklist', 'deliver', 'delete'],
+                enum => [
+                    'welcomelist',
+                    'blocklist',
+                    'whitelist',
+                    'blacklist',
+                    'deliver',
+                    'delete',
+                    'mark-seen',
+                    'mark-unseen',
+                ],
             },
         },
     },
@@ -1495,6 +1514,10 @@ __PACKAGE__->register_method({
                 PMG::Quarantine::deliver_quarantined_mail($dbh, $ref, $receiver);
             } elsif ($action eq 'delete') {
                 PMG::Quarantine::delete_quarantined_mail($dbh, $ref);
+            } elsif ($action eq 'mark-seen') {
+                PMG::Quarantine::set_quarantined_mail_seen($dbh, $ref, 1);
+            } elsif ($action eq 'mark-unseen') {
+                PMG::Quarantine::set_quarantined_mail_seen($dbh, $ref, 0);
             } else {
                 die "internal error, unknown action '$action'"; # should not be reached
             }

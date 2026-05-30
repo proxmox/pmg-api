@@ -222,6 +222,12 @@ __EOD
 # Status
 # N - new
 # D - deleted
+# Seen
+# N - new/unseen
+# S - seen (processed by a user, but kept; useful for shared mailboxes)
+# SeenMTime
+# - timestamp of the last Seen change, used for last-writer-wins cluster sync of
+#   the (non-monotonic) Seen flag; travels with the value across nodes
 
 my $cmailstore_ctablecmd = <<__EOD;
     CREATE TABLE CMailStore
@@ -246,6 +252,8 @@ my $cmailstore_ctablecmd = <<__EOD;
      Receiver VARCHAR(255),
      TicketID INTEGER NOT NULL,
      Status "char" NOT NULL,
+     Seen "char" DEFAULT 'N' NOT NULL,
+     SeenMTime INTEGER DEFAULT 0 NOT NULL,
      MTime INTEGER NOT NULL);
 
     CREATE INDEX CMailStore_ID_Index ON CMSReceivers (CMailStore_CID, CMailStore_RID);
@@ -549,6 +557,16 @@ sub upgradedb {
 
     eval { $dbh->do("ALTER TABLE LocalStat DROP CONSTRAINT localstat_time_key"); };
     # ignore errors here
+
+    # add missing Seen flag to CMSReceivers (mark-as-seen without deleting)
+    if (!database_column_exists($dbh, 'CMSReceivers', 'Seen')) {
+        $dbh->do(qq{ALTER TABLE CMSReceivers ADD COLUMN Seen "char" DEFAULT 'N' NOT NULL});
+    }
+
+    # timestamp of the last Seen change, for last-writer-wins cluster sync
+    if (!database_column_exists($dbh, 'CMSReceivers', 'SeenMTime')) {
+        $dbh->do("ALTER TABLE CMSReceivers ADD COLUMN SeenMTime INTEGER DEFAULT 0 NOT NULL");
+    }
 
     # add missing TicketID to CMSReceivers
     if (!database_column_exists($dbh, 'CMSReceivers', 'TicketID')) {
