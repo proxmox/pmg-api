@@ -1143,6 +1143,14 @@ __PACKAGE__->register_method({
                 optional => 1,
                 default => 0,
             },
+            images => {
+                description => "Load all images, including externally hosted ones. Only has an"
+                    . " effect when the configured 'viewimages' mode is 'on-demand'; used by the"
+                    . " 'htmlmail' formatter to load external images on user request.",
+                type => 'boolean',
+                optional => 1,
+                default => 0,
+            },
         },
     },
     returns => {
@@ -1213,6 +1221,14 @@ __PACKAGE__->register_method({
                     "Raw email data (first 4096 bytes). Useful for preview. NOTE: The  'htmlmail' formatter displays the whole email.",
                 type => 'string',
             },
+            external_images => {
+                description =>
+                    "Whether the mail references external images that the 'on-demand'"
+                    . " image mode blocks. Only set in that mode, so the UI can show the"
+                    . " 'Load Images' control just when it would actually fetch something.",
+                type => 'boolean',
+                optional => 1,
+            },
         },
     },
     code => sub {
@@ -1232,12 +1248,18 @@ __PACKAGE__->register_method({
 
         my $path = "$spooldir/$filename";
 
+        my $cfg = PMG::Config->new();
+        my $accept_broken_mime = $cfg->get('mail', 'accept-broken-mime');
+        # spam and virus quarantine keep their image/hyperlink view settings separate
+        my $quarsection = ($ref->{qtype} // '') eq 'V' ? 'virusquar' : 'spamquar';
+        my $viewimages = $cfg->get($quarsection, 'viewimages');
+
         if ($format eq 'htmlmail') {
 
-            my $cfg = PMG::Config->new();
-            my $viewimages = $cfg->get('spamquar', 'viewimages');
-            my $allowhref = $cfg->get('spamquar', 'allowhrefs');
-            my $accept_broken_mime = $cfg->get('mail', 'accept-broken-mime');
+            my $allowhref = $cfg->get($quarsection, 'allowhrefs');
+
+            # let the user load external images on request, but never override an explicit block
+            $viewimages = '1' if $param->{images} && ($viewimages // '') eq 'on-demand';
 
             $res->{content} = PMG::HTMLMail::email_to_html(
                 $path, $raw, $viewimages, $allowhref, $accept_broken_mime,
@@ -1260,6 +1282,14 @@ __PACKAGE__->register_method({
             $res->{spaminfo} = decode_spaminfo($ref->{info});
             $res->{header} = $header;
             $res->{content} = $content;
+
+            # Only the 'on-demand' mode blocks external images, so only then is it
+            # worth parsing the mail to tell the UI whether the 'Load Images'
+            # control would actually fetch anything. Done lazily, per opened mail.
+            if (($viewimages // '') eq 'on-demand') {
+                $res->{external_images} =
+                    PMG::HTMLMail::mail_has_external_images($path, $accept_broken_mime) ? 1 : 0;
+            }
         }
 
         return $res;

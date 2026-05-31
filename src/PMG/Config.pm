@@ -300,9 +300,14 @@ sub properties {
             default => 'verbose',
         },
         viewimages => {
-            description => "Allow to view images.",
-            type => 'boolean',
-            default => 1,
+            description =>
+                "Control how images in quarantined mails are displayed. '1' shows all"
+                . " images, including externally hosted ones; '0' hides all images;"
+                . " 'on-demand' shows only embedded images and lets the user load externally"
+                . " hosted ones manually (avoids leaking that a mail was opened).",
+            type => 'string',
+            enum => ['0', '1', 'on-demand'],
+            default => '1',
         },
         allowhrefs => {
             description =>

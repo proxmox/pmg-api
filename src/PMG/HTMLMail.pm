@@ -23,6 +23,9 @@ my sub remove_urls {
     # convert 'url([..])' to '___([..])' so the browser does not load it
     $$value =~ s|url\(|___(|gi;
 
+    # @import can pull in an external stylesheet without a url() wrapper
+    $$value =~ s|\@import|_import|gi;
+
     # similar for all protocols
     $$value =~ s|[a-z0-9]+://|_|gi;
 }
@@ -35,8 +38,31 @@ my sub remove_urls_from_attr {
     return $value;
 }
 
+# Map the tri-state 'viewimages' setting to two booleans. Embedded (cid:) images are shown unless
+# images are fully blocked, as they carry no network request; external resources are only loaded in
+# 'allow' mode ('on-demand' blocks them but lets the user opt in via a re-render).
+my sub viewimages_flags {
+    my ($viewimages) = @_;
+
+    my $mode;
+    if (defined($viewimages) && $viewimages eq 'on-demand') {
+        $mode = 'on-demand';
+    } elsif (!$viewimages || $viewimages eq '0') {
+        $mode = 'block';
+    } else {
+        $mode = 'allow';
+    }
+
+    my $show_embedded = $mode ne 'block';
+    my $show_external = $mode eq 'allow';
+
+    return ($show_embedded, $show_external);
+}
+
 sub dump_html {
     my ($tree, $cid_hash, $view_images) = @_;
+
+    my ($show_embedded, $show_external) = viewimages_flags($view_images);
 
     my @html = ();
 
@@ -48,7 +74,7 @@ sub dump_html {
             # try to open a new window when user activates a anchor
             $node->{target} = '_blank' if $tag eq 'a';
 
-            if ($tag eq 'img' && $view_images) {
+            if ($tag eq 'img' && $show_embedded) {
                 if ($node->{src} && $node->{src} =~ m/^cid:(\S+)$/) {
                     if (my $datauri = $cid_hash->{$1}) {
                         $node->{src} = $datauri;
@@ -56,7 +82,9 @@ sub dump_html {
                 }
             }
 
-            if ($tag eq 'style' && !$view_images) {
+            # strip url() references from inline <style> blocks unless external
+            # resources may be loaded, so they cannot fetch remote content
+            if ($tag eq 'style' && !$show_external) {
                 remove_urls($_) for grep { !ref $$_ } $node->content_refs_list();
             }
 
@@ -83,12 +111,23 @@ sub dump_html {
 sub getscrubber {
     my ($viewimages, $allowhref) = @_;
 
+    my ($show_embedded, $show_external) = viewimages_flags($viewimages);
+
     # see http://web.archive.org/web/20110726052341/http://feedparser.org/docs/html-sanitization.html
 
     my @allow =
         qw(a abbr acronym address area b big blockquote br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form h1 h2 h3 h4 h5 h6 head hr i img input ins kbd label legend li map menu ol optgroup option p pre q s samp select small span style strike strong sub sup title table tbody td textarea tfoot th thead tr tt u ul var html body);
 
     my @rules = (script => 0);
+
+    my $src_allowed = 0;
+    # allow any non-script src when external resources are permitted; otherwise (on-demand) only
+    # allow the inlined data: URIs of embedded images, so nothing is fetched.
+    if ($show_external) {
+        $src_allowed = qr{^(?!(?:java)?script)}i;
+    } elsif ($show_embedded) {
+        $src_allowed = qr{^data:image/}i;
+    }
 
     my @default = (
         0 => # default rule, deny all tags
@@ -153,9 +192,9 @@ sub getscrubber {
                 shape => 1,
                 size => 1,
                 span => 1,
-                src => $viewimages ? qr{^(?!(?:java)?script)}i : 0,
+                src => $src_allowed,
                 start => 1,
-                style => $viewimages ? 1 : \&remove_urls_from_attr,
+                style => $show_external ? 1 : \&remove_urls_from_attr,
                 summary => 1,
                 tabindex => 1,
                 target => 1,
@@ -255,6 +294,22 @@ my $find_images = sub {
     }
 };
 
+# Pick the child part that gets rendered for a multipart entity: the first nested
+# multipart, else the first text/html, else the first text/plain.
+my $select_alternative_part = sub {
+    my ($entity) = @_;
+
+    my ($multi_part, $html_part, $text_part);
+    foreach my $part ($entity->parts) {
+        my $subtype = lc($part->mime_type);
+        $multi_part //= $part if $subtype =~ m|^multipart/|;
+        $html_part //= $part if $subtype eq 'text/html';
+        $text_part //= $part if $subtype eq 'text/plain';
+    }
+
+    return $multi_part || $html_part || $text_part;
+};
+
 sub entity_to_html {
     my ($entity, $cid_hash, $viewimages, $allowhref) = @_;
 
@@ -295,21 +350,10 @@ sub entity_to_html {
         return $scrubber->scrub($whtml);
 
     } elsif ($mime_type =~ m|^multipart/|i) {
-        my $multi_part;
-        my $html_part;
-        my $text_part;
-
-        foreach my $part ($entity->parts) {
-            my $subtype = lc($part->mime_type);
-            $multi_part = $part if !defined($multi_part) && $subtype =~ m|multipart/|i;
-            $html_part = $part if !defined($html_part) && $subtype eq 'text/html';
-            $text_part = $part if !defined($text_part) && $subtype eq 'text/plain';
-        }
-
         # get related/embedded images as data uris
         $find_images->($cid_hash, $entity);
 
-        my $alt = $multi_part || $html_part || $text_part;
+        my $alt = $select_alternative_part->($entity);
 
         return entity_to_html($alt, $cid_hash, $viewimages, $allowhref) if $alt;
     }
@@ -356,6 +400,95 @@ sub email_to_html {
     die "unable to parse mail: $err" if $err;
 
     return $html;
+}
+
+# Descend to the leaf part that entity_to_html() would render, following the same selection, so only
+# what is actually shown gets inspected - resources in other parts (attachments, the non-rendered
+# alternative) never get fetched anyway.
+my $select_rendered_entity;
+$select_rendered_entity = sub {
+    my ($entity) = @_;
+
+    my $mime_type = lc($entity->mime_type);
+    return $entity if $mime_type eq 'text/html' || $mime_type eq 'text/plain';
+    return undef if $mime_type !~ m|^multipart/|;
+
+    my $alt = $select_alternative_part->($entity);
+    return defined($alt) ? $select_rendered_entity->($alt) : undef;
+};
+
+# Whether the given HTML references external resources that the 'on-demand' mode strips, so
+# offering the user an opt-in to load such images makes sense.
+my $html_has_external_resource = sub {
+    my ($raw) = @_;
+
+    my $tree = HTML::TreeBuilder->new();
+    # external CSS reference (url() or @import), as opposed to inlined data:/cid: ones
+    my $css_ext = qr{(?:url\(|\@import)\s*['"]?\s*(?:https?:)?//}i;
+    my $found = 0;
+    eval {
+        $tree->parse($raw);
+        $tree->eof();
+        # http(s) or scheme-relative src on fetching tags (img, input) and external CSS in <style>
+        # blocks or inline style="" attrs; inlined cid:/data: and relative refs do not count
+        $tree->traverse(sub {
+            my ($node, $start) = @_;
+            return 1 if !$start || !ref $node; # keep traversing
+            my $tag = lc($node->{'_tag'} // '');
+            $found = 1
+                if ($tag eq 'img' || $tag eq 'input')
+                && ($node->{src} // '') =~ m{^\s*(?:https?:)?//}i;
+            $found = 1 if ($node->{style} // '') =~ $css_ext;
+            $found = 1
+                if $tag eq 'style' && grep { !ref && $_ =~ $css_ext } $node->content_list;
+            return 1; # keep traversing
+        });
+    };
+    my $err = $@;
+    $tree->delete; # break the cyclic tree even if traversal died
+
+    die $err if $err;
+
+    return $found;
+};
+
+# Returns true if the rendered mail body references external resources that the 'on-demand' view
+# mode blocks and that loading images would fetch. This parses the mail best-effort (false on err).
+sub mail_has_external_images {
+    my ($path, $accept_broken_mime) = @_;
+
+    my $dumpdir = "/tmp/.proxextimgcheck_$$";
+
+    my $found = eval {
+        my $parser = PMG::MIMEUtils::new_mime_parser({
+            dumpdir => $dumpdir,
+            ignore_errors => $accept_broken_mime,
+        });
+        my $entity = $parser->parse_open($path);
+        PMG::MIMEUtils::fixup_multipart($entity);
+
+        my $part = $select_rendered_entity->($entity);
+        if (defined($part) && lc($part->mime_type) eq 'text/html') {
+            my $raw = $read_part->($part) // '';
+            # decode like entity_to_html() does, so the scan sees what gets rendered
+            if (defined(my $cs = $part->head->mime_attr("content-type.charset"))) {
+                eval { $raw = decode($cs, $raw); };
+            }
+            $html_has_external_resource->($raw);
+        } else {
+            0;
+        }
+    };
+    my $err = $@;
+
+    rmtree $dumpdir;
+
+    if ($err) {
+        warn "unable to check mail for external images: $err\n";
+        return 0;
+    }
+
+    return $found ? 1 : 0;
 }
 
 1;
