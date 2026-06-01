@@ -421,11 +421,7 @@ __PACKAGE__->register_method({
                 type => 'string',
                 format => 'ip',
             },
-            fingerprint => {
-                description => "SSL certificate fingerprint.",
-                type => 'string',
-                pattern => '^(:?[A-Z0-9][A-Z0-9]:){31}[A-Z0-9][A-Z0-9]$',
-            },
+            fingerprint => get_standard_option('fingerprint-sha256'),
             password => {
                 description => "Superuser password.",
                 type => 'string',

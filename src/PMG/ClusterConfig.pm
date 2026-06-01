@@ -43,6 +43,8 @@ package PMG::ClusterConfig::Node;
 use strict;
 use warnings;
 
+use PVE::JSONSchema qw(get_standard_option);
+
 use base qw(PMG::ClusterConfig::Base);
 
 sub valid_ssh_pubkey_regex {
@@ -75,11 +77,7 @@ sub properties {
             type => 'string',
             pattern => valid_ssh_pubkey_regex(),
         },
-        fingerprint => {
-            description => "SSL certificate fingerprint.",
-            type => 'string',
-            pattern => '^(:?[A-Z0-9][A-Z0-9]:){31}[A-Z0-9][A-Z0-9]$',
-        },
+        fingerprint => get_standard_option('fingerprint-sha256'),
     };
 }
 

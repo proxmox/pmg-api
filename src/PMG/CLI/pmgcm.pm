@@ -8,6 +8,7 @@ use JSON;
 
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
+use PVE::JSONSchema qw(get_standard_option);
 use PVE::INotify;
 use PVE::CLIHandler;
 use PVE::PTY;
@@ -171,12 +172,7 @@ __PACKAGE__->register_method({
                 type => 'string',
                 format => 'ip',
             },
-            fingerprint => {
-                description => "SSL certificate fingerprint.",
-                type => 'string',
-                pattern => '^(:?[A-Z0-9][A-Z0-9]:){31}[A-Z0-9][A-Z0-9]$',
-                optional => 1,
-            },
+            fingerprint => get_standard_option('fingerprint-sha256', { optional => 1 }),
         },
     },
     returns => { type => 'null' },
