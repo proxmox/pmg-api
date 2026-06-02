@@ -782,6 +782,16 @@ sub properties {
             type => 'boolean',
             default => 0,
         },
+        'queue-lifetime' => {
+            description =>
+                "Maximum time (in days) a deferred message is kept in the queue before"
+                . " it is returned to the sender as undeliverable. Also applies to bounce"
+                . " (notification) messages. (postfix options `maximal_queue_lifetime` and"
+                . " `bounce_queue_lifetime`)",
+            type => 'integer',
+            minimum => 1,
+            maximum => 100,
+        },
 
     };
 }
@@ -826,6 +836,7 @@ sub options {
         smtputf8 => { optional => 1 },
         'filter-timeout' => { optional => 1 },
         'accept-broken-mime' => { optional => 1 },
+        'queue-lifetime' => { optional => 1 },
     };
 }
 

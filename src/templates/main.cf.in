@@ -15,6 +15,11 @@ biff = no
 delay_warning_time = [% pmg.mail.dwarning %]h
 [% END %]
 
+[% IF pmg.mail.item('queue-lifetime') %]
+maximal_queue_lifetime = [% pmg.mail.item('queue-lifetime') %]d
+bounce_queue_lifetime = [% pmg.mail.item('queue-lifetime') %]d
+[% END %]
+
 best_mx_transport = local
 message_size_limit = [% pmg.mail.maxsize %]
 mailbox_size_limit = [% ((pmg.mail.maxsize*2 > 51200000) ? pmg.mail.maxsize*2 : 51200000) %]
