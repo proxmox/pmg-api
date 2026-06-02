@@ -792,6 +792,16 @@ sub properties {
             minimum => 1,
             maximum => 100,
         },
+        'log-headers' => {
+            description =>
+                'Log the envelope sender and recipient together with the decoded From,'
+                . ' To, and Subject headers of each processed mail to the mail log. This eases'
+                . ' auditing and tracing, but writes potentially personal data, such as mail'
+                . ' subjects and addresses, to the host log. Make sure this is compatible with'
+                . ' your data-protection obligations before enabling it.',
+            type => 'boolean',
+            default => 0,
+        },
 
     };
 }
@@ -837,6 +847,7 @@ sub options {
         'filter-timeout' => { optional => 1 },
         'accept-broken-mime' => { optional => 1 },
         'queue-lifetime' => { optional => 1 },
+        'log-headers' => { optional => 1 },
     };
 }
 
