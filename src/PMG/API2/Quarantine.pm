@@ -170,6 +170,7 @@ my $parse_header_info = sub {
 
     $res->{envelope_sender} = try_decode_utf8($ref->{sender});
     $res->{receiver} = try_decode_utf8($ref->{receiver} // $ref->{pmail});
+    $res->{pmail} = try_decode_utf8($ref->{pmail});
     $res->{id} = 'C' . $ref->{cid} . 'R' . $ref->{rid} . 'T' . $ref->{ticketid};
     $res->{time} = $ref->{time};
     $res->{bytes} = $ref->{bytes};
@@ -234,6 +235,7 @@ __PACKAGE__->register_method({
             { name => 'listattachments' },
             { name => 'download' },
             { name => 'sendlink' },
+            { name => 'link' },
         ];
 
         return $result;
@@ -1560,7 +1562,7 @@ __PACKAGE__->register_method({
 my $link_map_fn = "/run/pmgproxy/quarantinelink.map";
 my $per_user_limit = 60 * 60; # 1 hour
 
-my sub send_link_mail {
+my sub build_quarantine_link {
     my ($cfg, $receiver) = @_;
 
     my $hostname = PVE::INotify::nodename();
@@ -1578,11 +1580,18 @@ my sub send_link_mail {
         $protocol_fqdn_port .= ":$port";
     }
 
-    my $mailfrom = $cfg->get('spamquar', 'mailfrom') // "Proxmox Mail Gateway <postmaster>";
-
     my $ticket = PMG::Ticket::assemble_quarantine_ticket($receiver);
     my $esc_ticket = uri_escape($ticket);
-    my $link = "$protocol_fqdn_port/quarantine?ticket=${esc_ticket}";
+
+    return ("$protocol_fqdn_port/quarantine?ticket=${esc_ticket}", $fqdn);
+}
+
+my sub send_link_mail {
+    my ($cfg, $receiver) = @_;
+
+    my ($link, $fqdn) = build_quarantine_link($cfg, $receiver);
+
+    my $mailfrom = $cfg->get('spamquar', 'mailfrom') // "Proxmox Mail Gateway <postmaster>";
 
     my $tt = PMG::Config::get_template_toolkit();
     my $vars = {
@@ -1683,6 +1692,40 @@ __PACKAGE__->register_method({
         sleep(1); # always delay for a bit
 
         return undef;
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'link',
+    path => 'link',
+    method => 'GET',
+    description => "Get a Quarantine login link for the given e-mail address. The link grants"
+        . " full access to that recipient's quarantine, so only pass it to the legitimate owner.",
+    permissions => { check => ['admin', 'qmanager'] },
+    protected => 1,
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            mail => get_standard_option('pmg-email-address'),
+        },
+    },
+    returns => {
+        type => "object",
+        properties => {
+            link => {
+                type => 'string',
+                description => "The Quarantine login link for the given e-mail address.",
+            },
+        },
+    },
+    code => sub {
+        my ($param) = @_;
+
+        my $cfg = PMG::Config->new();
+
+        my ($link) = build_quarantine_link($cfg, $param->{mail});
+
+        return { link => $link };
     },
 });
 
