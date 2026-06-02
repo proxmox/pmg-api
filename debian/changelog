@@ -1,3 +1,43 @@
+pmg-api (9.0.8) trixie; urgency=medium
+
+  * subscription: adapt handling to support multiple server ID variants.
+
+  * statistics: add a top recent senders query and endpoint to back the new
+    "Top Senders" dashboard panel.
+
+  * api: mail tracker: make the result limit configurable, so queries over
+    large time ranges can raise the previous fixed cap of 2000 entries.
+
+  * quarantine: show the summed positive and negative spam test scores in the
+    spam list, which gives a better feel for borderline mails where strong
+    negative tests can mask many positive hits.
+
+  * quarantine: allow marking mails as seen, so users of a shared quarantine
+    can track which mails were already handled without deleting them.
+
+  * quarantine: optionally load external images of HTML mails only on demand,
+    to avoid signaling to the sender that a mail was opened.
+
+  * api: mail tracker: support the longer, base-52 encoded queue IDs that
+    postfix generates with its `enable_long_queue_ids` option, complementing
+    the matching pmg-log-tracker change.
+
+  * fix #3991: reload postfix after changing the SMTP welcomelist, so that
+    additions and removals become effective immediately.
+
+  * cluster: fix overly strict certificate fingerprint validation, which
+    wrongly rejected valid lower-case SHA-256 fingerprints when joining a
+    node.
+
+  * cluster: add a join information endpoint that provides the master's
+    address, certificate fingerprint, product and release as a single copyable
+    blob for assisted node joining.
+
+  * fix #7407: cluster: report: increase maximal filesize to 4M addressing
+    issues in one reported setup that hosted around 40k domains.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 03 Jun 2026 01:37:46 +0200
+
 pmg-api (9.0.7) trixie; urgency=medium
 
   * fix #7175: replace timezone handling with systemd timedatectl.
