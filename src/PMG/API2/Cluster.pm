@@ -18,6 +18,7 @@ use PMG::ClusterConfig;
 use PMG::Cluster;
 use PMG::DBTools;
 use PMG::MailQueue;
+use PMG::pmgcfg;
 
 use PMG::API2::Nodes;
 
@@ -403,6 +404,64 @@ __PACKAGE__->register_method({
         };
 
         return PMG::ClusterConfig::lock_config($code, "create cluster failed");
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'join_info',
+    path => 'join',
+    method => 'GET',
+    description => "Return the information needed to join an existing cluster, namely the"
+        . " master node's address and certificate fingerprint. The new node passes this to its"
+        . " join call, typically base64-encoded to pre-fill the join dialog.",
+    permissions => { check => ['admin', 'audit'] },
+    parameters => {
+        additionalProperties => 0,
+        properties => {},
+    },
+    returns => {
+        type => 'object',
+        additionalProperties => 0,
+        properties => {
+            ip => {
+                description =>
+                    "IP address of the cluster's master node to connect to when joining.",
+                type => 'string',
+                format => 'ip',
+            },
+            fingerprint => get_standard_option(
+                'fingerprint-sha256',
+                {
+                    description => "SSL certificate fingerprint of the cluster's master node.",
+                },
+            ),
+            product => {
+                description => "Product identifier of the cluster, to guard against joining the"
+                    . " wrong product.",
+                type => 'string',
+            },
+            version => {
+                description => "The cluster's release as major.minor version, to detect version"
+                    . " mismatches between the joining node and the cluster.",
+                type => 'string',
+            },
+        },
+    },
+    code => sub {
+        my ($param) = @_;
+
+        my $cinfo = PMG::ClusterConfig->new();
+
+        die "no cluster defined\n" if !scalar(keys %{ $cinfo->{ids} });
+
+        my $master = $cinfo->{master} || die "unable to lookup master node\n";
+
+        return {
+            ip => $master->{ip},
+            fingerprint => $master->{fingerprint},
+            product => 'pmg',
+            version => PMG::pmgcfg::release(),
+        };
     },
 });
 
