@@ -183,8 +183,8 @@ my $parse_header_info = sub {
     } elsif ($qtype eq 'S') {
         $res->{spamlevel} = $ref->{spamlevel} // 0;
         my ($positive, $negative) = sum_spaminfo_scores($ref->{info});
-        $res->{spamlevel_positive} = $positive;
-        $res->{spamlevel_negative} = $negative;
+        $res->{'score-positive'} = $positive;
+        $res->{'score-negative'} = $negative;
     }
 
     return $res;
@@ -908,13 +908,13 @@ __PACKAGE__->register_method({
                     description => "Spam score.",
                     type => 'number',
                 },
-                spamlevel_positive => {
-                    description => "Sum of all positive spam test scores.",
+                'score-positive' => {
+                    description => "Sum of positive spam score matches.",
                     type => 'number',
                     optional => 1,
                 },
-                spamlevel_negative => {
-                    description => "Sum of all negative spam test scores.",
+                'score-negative' => {
+                    description => "Sum of negative spam score matches.",
                     type => 'number',
                     optional => 1,
                 },
@@ -1193,13 +1193,13 @@ __PACKAGE__->register_method({
                 description => "Spam score.",
                 type => 'number',
             },
-            spamlevel_positive => {
-                description => "Sum of all positive spam test scores.",
+            'score-positive' => {
+                description => "Sum of positive spam score matches.",
                 type => 'number',
                 optional => 1,
             },
-            spamlevel_negative => {
-                description => "Sum of all negative spam test scores.",
+            'score-negative' => {
+                description => "Sum of negative spam score matches.",
                 type => 'number',
                 optional => 1,
             },
