@@ -1,3 +1,11 @@
+pmg-api (9.0.9) trixie; urgency=medium
+
+  * quarantine: rename the summed positive and negative spam score API fields
+    to 'score-positive' and 'score-negative', to follow our kebab-case API
+    naming convention.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 03 Jun 2026 02:24:16 +0200
+
 pmg-api (9.0.8) trixie; urgency=medium
 
   * subscription: adapt handling to support multiple server ID variants.
