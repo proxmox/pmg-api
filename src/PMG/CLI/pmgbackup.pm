@@ -114,8 +114,15 @@ our $cmddef = {
             { node => $nodename },
             sub {
                 my ($data, $schema, $options) = @_;
+                my $props_to_print =
+                    ['backup-id', 'backup-time', 'size', 'encrypted', 'verify-state'];
+                for my $snapshot (@$data) {
+                    $snapshot->{encrypted} = $snapshot->{encrypted} ? "yes" : "no";
+                    $snapshot->{'verify-state'} = $snapshot->{verification}->{state};
+                }
+
                 PVE::CLIFormatter::print_api_result(
-                    $data, $schema, ['backup-id', 'backup-time', 'size'], $options,
+                    $data, $schema, $props_to_print, $options,
                 );
             },
             $PVE::RESTHandler::standard_output_options,
