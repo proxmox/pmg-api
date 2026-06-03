@@ -125,6 +125,11 @@ sub properties {
             type => 'boolean',
             optional => 1,
         },
+        'encryption-key' => {
+            description =>
+                "Encryption key. Use 'autogen' to generate one automatically without passphrase.",
+            type => 'string',
+        },
         %prune_properties,
     };
 }
@@ -147,6 +152,7 @@ sub options {
         'keep-weekly' => { optional => 1 },
         'keep-monthly' => { optional => 1 },
         'keep-yearly' => { optional => 1 },
+        'encryption-key' => { optional => 1 },
     };
 }
 

@@ -3,6 +3,8 @@ package PMG::API2::PBS::Remote;
 use strict;
 use warnings;
 
+use JSON;
+
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
 use PVE::JSONSchema qw(get_standard_option);
@@ -84,6 +86,26 @@ __PACKAGE__->register_method({
             my $pbs = PVE::PBSClient->new($remotecfg, $remote, $conf->{secret_dir});
             $pbs->set_password($password) if defined($password);
 
+            my $encryption_key = extract_param($remotecfg, 'encryption-key');
+
+            if (defined($encryption_key)) {
+                my $decoded_key;
+                if ($encryption_key eq 'autogen') {
+                    $encryption_key = $pbs->autogen_encryption_key();
+                    $decoded_key = decode_json($encryption_key);
+                } else {
+                    $decoded_key = eval { decode_json($encryption_key) };
+                    if ($@ || !exists($decoded_key->{data})) {
+                        die
+                            "Value does not seems like a valid, JSON formatted encryption key!\n";
+                    }
+                    $pbs->set_encryption_key($encryption_key);
+                }
+                $remotecfg->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
+            } else {
+                $pbs->delete_encryption_key();
+            }
+
             $ids->{$remote} = $remotecfg;
             $conf->write();
         };
@@ -164,11 +186,34 @@ __PACKAGE__->register_method({
                 if ($opt eq 'password') {
                     $pbs->delete_password();
                 }
+                if ($opt eq 'encryption-key') {
+                    $pbs->delete_encryption_key();
+                }
                 delete $ids->{$remote}->{$opt};
             }
 
             if (defined(my $password = extract_param($param, 'password'))) {
                 $pbs->set_password($password);
+            }
+
+            if (exists($param->{'encryption-key'})) {
+                if (defined(my $encryption_key = extract_param($param, 'encryption-key'))) {
+                    my $decoded_key;
+                    if ($encryption_key eq 'autogen') {
+                        $encryption_key = $pbs->autogen_encryption_key();
+                        $decoded_key = decode_json($encryption_key);
+                    } else {
+                        $decoded_key = eval { decode_json($encryption_key) };
+                        if ($@ || !exists($decoded_key->{data})) {
+                            die
+                                "Value does not seems like a valid, JSON formatted encryption key!\n";
+                        }
+                        $pbs->set_encryption_key($encryption_key);
+                    }
+                    $param->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
+                } else {
+                    $pbs->delete_encryption_key();
+                }
             }
 
             my $remoteconfig = PMG::PBSConfig->check_config($remote, $param, 0, 1);
@@ -217,6 +262,7 @@ __PACKAGE__->register_method({
 
             my $pbs = PVE::PBSClient->new($ids->{$remote}, $remote, $conf->{secret_dir});
             $pbs->delete_password();
+            $pbs->delete_encryption_key();
             delete $ids->{$remote};
 
             $conf->write();
