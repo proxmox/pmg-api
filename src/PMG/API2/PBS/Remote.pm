@@ -216,7 +216,7 @@ __PACKAGE__->register_method({
             die "PBS remote '$remote' does not exist\n" if !$ids->{$remote};
 
             my $pbs = PVE::PBSClient->new($ids->{$remote}, $remote, $conf->{secret_dir});
-            $pbs->delete_password($remote);
+            $pbs->delete_password();
             delete $ids->{$remote};
 
             $conf->write();
