@@ -3,6 +3,8 @@ package PMG::CLI::pmgbackup;
 use strict;
 use warnings;
 
+use MIME::Base64 qw(encode_base64);
+
 use PVE::Tools;
 use PVE::SafeSyslog;
 use PVE::INotify;
@@ -43,9 +45,18 @@ sub param_mapping {
         },
     };
 
+    my $master_key_map = {
+        name => 'master-pubkey',
+        desc => 'a file containing a PEM-formatted master public key',
+        func => sub {
+            my ($value) = @_;
+            return encode_base64(PVE::Tools::file_get_contents($value), '');
+        },
+    };
+
     my $mapping = {
-        'create' => [$password_map, $enc_key_map],
-        'update_config' => [$password_map, $enc_key_map],
+        'create' => [$password_map, $enc_key_map, $master_key_map],
+        'update_config' => [$password_map, $enc_key_map, $master_key_map],
     };
     return $mapping->{$name};
 }

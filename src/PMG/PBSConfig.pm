@@ -130,6 +130,12 @@ sub properties {
                 "Encryption key. Use 'autogen' to generate one automatically without passphrase.",
             type => 'string',
         },
+        'master-pubkey' => {
+            description =>
+                "Base64-encoded, PEM-formatted public RSA key. Used to encrypt a copy of the"
+                . " encryption-key which will be added to each encrypted backup.",
+            type => 'string',
+        },
         %prune_properties,
     };
 }
@@ -153,6 +159,7 @@ sub options {
         'keep-monthly' => { optional => 1 },
         'keep-yearly' => { optional => 1 },
         'encryption-key' => { optional => 1 },
+        'master-pubkey' => { optional => 1 },
     };
 }
 

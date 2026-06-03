@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use JSON;
+use MIME::Base64 qw(decode_base64);
 
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
@@ -102,6 +103,7 @@ __PACKAGE__->register_method({
             $remote = extract_param($param, 'remote');
             die "PBS remote '$remote' already exists\n" if $ids->{$remote};
 
+            my $master_key = extract_param($param, 'master-pubkey');
             my $remotecfg = PMG::PBSConfig->check_config($remote, $param, 1);
 
             my $password = extract_param($remotecfg, 'password');
@@ -127,6 +129,17 @@ __PACKAGE__->register_method({
                 $remotecfg->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
             } else {
                 $pbs->delete_encryption_key();
+            }
+
+            if (defined($master_key)) {
+                die "'master-pubkey' can only be used together with 'encryption-key'\n"
+                    if !defined($remotecfg->{'encryption-key'});
+
+                my $decoded = decode_base64($master_key);
+                $pbs->set_master_pubkey($decoded);
+                $remotecfg->{'master-pubkey'} = 1;
+            } else {
+                $pbs->delete_master_pubkey();
             }
 
             $ids->{$remote} = $remotecfg;
@@ -241,6 +254,9 @@ __PACKAGE__->register_method({
                 if ($opt eq 'encryption-key') {
                     $pbs->delete_encryption_key();
                 }
+                if ($opt eq 'master-pubkey') {
+                    $pbs->delete_master_pubkey();
+                }
                 delete $ids->{$remote}->{$opt};
             }
 
@@ -265,6 +281,17 @@ __PACKAGE__->register_method({
                     $param->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
                 } else {
                     $pbs->delete_encryption_key();
+                }
+            }
+
+            if (exists($param->{'master-pubkey'})) {
+                if (defined(my $master_key = extract_param($param, 'master-pubkey'))) {
+                    my $decoded = decode_base64($master_key);
+
+                    $pbs->set_master_pubkey($decoded);
+                    $param->{'master-pubkey'} = 1;
+                } else {
+                    $pbs->delete_master_pubkey();
                 }
             }
 
@@ -322,6 +349,7 @@ __PACKAGE__->register_method({
             my $pbs = PVE::PBSClient->new($ids->{$remote}, $remote, $conf->{secret_dir});
             $pbs->delete_password();
             $pbs->delete_encryption_key();
+            $pbs->delete_master_pubkey();
             delete $ids->{$remote};
 
             $conf->write();
