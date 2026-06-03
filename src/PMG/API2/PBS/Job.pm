@@ -116,14 +116,16 @@ my sub get_snapshots {
         next if (scalar(@pxar) != 1);
 
         my $time_rfc3339 = strftime("%FT%TZ", gmtime($time));
+        my $res_item = {
+            'backup-id' => $id,
+            'backup-time' => $time_rfc3339,
+            ctime => $time,
+            size => $item->{size} // 1,
+        };
 
-        push @$res,
-            {
-                'backup-id' => $id,
-                'backup-time' => $time_rfc3339,
-                ctime => $time,
-                size => $item->{size} // 1,
-            };
+        $res_item->{encrypted} = $item->{fingerprint} if defined($item->{fingerprint});
+
+        push @$res, $res_item;
     }
     return $res;
 }
@@ -156,6 +158,12 @@ __PACKAGE__->register_method({
                 'backup-id' => { type => 'string' },
                 ctime => { type => 'string' },
                 size => { type => 'integer' },
+                encrypted => {
+                    description =>
+                        "If the backup is encrypted the value is the encryption-key fingerprint",
+                    type => 'string',
+                    optional => 1,
+                },
             },
         },
         links => [{ rel => 'child', href => "{backup-id}" }],
