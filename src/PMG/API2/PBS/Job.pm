@@ -124,6 +124,7 @@ my sub get_snapshots {
         };
 
         $res_item->{encrypted} = $item->{fingerprint} if defined($item->{fingerprint});
+        $res_item->{verification} = $item->{verification} if defined($item->{verification});
 
         push @$res, $res_item;
     }
@@ -162,6 +163,21 @@ __PACKAGE__->register_method({
                     description =>
                         "If the backup is encrypted the value is the encryption-key fingerprint",
                     type => 'string',
+                    optional => 1,
+                },
+                verification => {
+                    description => "Backup verification result",
+                    type => 'object',
+                    properties => {
+                        state => {
+                            description => "Backup verification state.",
+                            type => 'string',
+                        },
+                        upid => {
+                            description => "Backup verification UPID.",
+                            type => 'string',
+                        },
+                    },
                     optional => 1,
                 },
             },
