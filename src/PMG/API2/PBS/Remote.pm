@@ -67,16 +67,39 @@ __PACKAGE__->register_method({
     proxyto => 'master',
     protected => 1,
     parameters => PMG::PBSConfig->createSchema(1),
-    returns => { type => 'null' },
+    returns => {
+        type => 'object',
+        properties => {
+            remote => {
+                description => "The ID of the created PBS remote.",
+                type => 'string',
+            },
+            config => {
+                description => "Partial, possibly server generated, configuration properties.",
+                type => 'object',
+                optional => 1,
+                additionalProperties => 1,
+                properties => {
+                    'encryption-key' => {
+                        description => "The, possibly auto-generated, encryption-key.",
+                        optional => 1,
+                        type => 'string',
+                    },
+                },
+            },
+        },
+    },
     code => sub {
         my ($param) = @_;
 
+        my $remote;
+        my $encryption_key;
         my $code = sub {
             my $conf = PMG::PBSConfig->new();
             $conf->{ids} //= {};
             my $ids = $conf->{ids};
 
-            my $remote = extract_param($param, 'remote');
+            $remote = extract_param($param, 'remote');
             die "PBS remote '$remote' already exists\n" if $ids->{$remote};
 
             my $remotecfg = PMG::PBSConfig->check_config($remote, $param, 1);
@@ -86,7 +109,7 @@ __PACKAGE__->register_method({
             my $pbs = PVE::PBSClient->new($remotecfg, $remote, $conf->{secret_dir});
             $pbs->set_password($password) if defined($password);
 
-            my $encryption_key = extract_param($remotecfg, 'encryption-key');
+            $encryption_key = extract_param($remotecfg, 'encryption-key');
 
             if (defined($encryption_key)) {
                 my $decoded_key;
@@ -111,8 +134,14 @@ __PACKAGE__->register_method({
         };
 
         PMG::PBSConfig::lock_config($code, "add PBS remote failed");
+        my $res = {
+            remote => $remote,
+            config => {
+                'encryption-key' => $encryption_key,
+            },
+        };
 
-        return undef;
+        return $res;
     },
 });
 
@@ -162,10 +191,33 @@ __PACKAGE__->register_method({
     protected => 1,
     proxyto => 'master',
     parameters => PMG::PBSConfig->updateSchema(),
-    returns => { type => 'null' },
+    returns => {
+        type => 'object',
+        properties => {
+            remote => {
+                description => "The ID of the created PBS remote.",
+                type => 'string',
+            },
+            config => {
+                description => "Partial, possibly server generated, configuration properties.",
+                type => 'object',
+                optional => 1,
+                additionalProperties => 1,
+                properties => {
+                    'encryption-key' => {
+                        description => "The, possibly auto-generated, encryption-key.",
+                        optional => 1,
+                        type => 'string',
+                    },
+                },
+            },
+        },
+    },
     code => sub {
         my ($param) = @_;
 
+        my $remote;
+        my $encryption_key;
         my $code = sub {
 
             my $conf = PMG::PBSConfig->new();
@@ -174,7 +226,7 @@ __PACKAGE__->register_method({
             my $digest = extract_param($param, 'digest');
             PVE::SectionConfig::assert_if_modified($conf, $digest);
 
-            my $remote = extract_param($param, 'remote');
+            $remote = extract_param($param, 'remote');
 
             die "PBS remote '$remote' does not exist\n" if !$ids->{$remote};
 
@@ -197,7 +249,7 @@ __PACKAGE__->register_method({
             }
 
             if (exists($param->{'encryption-key'})) {
-                if (defined(my $encryption_key = extract_param($param, 'encryption-key'))) {
+                if (defined($encryption_key = extract_param($param, 'encryption-key'))) {
                     my $decoded_key;
                     if ($encryption_key eq 'autogen') {
                         $encryption_key = $pbs->autogen_encryption_key();
@@ -227,7 +279,14 @@ __PACKAGE__->register_method({
 
         PMG::PBSConfig::lock_config($code, "update PBS remote failed");
 
-        return undef;
+        my $res = {
+            remote => $remote,
+            config => {
+                'encryption-key' => $encryption_key,
+            },
+        };
+
+        return $res;
     },
 });
 
