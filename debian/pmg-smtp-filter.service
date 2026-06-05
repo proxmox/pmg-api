@@ -16,6 +16,7 @@ Type=forking
 Restart=on-abort
 RestartSec=10
 RuntimeDirectory=pmg-smtp-filter
+RuntimeDirectoryPreserve=yes
 User=pmg-smtp-filter
 Group=pmg-smtp-filter
 # the daemon parses untrusted mail; stop it from regaining privileges via setuid helpers
