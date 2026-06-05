@@ -13,7 +13,7 @@ include debian/rules.env
 export REPOID=${REPOID_GENERATED}
 
 %:
-	dh $@ --with installsysusers
+	dh $@
 
 override_dh_installsystemd:
 	dh_installsystemd --no-start --no-stop-on-upgrade \
