@@ -1532,12 +1532,14 @@ sub postgres_admin_cmd {
     PVE::Tools::setresuid(-1, $pg_uid, -1)
         || die "setresuid postgres ($pg_uid) failed - $!\n";
 
-    PVE::Tools::run_command([@$cmd, '-U', 'postgres', @params], %$options);
+    eval { PVE::Tools::run_command([@$cmd, '-U', 'postgres', @params], %$options); };
+    my $pg_err = $@;
 
     PVE::Tools::setresuid(-1, $save_uid, -1)
         || die "setresuid back failed - $!\n";
-
     chdir("$cwd") || die "could not chdir back to old working dir ($cwd) - $!\n";
+
+    die "postgres_admin_cmd failed: $pg_err\n" if $pg_err;
 }
 
 sub get_pg_server_version {
