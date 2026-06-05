@@ -673,10 +673,13 @@ sub upgradedb {
     }
 
     foreach my $user ('pmgpolicy', 'pmg-smtp-filter') {
+        # if the users already exists createuser returns an error - ignore it here.
         eval {
             my $silent_opts = { outfunc => sub { }, errfunc => sub { } };
             postgres_admin_cmd('createuser', $silent_opts, '-D', $user);
+        };
 
+        eval {
             $dbh->begin_work;
             $dbh->do("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO \"$user\"");
             $dbh->do(
