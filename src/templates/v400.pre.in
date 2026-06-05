@@ -57,7 +57,7 @@ endif
 #
 loadplugin Mail::SpamAssassin::Plugin::DecodeShortURLs
 url_shortener_cache_type dbi
-url_shortener_cache_dsn dbi:SQLite:dbname=/var/lib/pmg/decode_short_urls.db
+url_shortener_cache_dsn dbi:SQLite:dbname=/var/lib/pmg/spamassassin/decode_short_urls.db
 [% END %]
 
 # DMARC - Check DMARC compliance

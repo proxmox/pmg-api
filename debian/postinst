@@ -23,6 +23,15 @@ migrate_pmg_smtp_filter() {
     systemd-sysusers
 
     install -d --owner pmg-smtp-filter --group pmg /var/lib/pmg/spamassassin
+    if [ -e /root/.spamassassin ]; then
+        printf "\nMigrating spamassassin user state directory\n"
+        cp -a /root/.spamassassin/. /var/lib/pmg/spamassassin/
+    fi
+    if [ -e /var/lib/pmg/decode_short_urls.db ]; then
+        printf "Migrating spamassassin decode_short_url cache\n"
+        mv /var/lib/pmg/decode_short_urls.db /var/lib/pmg/spamassassin/
+    fi
+    chown -R pmg-smtp-filter:pmg /var/lib/pmg/spamassassin
 
     chgrp -R pmg /var/spool/pmg
     chmod -R g+w /var/spool/pmg
