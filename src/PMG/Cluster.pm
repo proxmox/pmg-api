@@ -360,10 +360,7 @@ sub sync_quarantine_files {
     my ($host_ip, $host_name, $flistname, $rcid) = @_;
 
     my $spooldir = $PMG::MailQueue::spooldir;
-
-    mkdir "$spooldir/cluster/";
-    my $syncdir = "$spooldir/cluster/$rcid";
-    mkdir $syncdir;
+    PMG::MailQueue::create_spooldirs($rcid);
 
     my $cmd = $rsync_command->(
         $host_name,
@@ -383,9 +380,8 @@ sub sync_spooldir {
 
     my $spooldir = $PMG::MailQueue::spooldir;
 
-    mkdir "$spooldir/cluster/";
+    PMG::MailQueue::create_spooldirs($rcid);
     my $syncdir = "$spooldir/cluster/$rcid";
-    mkdir $syncdir;
 
     my $cmd =
         $rsync_command->($host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir/", $syncdir);
@@ -405,7 +401,6 @@ sub sync_master_quar {
     my $spooldir = $PMG::MailQueue::spooldir;
 
     my $syncdir = "$spooldir/cluster/";
-    mkdir $syncdir;
 
     my $cmd =
         $rsync_command->($host_name, '-aq', '--timeout', '10', "[${host_ip}]:$syncdir", $syncdir);
