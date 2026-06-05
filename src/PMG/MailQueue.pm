@@ -44,9 +44,12 @@ sub create_spooldirs {
     );
 
     if ($lcid) {
-        mkpath "$spooldir/cluster/$lcid/virus";
-        mkpath "$spooldir/cluster/$lcid/spam";
-        mkpath "$spooldir/cluster/$lcid/attachment";
+        mkpath(
+            "$spooldir/cluster/$lcid/virus",
+            "$spooldir/cluster/$lcid/spam",
+            "$spooldir/cluster/$lcid/attachment",
+            { group => 'pmg', chmod => 0775 },
+        );
     }
 }
 
