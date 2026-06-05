@@ -1,0 +1,3 @@
+d /run/pmg-smtp-filter 0755 pmg-smtp-filter pmg-smtp-filter - -
+f /run/pmg-smtp-filter/pmg-smtp-filter.cfg 0644 pmg-smtp-filter pmg-smtp-filter -
+f /run/pmg-smtp-filter/pmg-smtp-filter.cfg.lck 0644 pmg-smtp-filter pmg-smtp-filter -
