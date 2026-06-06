@@ -11,6 +11,8 @@ use PVE::RESTHandler;
 use PVE::SafeSyslog;
 use PVE::Tools qw(extract_param);
 use PVE::PBSClient;
+use PVE::APIClient::LWP;
+use Time::Local ();
 
 use PMG::RESTEnvironment;
 use PMG::Backup;
@@ -281,6 +283,88 @@ __PACKAGE__->register_method({
 
         return;
 
+    },
+});
+
+__PACKAGE__->register_method({
+    name => 'verify_snapshot',
+    path => '{remote}/snapshot/{backup-id}/{backup-time}/verify',
+    method => 'POST',
+    description => "Verify a snapshot. This starts a verification task on the Proxmox Backup"
+        . " Server and returns its UPID.",
+    proxyto => 'node',
+    protected => 1,
+    permissions => { check => ['admin'] },
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            node => get_standard_option('pve-node'),
+            remote => {
+                description => "Proxmox Backup Server ID.",
+                type => 'string',
+                format => 'pve-configid',
+            },
+            'backup-id' => {
+                description => "ID (hostname) of the backup snapshot.",
+                type => 'string',
+            },
+            'backup-time' => {
+                description => "Backup time in RFC 3339 format.",
+                type => 'string',
+            },
+        },
+    },
+    returns => {
+        type => 'string',
+        description => "UPID of the verification task on the Proxmox Backup Server.",
+    },
+    code => sub {
+        my ($param) = @_;
+
+        my $remote = $param->{remote};
+        my $id = $param->{'backup-id'};
+        my $time = $param->{'backup-time'};
+
+        my $conf = PMG::PBSConfig->new();
+        my $remote_config = $conf->{ids}->{$remote};
+        die "PBS remote '$remote' does not exist\n" if !$remote_config;
+        die "PBS remote '$remote' is disabled\n" if $remote_config->{disable};
+
+        my ($y, $mo, $d, $h, $mi, $s) =
+            $time =~ m/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/
+            or die "unexpected backup-time format '$time'\n";
+        my $backup_time = Time::Local::timegm($s, $mi, $h, $d, $mo - 1, $y);
+
+        my $pbs = PVE::PBSClient->new($remote_config, $remote, $conf->{secret_dir});
+
+        my $username = $remote_config->{username};
+        my $password = $pbs->get_password();
+        # an API token ID is of the form 'user@realm!tokenname', a plain user has no '!'
+        my %auth =
+            $username =~ m/!/
+            ? (apitoken => "$username:$password", api_token_name => 'PBSAPIToken')
+            : (username => $username, password => $password);
+
+        my $fingerprint = $remote_config->{fingerprint};
+        my $conn = PVE::APIClient::LWP->new(
+            %auth,
+            cookie_name => 'PBSAuthCookie',
+            protocol => 'https',
+            host => $remote_config->{server},
+            port => $remote_config->{port} // 8007,
+            cached_fingerprints => $fingerprint ? { uc($fingerprint) => 1 } : {},
+        );
+
+        my $verify_param = {
+            'backup-type' => 'host',
+            'backup-id' => $id,
+            'backup-time' => $backup_time,
+        };
+        my $ns = $remote_config->{namespace};
+        $verify_param->{ns} = $ns if defined($ns) && length($ns);
+
+        return $conn->post("/admin/datastore/$remote_config->{datastore}/verify",
+            $verify_param);
     },
 });
 
