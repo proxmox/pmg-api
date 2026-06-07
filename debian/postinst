@@ -35,6 +35,9 @@ migrate_pmg_smtp_filter() {
 
     chgrp -R pmg /var/spool/pmg
     chmod -R g+w /var/spool/pmg
+
+    chgrp -R pmg /etc/pmg/dkim
+    chmod -R g+rX /etc/pmg/dkim
 }
 
 case "$1" in
