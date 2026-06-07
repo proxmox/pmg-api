@@ -771,6 +771,7 @@ __PACKAGE__->register_method({
             pmg-log-tracker
             postgresql-13
             proxmox-mini-journalreader
+            pmg-mobile-quarantine-ui
             proxmox-spamassassin
             proxmox-widget-toolkit
             pve-xtermjs
