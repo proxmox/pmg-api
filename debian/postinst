@@ -21,16 +21,10 @@ ucf_register_templates() {
 migrate_pmg_smtp_filter() {
     systemd-sysusers
 
-    chown :pmg /var/lib/pmg
+    install -d --owner pmg-smtp-filter --group pmg /var/lib/pmg/spamassassin
 
-    chown :pmg /var/spool/pmg/active
-    chown :pmg /var/spool/pmg/virus
-    chown :pmg /var/spool/pmg/spam
-    chown :pmg /var/spool/pmg/attachment
-    chmod g+w /var/spool/pmg/active
-    chmod g+w /var/spool/pmg/virus
-    chmod g+w /var/spool/pmg/spam
-    chmod g+w /var/spool/pmg/attachment
+    chgrp -R pmg /var/spool/pmg
+    chmod -R g+w /var/spool/pmg
     pmgdb update >/dev/null 2>&1 &
 }
 
