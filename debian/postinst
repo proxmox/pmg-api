@@ -25,7 +25,6 @@ migrate_pmg_smtp_filter() {
 
     chgrp -R pmg /var/spool/pmg
     chmod -R g+w /var/spool/pmg
-    pmgdb update >/dev/null 2>&1 &
 }
 
 case "$1" in
