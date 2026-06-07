@@ -408,6 +408,10 @@ sub create_ruledb {
     eval { postgres_admin_cmd('createuser', $silent_opts, '-D', 'root'); };
     # also create 'www-data' (and give it read-only access below)
     eval { postgres_admin_cmd('createuser', $silent_opts, '-I', '-D', 'www-data'); };
+    # the de-privileged pmgpolicy and pmg-smtp-filter daemons connect with their own
+    # roles and need read-write access below (mirrored by upgradedb() for existing DBs)
+    eval { postgres_admin_cmd('createuser', $silent_opts, '-D', 'pmg-smtp-filter'); };
+    eval { postgres_admin_cmd('createuser', $silent_opts, '-D', 'pmgpolicy'); };
 
     # use sql_ascii to avoid any character set conversions, and be compatible with
     # older postgres versions (update from 8.1 must be possible)
@@ -416,8 +420,15 @@ sub create_ruledb {
 
     my $dbh = open_ruledb($dbname);
 
-    # make sure 'www-data' can read all tables
+    # www-data only needs to read all tables
     $dbh->do("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO \"www-data\"");
+    # the unprivileged daemons need read-write access to their tables and sequences
+    for my $user (qw(pmg-smtp-filter pmgpolicy)) {
+        $dbh->do("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+            . " GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \"$user\"");
+        $dbh->do("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+            . " GRANT USAGE, SELECT ON SEQUENCES TO \"$user\"");
+    }
 
     $dbh->do(
         <<EOD
@@ -673,7 +684,7 @@ sub upgradedb {
     }
 
     foreach my $user ('pmgpolicy', 'pmg-smtp-filter') {
-        # if the users already exists createuser returns an error - ignore it here.
+        # if the user already exists createuser returns an error - ignore it here.
         eval {
             my $silent_opts = { outfunc => sub { }, errfunc => sub { } };
             postgres_admin_cmd('createuser', $silent_opts, '-D', $user);
@@ -684,6 +695,11 @@ sub upgradedb {
             $dbh->do("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO \"$user\"");
             $dbh->do(
                 "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"$user\"");
+            # also cover tables created later, to match a freshly initialized rule database
+            $dbh->do("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+                . " GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \"$user\"");
+            $dbh->do("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+                . " GRANT USAGE, SELECT ON SEQUENCES TO \"$user\"");
             $dbh->commit;
         };
         if (my $err = $@) {
