@@ -1409,6 +1409,10 @@ sub init_nodedb {
         };
         postgres_admin_cmd('pg_restore', $opts, '-d', $dbname, '-v', $fn);
 
+        print STDERR "run upgradedb to latest schema\n";
+        my $dbh = open_ruledb($dbname);
+        my $ruledb = PMG::RuleDB->new($dbh);
+        upgradedb($ruledb);
         print STDERR "run analyze to speed up database queries\n";
         postgres_admin_cmd('psql', { input => 'analyze;' }, $dbname);
 
