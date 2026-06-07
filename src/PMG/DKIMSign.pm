@@ -212,6 +212,11 @@ sub set_selector {
         } else {
             my $cmd = ['openssl', 'genrsa', '-out', $privkey_file, $keysize];
             PMG::Utils::run_silent_cmd($cmd);
+            my $pmg_gid = getgrnam('pmg') || die "group pmg not in group file\n";
+            chown(-1, $pmg_gid, $privkey_file)
+                || die "failed to change group ownership of '$privkey_file'\n";
+            chmod(0640, $privkey_file)
+                || die "failed to set permissions of '$privkey_file'\n";
         }
         my $cfg = PMG::Config->new();
         $cfg->set('admin', 'dkim_selector', $selector);
