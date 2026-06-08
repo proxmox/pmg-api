@@ -325,7 +325,22 @@ sub pmg_restore {
 
             # copy files
             system("cp -a $dirname/config/etc/pmg/* /etc/pmg/") == 0
-                || die "unable to restore system configuration: ERROR";
+                || die "unable to restore system configuration: ERROR\n";
+
+            # use system for recursive changes
+            system("chgrp -R pmg /etc/pmg/dkim") == 0
+                || die "unable to set group of dkim configuration: ERROR\n";
+
+            system("chmod -R g+rX /etc/pmg/dkim") == 0
+                || die "unable to set permissions of dkim configuration: ERROR\n";
+
+            if (-f "/etc/pmg/ldap.conf") {
+                system("chgrp -R pmg /etc/pmg/ldap.conf") == 0
+                    || die "unable to set group of ldap.conf: ERROR\n";
+
+                system("chmod 0640 /etc/pmg/ldap.conf") == 0
+                    || die "unable to set permissions of dkim configuration: ERROR\n";
+            }
 
             for my $sa_cfg (@{$sa_configs}) {
                 if (-f "$dirname/config/${sa_cfg}") {
