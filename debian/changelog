@@ -1,3 +1,14 @@
+pmg-api (9.0.11) trixie; urgency=medium
+
+  * fix #4926: run the pmg-smtp-filter and pmgpolicy daemons as dedicated
+    unprivileged users instead of as root, to reduce the attack surface of the
+    components that process untrusted mail.
+    On upgrade the existing SpamAssassin and Razor state, the mail spool, the
+    DKIM keys, and the rule-database access are migrated and re-permissioned
+    automatically.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 08 Jun 2026 18:00:00 +0200
+
 pmg-api (9.0.10) trixie; urgency=medium
 
   * fix #3946: mail proxy: make the maximal queue lifetime configurable, so
