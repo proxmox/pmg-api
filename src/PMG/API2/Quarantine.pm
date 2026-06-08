@@ -1723,6 +1723,13 @@ __PACKAGE__->register_method({
 
         my $cfg = PMG::Config->new();
 
+        # only addresses in our relay domains have a quarantine; unlike the public sendlink,
+        # which silently ignores the rest, reject here to give the privileged caller feedback
+        my $domains = PVE::INotify::read_file('domains');
+        my $domainregex = PMG::Utils::domain_regex([keys %$domains]);
+        die "refusing to create quarantine link: '$param->{mail}' is not in a relay domain\n"
+            if $param->{mail} !~ $domainregex;
+
         my ($link) = build_quarantine_link($cfg, $param->{mail});
 
         return { link => $link };
