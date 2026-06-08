@@ -36,13 +36,15 @@ migrate_pmg_smtp_filter() {
         install -d /var/lib/pmg/spamassassin/.razor
         cp -a /root/.razor/. /var/lib/pmg/spamassassin/.razor/
     fi
-    chown -R pmg-smtp-filter:pmg /var/lib/pmg/spamassassin
+    chown -Rv pmg-smtp-filter:pmg /var/lib/pmg/spamassassin
 
+    printf "Adjusting group ownership of the mail spool, this might take a while\n"
+    # no -v: the spool can hold millions of mails
     chgrp -R pmg /var/spool/pmg
     chmod -R g+w /var/spool/pmg
 
-    chgrp -R pmg /etc/pmg/dkim
-    chmod -R g+rX /etc/pmg/dkim
+    chgrp -Rv pmg /etc/pmg/dkim
+    chmod -Rv g+rX /etc/pmg/dkim
 
     if [ -e /etc/pmg/ldap.conf ]; then
         chgrp -v pmg /etc/pmg/ldap.conf
