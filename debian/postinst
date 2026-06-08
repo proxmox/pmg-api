@@ -76,6 +76,12 @@ case "$1" in
 
         if test ! -e /proxmox_install_mode ; then
 
+            # pick up changed unit files (like the new User= on pmg-smtp-filter/pmgpolicy)
+            # before any service is (re)started below, so none comes back on the stale unit
+            if [ -d /run/systemd/system ]; then
+                systemctl --system daemon-reload >/dev/null || true
+            fi
+
             # TODO: remove with 10.0
             if test -n "$2" && dpkg --compare-versions "$2" 'lt' '9.0.11~'; then
                 migrate_pmg_smtp_filter
