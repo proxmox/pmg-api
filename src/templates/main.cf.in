@@ -17,7 +17,7 @@ delay_warning_time = [% pmg.mail.dwarning %]h
 
 [% IF pmg.mail.item('queue-lifetime') %]
 maximal_queue_lifetime = [% pmg.mail.item('queue-lifetime') %]d
-bounce_queue_lifetime = [% pmg.mail.item('queue-lifetime') %]d
+bounce_queue_lifetime = $maximal_queue_lifetime
 [% END %]
 
 best_mx_transport = local
