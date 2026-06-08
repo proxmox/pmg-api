@@ -155,6 +155,12 @@ EODESC
             pattern => '^\p{PosixPrint}{1,998}$',
             default => 'Proxmox Mail Gateway <postmaster>',
         },
+        'consent-text' => {
+            description => "Consent text that is displayed before logging in.",
+            type => 'string',
+            maxLength => 64 * 1024,
+            default => '',
+        },
     };
 }
 
@@ -175,6 +181,7 @@ sub options {
         dkim_selector => { optional => 1 },
         'dkim-use-domain' => { optional => 1 },
         'admin-mail-from' => { optional => 1 },
+        'consent-text' => { optional => 1 },
     };
 }
 
