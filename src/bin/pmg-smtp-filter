@@ -712,7 +712,8 @@ sub handle_smtp {
                 my ($value) = @_;
                 return '' if !defined($value);
                 $value = PMG::Utils::decode_rfc1522($value);
-                $value =~ s/[\x00-\x1f\x7f]/ /g; # avoid log injection through control chars
+                # remove non-printable and Unicode format chars to avoid log injection and spoofing
+                $value =~ s/[^\p{XPosixPrint}]|\p{Cf}/ /g;
                 return encode('UTF-8', substr($value, 0, 512));
             };
             # separate line on purpose, so the log-tracker does not parse it as an event
