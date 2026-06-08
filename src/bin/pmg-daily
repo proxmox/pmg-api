@@ -69,7 +69,10 @@ if (my $err = $@) {
 }
 
 # rotate razor log file
-rename('/root/.razor/razor-agent.log', '/root/.razor/razor-agent.log.0');
+rename(
+    '/var/lib/pmg/spamassassin/.razor/razor-agent.log',
+    '/var/lib/pmg/spamassassin/.razor/razor-agent.log.0',
+);
 
 # setup proxy env (assume sa-update use http)
 if (my $http_proxy = $cfg->get('admin', 'http_proxy')) {
