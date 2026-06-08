@@ -43,6 +43,10 @@ migrate_pmg_smtp_filter() {
 
     chgrp -R pmg /etc/pmg/dkim
     chmod -R g+rX /etc/pmg/dkim
+
+    if [ -e /etc/pmg/ldap.conf ]; then
+        chgrp -v pmg /etc/pmg/ldap.conf
+    fi
 }
 
 case "$1" in

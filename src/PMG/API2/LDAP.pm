@@ -22,6 +22,8 @@ __PACKAGE__->register_method({
     name => 'index',
     path => '',
     method => 'GET',
+    # reads ldap.conf, which only root and the pmg group can read
+    protected => 1,
     description => "List configured LDAP profiles.",
     proxyto => 'master',
     permissions => { check => ['admin', 'audit'] },
@@ -181,6 +183,8 @@ __PACKAGE__->register_method({
     name => 'read_config',
     path => '{profile}/config',
     method => 'GET',
+    # see 'index': also reads ldap.conf
+    protected => 1,
     description => "Get LDAP profile configuration.",
     proxyto => 'master',
     permissions => { check => ['admin', 'audit'] },

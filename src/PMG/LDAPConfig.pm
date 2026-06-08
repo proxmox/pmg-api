@@ -238,7 +238,7 @@ sub write_pmg_ldap_conf {
 
     my $raw = __PACKAGE__->write_config($filename, $cfg);
 
-    my $gid = getgrnam('www-data');
+    my $gid = getgrnam('pmg') || die "group 'pmg' not in group file\n";
     chown(0, $gid, $fh);
     chmod(0640, $fh);
 
