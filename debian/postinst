@@ -184,4 +184,14 @@ if test ! -e /proxmox_install_mode ; then
     done
 fi
 
+# TODO: remove with 10.0
+# re-own SpamAssassin state that the still-root filter wrote after the first migration pass
+# walked the tree; the spool is skipped, as only root tools (deliver, purge, sync) handle it
+if test ! -e /proxmox_install_mode && test -n "$2" \
+    && dpkg --compare-versions "$2" 'lt' '9.0.12~'; then
+    if test -d /var/lib/pmg/spamassassin; then
+        find /var/lib/pmg/spamassassin -uid 0 -exec chown -v pmg-smtp-filter:pmg {} + || true
+    fi
+fi
+
 exit 0
