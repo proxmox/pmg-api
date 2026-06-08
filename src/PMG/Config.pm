@@ -1740,12 +1740,16 @@ sub rewrite_config_spam {
     $changes = 1 if $self->rewrite_config_file('v400.pre.in', '/etc/mail/spamassassin/v400.pre');
 
     if ($use_razor) {
-        mkdir "/root/.razor";
+        my $razor_home = '/var/lib/pmg/spamassassin/.razor';
+        # use the same HOME the unprivileged pmg-smtp-filter daemon uses
+        # (home_dir_for_helpers), so the razor state ends up where it looks it up
+        local $ENV{HOME} = '/var/lib/pmg/spamassassin';
+        mkdir $razor_home;
 
         $changes = 1
-            if $self->rewrite_config_file('razor-agent.conf.in', '/root/.razor/razor-agent.conf');
+            if $self->rewrite_config_file('razor-agent.conf.in', "$razor_home/razor-agent.conf");
 
-        if (!-e '/root/.razor/identity') {
+        if (!-e "$razor_home/identity") {
             eval {
                 my $timeout = 30;
                 PVE::Tools::run_command(['razor-admin', '-discover'], timeout => $timeout);
@@ -1754,6 +1758,8 @@ sub rewrite_config_spam {
             my $err = $@;
             syslog('info', "registering razor failed: $err") if $err;
         }
+        # let the unprivileged daemon read and refresh the razor server cache
+        eval { PVE::Tools::run_command(['chown', '-R', 'pmg-smtp-filter:pmg', $razor_home]); };
     }
 
     return $changes;

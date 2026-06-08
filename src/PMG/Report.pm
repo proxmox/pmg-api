@@ -130,7 +130,7 @@ sub check_dns_resolution {
     my $sa = Mail::SpamAssassin->new({
         debug => 0,
         local_tests_only => 0,
-        home_dir_for_helpers => '/root',
+        home_dir_for_helpers => '/var/lib/pmg/spamassassin',
         userstate_dir => '/var/lib/pmg/spamassassin',
         dont_copy_prefs => 1,
         stop_at_threshold => 0,

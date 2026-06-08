@@ -31,6 +31,11 @@ migrate_pmg_smtp_filter() {
         printf "Migrating spamassassin decode_short_url cache\n"
         mv /var/lib/pmg/decode_short_urls.db /var/lib/pmg/spamassassin/
     fi
+    if [ -e /root/.razor ]; then
+        printf "Migrating razor home directory\n"
+        install -d /var/lib/pmg/spamassassin/.razor
+        cp -a /root/.razor/. /var/lib/pmg/spamassassin/.razor/
+    fi
     chown -R pmg-smtp-filter:pmg /var/lib/pmg/spamassassin
 
     chgrp -R pmg /var/spool/pmg
