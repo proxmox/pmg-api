@@ -267,6 +267,7 @@ sub get_index {
 
     my $cfg = PMG::Config->new();
     my $quarantinelink = $cfg->get('spamquar', 'quarantinelink');
+    my $consent_text = $cfg->get('admin', 'consent-text');
 
     $username = '' if !$username;
 
@@ -292,6 +293,7 @@ sub get_index {
         i18n_yew_mobile_mtime => $i18n_yew_mtime,
         yew_mobile_mtime => $ui_yew_mtime,
         yew_mobile_base_path => '/mobile',
+        consenttext => $consent_text,
     };
 
     my $template_name;
