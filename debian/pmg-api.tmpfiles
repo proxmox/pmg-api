@@ -1,3 +1,9 @@
 d /run/pmg-smtp-filter 0755 pmg-smtp-filter pmg-smtp-filter - -
 f /run/pmg-smtp-filter/pmg-smtp-filter.cfg 0644 pmg-smtp-filter pmg-smtp-filter -
 f /run/pmg-smtp-filter/pmg-smtp-filter.cfg.lck 0644 pmg-smtp-filter pmg-smtp-filter -
+# persistent dirs the non-root daemons need but cannot create themselves under
+# the root-owned parents (the postinst only creates them when migrating)
+d /var/lib/pmg/spamassassin 0750 pmg-smtp-filter pmg - -
+d /var/spool/pmg 0775 root pmg - -
+# match the group the postinst migration sets, so fresh installs agree with upgraded ones
+d /etc/pmg/dkim 0755 root pmg - -
