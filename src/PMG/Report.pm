@@ -25,8 +25,8 @@ my $report_def = {
             'top -b -n 1  | head -n 15',
             'pmgsubscription get',
             sub { check_dns_resolution() },
-            'cat /etc/apt/sources.list',
-            sub { dir2text('/etc/apt/sources.list.d/', '.*\.list') },
+            sub { dir2text('/etc/apt/', 'sources\.list') },
+            sub { dir2text('/etc/apt/sources.list.d/', '.*\.(?:list|sources)') },
         ],
     },
     storage => [
