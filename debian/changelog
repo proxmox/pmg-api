@@ -1,3 +1,34 @@
+pmg-api (9.0.12) trixie; urgency=medium
+
+  * config: fix SMTP welcomelist generation stopping after the first changed
+    map file, which could leave a map unwritten and prevent postfix from
+    starting.
+
+  * fix spam scanning failing after the upgrade to the unprivileged
+    pmg-smtp-filter and pmgpolicy daemons, by re-owning SpamAssassin state
+    files that the old root daemon still wrote after the initial migration
+    pass. Also reload changed systemd units before restarting services on
+    upgrade.
+
+  * backup: restore the expected permissions for configuration files from
+    backups created before the switch to the unprivileged daemons.
+
+  * ensure the clamav-daemon service is enabled on install and upgrade, so
+    that virus scanning is active regardless of whether the clamav package
+    enabled it itself.
+
+  * fix #5076: auth: openid: support an optional list of additionally accepted
+    token audiences in the OpenID Connect realm configuration.
+
+  * fix #7187: report: include the ethtool output for physical network
+    interfaces, to ease diagnosing link speed, auto-negotiation, and
+    configuration issues.
+
+  * pmgbanner: wrap IPv6 addresses in brackets in the generated web interface
+    URL, so that browsers parse the address and port correctly.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 09 Jun 2026 15:56:04 +0200
+
 pmg-api (9.0.11) trixie; urgency=medium
 
   * fix #4926: run the pmg-smtp-filter and pmgpolicy daemons as dedicated
