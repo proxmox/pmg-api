@@ -145,6 +145,11 @@ case "$1" in
             deb-systemd-invoke enable clamav-freshclam.service >/dev/null 2>&1 || true
         fi
 
+        if ! systemctl --quiet is-enabled clamav-daemon.service ; then
+            echo "Enabling clamav-daemon as antivirus"
+            deb-systemd-invoke enable clamav-daemon.service >/dev/null 2>&1 || true
+        fi
+
         if test -n "$2" && dpkg --compare-versions "$2" 'lt' '8.2.0'; then
             old_score_location=/var/cache/pmg-scores.cf
             new_score_location=/etc/mail/spamassassin/pmg-scores.cf.new
