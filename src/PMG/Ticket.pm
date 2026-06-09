@@ -2,9 +2,11 @@ package PMG::Ticket;
 
 use strict;
 use warnings;
+use HTTP::Status qw(:constants);
 use Net::SSLeay;
 use Digest::SHA;
 
+use PVE::Exception qw(raise);
 use PVE::SafeSyslog;
 use PVE::Tools;
 use PVE::Ticket;
@@ -185,10 +187,22 @@ sub assemble_csrf_prevention_token {
     return PVE::Ticket::assemble_csrf_prevention_token($secret, $username);
 }
 
+# A transiently unreadable key must not look like an invalid ticket: raise an internal error, so
+# the request fails with a 500 instead of a 401 that makes clients drop their valid session.
+my sub load_auth_key : prototype($) {
+    my ($id) = @_;
+
+    my $key = PVE::INotify::read_file($id);
+    raise("failed to load authentication key '$id'\n", code => HTTP_INTERNAL_SERVER_ERROR)
+        if !$key;
+
+    return $key;
+}
+
 sub assemble_ticket : prototype($;$) {
     my ($data, $aad) = @_;
 
-    my $rsa_priv = PVE::INotify::read_file('auth_priv_key');
+    my $rsa_priv = load_auth_key('auth_priv_key');
 
     return PVE::Ticket::assemble_rsa_ticket($rsa_priv, 'PMG', $data, $aad);
 }
@@ -198,7 +212,7 @@ sub assemble_ticket : prototype($;$) {
 sub verify_ticket : prototype($$$) {
     my ($ticket, $aad, $noerr) = @_;
 
-    my $rsa_pub = PVE::INotify::read_file('auth_pub_key');
+    my $rsa_pub = load_auth_key('auth_pub_key');
 
     my $tfa_challenge;
     my ($data, $age) = PVE::Ticket::verify_rsa_ticket(
@@ -226,7 +240,7 @@ sub assemble_vnc_ticket {
 
     die "missing required port parameter for assembling VNC ticket\n" if !defined($port);
 
-    my $rsa_priv = PVE::INotify::read_file('auth_priv_key');
+    my $rsa_priv = load_auth_key('auth_priv_key');
 
     my $secret_data = "$username:$path:$port";
 
@@ -236,7 +250,7 @@ sub assemble_vnc_ticket {
 sub verify_vnc_ticket {
     my ($ticket, $username, $path, $port, $noerr) = @_;
 
-    my $rsa_pub = PVE::INotify::read_file('auth_pub_key');
+    my $rsa_pub = load_auth_key('auth_pub_key');
 
     my $secret_data = "$username:$path";
     $secret_data .= ":$port" if defined($port);
@@ -250,7 +264,7 @@ sub verify_vnc_ticket {
 sub assemble_quarantine_ticket {
     my ($pmail) = @_;
 
-    my $rsa_priv = PVE::INotify::read_file('auth_priv_key');
+    my $rsa_priv = load_auth_key('auth_priv_key');
 
     return PVE::Ticket::assemble_rsa_ticket($rsa_priv, 'PMGQUAR', $pmail);
 }
@@ -271,7 +285,7 @@ my $get_quarantine_lifetime = sub {
 sub verify_quarantine_ticket {
     my ($ticket, $noerr) = @_;
 
-    my $rsa_pub = PVE::INotify::read_file('auth_pub_key');
+    my $rsa_pub = load_auth_key('auth_pub_key');
 
     my $lifetime = $get_quarantine_lifetime->();
 
