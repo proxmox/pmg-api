@@ -28,7 +28,8 @@ for (my $try = 1; $try <= 15; $try++) {
 
 $addr //= '<unknown>'; # useless but we must _not_ fail here
 
-$banner .= "  https://${addr}:8006/\n";
+my $urlip = $addr =~ m/:/ ? "[$addr]" : $addr;
+$banner .= "  https://${urlip}:8006/\n";
 
 $banner .= "\n$xline\n\n";
 
