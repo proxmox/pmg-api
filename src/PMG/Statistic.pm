@@ -456,7 +456,7 @@ sub total_spam_stat {
 
     my $sth =
         $rdb->{dbh}->prepare("SELECT spamlevel, COUNT(spamlevel) AS count FROM CStatistic"
-            . " WHERE virusinfo IS NULL and time >= ? AND time < ? AND ptime > 0 AND spamlevel > 0 "
+            . " WHERE virusinfo IS NULL and direction and time >= ? AND time < ? AND ptime > 0 AND spamlevel > 0 "
             . " GROUP BY spamlevel ORDER BY spamlevel");
     $sth->execute($from, $to);
 

@@ -1150,7 +1150,8 @@ __PACKAGE__->register_method({
             }
         }
 
-        $levelcount->{0} = $count_in - $spamcount;
+        # the aggregated count_in can lag the raw spam counts, so clamp the bucket to zero
+        $levelcount->{0} = $count_in > $spamcount ? $count_in - $spamcount : 0;
 
         for (my $i = 0; $i <= 10; $i++) {
             my $count = $levelcount->{$i} // 0;
