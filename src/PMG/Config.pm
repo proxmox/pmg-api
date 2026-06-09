@@ -1878,10 +1878,15 @@ sub rewrite_postfix_welcomelist {
     }
 
     my $changes = 0;
-    $changes ||= $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
-    $changes ||= $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
-    $changes ||= $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
-    $changes ||= $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+    my $ret;
+    $ret = $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
+    $changes ||= $ret;
+    $ret = $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
+    $changes ||= $ret;
+    $ret = $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
+    $changes ||= $ret;
+    $ret = $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+    $changes ||= $ret;
 
     return $changes;
 }
