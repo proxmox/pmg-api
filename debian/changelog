@@ -1,3 +1,20 @@
+pmg-api (9.0.13) trixie; urgency=medium
+
+  * statistics: fix negative count and ratio for score 0 in the spam score
+    distribution, which showed up as soon as outbound spam was recorded.
+
+  * report: include deb822 .sources files in the APT repository dump and
+    tolerate a missing legacy sources.list.
+
+  * pbs remote: only prompt to save the encryption key when one was newly
+    auto-generated, not when an existing key was just uploaded.
+
+  * ticket: avoid dropping valid client sessions when an authentication key
+    transiently fails to load, by reporting a clear internal error for the
+    affected request instead of an authentication failure.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 10 Jun 2026 00:04:16 +0200
+
 pmg-api (9.0.12) trixie; urgency=medium
 
   * config: fix SMTP welcomelist generation stopping after the first changed
