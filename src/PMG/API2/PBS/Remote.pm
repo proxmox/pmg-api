@@ -82,7 +82,8 @@ __PACKAGE__->register_method({
                 additionalProperties => 1,
                 properties => {
                     'encryption-key' => {
-                        description => "The, possibly auto-generated, encryption-key.",
+                        description => "The auto-generated encryption key, only returned when"
+                            . " one was newly generated.",
                         optional => 1,
                         type => 'string',
                     },
@@ -125,6 +126,8 @@ __PACKAGE__->register_method({
                             "Value does not seems like a valid, JSON formatted encryption key!\n";
                     }
                     $pbs->set_encryption_key($encryption_key);
+                    # the user already has this uploaded key, do not return it for re-saving
+                    $encryption_key = undef;
                 }
                 $remotecfg->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
             } else {
@@ -218,7 +221,8 @@ __PACKAGE__->register_method({
                 additionalProperties => 1,
                 properties => {
                     'encryption-key' => {
-                        description => "The, possibly auto-generated, encryption-key.",
+                        description => "The auto-generated encryption key, only returned when"
+                            . " one was newly generated.",
                         optional => 1,
                         type => 'string',
                     },
@@ -277,6 +281,8 @@ __PACKAGE__->register_method({
                                 "Value does not seems like a valid, JSON formatted encryption key!\n";
                         }
                         $pbs->set_encryption_key($encryption_key);
+                        # the user already has this uploaded key, do not return it for re-saving
+                        $encryption_key = undef;
                     }
                     $param->{'encryption-key'} = $decoded_key->{fingerprint} || 1;
                 } else {
