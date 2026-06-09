@@ -129,6 +129,14 @@ sub properties {
             pattern => qr/^[a-zA-Z0-9._:-]+$/,
             optional => 1,
         },
+        'audiences' => {
+            description =>
+                "A list of audiences that the OpenID Issuer may include that are accepted in "
+                . "addition to 'client-id'.",
+            type => 'string', # format => 'some-safe-id-list', # FIXME: TODO
+            pattern => qr/^[a-zA-Z0-9._:-]+$/,
+            optional => 1,
+        },
     };
 }
 
@@ -144,6 +152,7 @@ sub options {
         prompt => { optional => 1 },
         scopes => { optional => 1 },
         'acr-values' => { optional => 1 },
+        audiences => { optional => 1 },
         default => { optional => 1 },
         comment => { optional => 1 },
     };

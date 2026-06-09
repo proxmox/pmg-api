@@ -46,6 +46,10 @@ my $lookup_oidc_auth = sub {
         $oidc_config->{acr_values} = [PVE::Tools::split_list($acr)];
     }
 
+    if (defined(my $audiences = $config->{'audiences'})) {
+        $oidc_config->{audiences} = [PVE::Tools::split_list($audiences)];
+    }
+
     my $oidc = Proxmox::RS::OIDC->discover($oidc_config, $redirect_url);
     return ($config, $oidc);
 };
