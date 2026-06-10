@@ -1002,6 +1002,9 @@ sub run_child {
         exit;
     };
 
+    # like the stock run_child: reset the master's async CHLD reaper, it would steal the exit
+    # status of helpers run via run_command, and ignore PIPE so an aborted peer cannot kill the
+    # worker mid-write.
     $SIG{'CHLD'} = 'DEFAULT';
     $SIG{'PIPE'} = 'IGNORE';
 
