@@ -404,8 +404,7 @@ sub analyze_custom_check {
 
         my $log_err = sub {
             my ($errmsg) = @_;
-            $errmsg =~ s/%/%%/;
-            syslog('err', $errmsg);
+            syslog('err', '%s', "$queue->{logid}: custom check: $errmsg");
         };
 
         my $customcheck_output_apiver;
