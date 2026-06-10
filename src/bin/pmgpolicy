@@ -1003,6 +1003,7 @@ sub run_child {
     };
 
     $SIG{'CHLD'} = 'DEFAULT';
+    $SIG{'PIPE'} = 'IGNORE';
 
     delete $prop->{children};
 
