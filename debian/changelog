@@ -1,3 +1,27 @@
+pmg-api (9.0.14) trixie; urgency=medium
+
+  * config: avoid short-circuiting the postfix welcomelist file generation
+    when other configuration changed in the same run, which prevented these
+    access lists from being written at all on the first boot after a fresh
+    installation.
+
+  * pmgpolicy: reset the SIGCHLD handler that worker processes inherit from
+    the pre-fork master; its asynchronous child reaping broke helper command
+    calls and could cause workers of the initial generation to stop answering
+    policy requests after a configuration reload.
+
+  * custom check: relay the stderr of the check script to the syslog prefixed
+    with the queue ID of the mail transaction, so the output shows up in the
+    respective Tracking Center entry and cannot be mistaken for messages of
+    the filter itself anymore.
+
+  * utils: pass log messages that contain scanner output, custom check script
+    errors, or SMTP server replies to syslog as plain string instead of as
+    format string, so percent signs in them cannot garble the logged line
+    anymore.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 10 Jun 2026 16:56:04 +0200
+
 pmg-api (9.0.13) trixie; urgency=medium
 
   * statistics: fix negative count and ratio for score 0 in the spam score
