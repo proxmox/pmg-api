@@ -1916,7 +1916,7 @@ sub rewrite_config_postfix {
     postmap_tls_policy();
     postmap_tls_inbound_domains();
 
-    $changes ||= rewrite_postfix_welcomelist($rulecache) if $rulecache;
+    $changes = 1 if $rulecache && rewrite_postfix_welcomelist($rulecache);
 
     # make sure aliases.db is up to date
     system('/usr/bin/newaliases');
