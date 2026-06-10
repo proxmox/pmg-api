@@ -380,7 +380,7 @@ sub reinject_mail {
     $smtp->quit if $smtp;
 
     if ($err) {
-        syslog('err', $err);
+        syslog('err', '%s', $err);
     }
 
     return wantarray ? ($resid, $rescode, $resmess) : $resid;
@@ -448,7 +448,7 @@ sub analyze_custom_check {
     my $err = $@;
 
     if ($vinfo) {
-        syslog('info', "$queue->{logid}: virus detected: $vinfo (custom)");
+        syslog('info', '%s', "$queue->{logid}: virus detected: $vinfo (custom)");
     }
 
     my ($csec_end, $usec_end) = gettimeofday();
@@ -456,7 +456,7 @@ sub analyze_custom_check {
         int(($csec_end - $csec) * 1000 + ($usec_end - $usec) / 1000);
 
     if ($err) {
-        syslog('err', $err);
+        syslog('err', '%s', $err);
         $vinfo = undef;
         $queue->{errors} = 1;
     }
@@ -515,7 +515,7 @@ sub analyze_virus_clam {
         }
 
         if ($vinfo) {
-            syslog('info', "$queue->{logid}: virus detected: $vinfo (clamav)");
+            syslog('info', '%s', "$queue->{logid}: virus detected: $vinfo (clamav)");
         }
     };
     my $err = $@;
@@ -527,7 +527,7 @@ sub analyze_virus_clam {
         int(($csec_end - $csec) * 1000 + ($usec_end - $usec) / 1000);
 
     if ($err) {
-        syslog('err', $err);
+        syslog('err', '%s', $err);
         $vinfo = undef;
         $queue->{errors} = 1;
     }
@@ -574,7 +574,7 @@ sub analyze_virus_avast {
         alarm(0); # avoid race conditions
 
         if ($vinfo) {
-            syslog('info', "$queue->{logid}: virus detected: $vinfo (avast)");
+            syslog('info', '%s', "$queue->{logid}: virus detected: $vinfo (avast)");
         }
     };
     my $err = $@;
@@ -586,7 +586,7 @@ sub analyze_virus_avast {
         int(($csec_end - $csec) * 1000 + ($usec_end - $usec) / 1000);
 
     if ($err) {
-        syslog('err', $err);
+        syslog('err', '%s', $err);
         $vinfo = undef;
         $queue->{errors} = 1;
     }
