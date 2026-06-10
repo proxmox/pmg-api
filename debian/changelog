@@ -1,3 +1,9 @@
+pmg-api (9.1.0) trixie; urgency=medium
+
+  * bump version for 9.1 stable release.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 10 Jun 2026 21:29:16 +0200
+
 pmg-api (9.0.14) trixie; urgency=medium
 
   * config: avoid short-circuiting the postfix welcomelist file generation
