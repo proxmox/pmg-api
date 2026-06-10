@@ -1002,6 +1002,8 @@ sub run_child {
         exit;
     };
 
+    $SIG{'CHLD'} = 'DEFAULT';
+
     delete $prop->{children};
 
     $self->child_init_hook;
