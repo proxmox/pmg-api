@@ -1926,6 +1926,7 @@ my $pmg_service_params = {
         ndr_on_block => 1,
         smtputf8 => 1,
         'accept-broken-mime' => 1,
+        'log-headers' => 1,
     },
     admin => {
         dkim_selector => 1,
