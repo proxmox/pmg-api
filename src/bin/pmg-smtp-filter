@@ -714,7 +714,9 @@ sub handle_smtp {
                 $value = PMG::Utils::decode_rfc1522($value);
                 # remove non-printable and Unicode format chars to avoid log injection and spoofing
                 $value =~ s/[^\p{XPosixPrint}]|\p{Cf}/ /g;
-                return encode('UTF-8', substr($value, 0, 512));
+                $value = substr($value, 0, 512);
+                $value =~ s/^\s+|\s+$//g;
+                return encode('UTF-8', $value);
             };
             # separate line on purpose, so the log-tracker does not parse it as an event
             $self->log(
