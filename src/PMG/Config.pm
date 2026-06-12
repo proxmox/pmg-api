@@ -56,6 +56,19 @@ use warnings;
 
 use base qw(PMG::Config::Base);
 
+PVE::JSONSchema::register_format('pmg-log-tracker-base', \&parse_log_tracker_base);
+
+sub parse_log_tracker_base {
+    my ($path, $noerr) = @_;
+
+    if ($path !~ m!^/([^/\0]+/){0,6}[^/\0]+$! || $path =~ m!(?://|/\.{1,2}(?:/|$))!) {
+        return undef if $noerr;
+        die "log-tracker-base '$path' contains illegal characters\n";
+    }
+
+    return $path;
+}
+
 sub type {
     return 'admin';
 }
@@ -161,6 +174,12 @@ EODESC
             maxLength => 64 * 1024,
             default => '',
         },
+        'log-tracker-base' => {
+            description => "Location of rotated mail logs, input-base argument for pmg-log-tracker",
+            type => 'string',
+            format => 'pmg-log-tracker-base',
+            default => '/var/log/syslog',
+        },
     };
 }
 
@@ -182,6 +201,7 @@ sub options {
         'dkim-use-domain' => { optional => 1 },
         'admin-mail-from' => { optional => 1 },
         'consent-text' => { optional => 1 },
+        'log-tracker-base' => { optional => 1, root_only => 1 },
     };
 }
 
