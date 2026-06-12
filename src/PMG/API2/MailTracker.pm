@@ -41,6 +41,11 @@ my $statmap = {
 my $run_pmg_log_tracker = sub {
     my ($args, $includelog) = @_;
 
+    my $pmg_cfg = PMG::Config->new();
+    my $input_base = $pmg_cfg->get('admin', 'log-tracker-base');
+
+    push @$args, '--input-base', $input_base;
+
     my $logids = {};
 
     if (defined(my $id = $includelog)) {
