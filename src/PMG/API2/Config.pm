@@ -10,6 +10,7 @@ use HTTP::Status qw(:constants);
 use Storable qw(dclone);
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::RESTHandler;
+use PVE::Exception qw(raise_perm_exc);
 use Time::HiRes qw();
 
 use PMG::Config;
@@ -187,14 +188,21 @@ my $api_update_config_section = sub {
         die "no options specified\n"
             if !$delete_str && !scalar(keys %$param);
 
+        my $plugin = PMG::Config::Base->lookup($section);
+        my $rpcenv = PMG::RESTEnvironment->get();
+        my $authuser = $rpcenv->get_user();
+
         foreach my $opt (PVE::Tools::split_list($delete_str)) {
+            my $is_root_only = $plugin->options()->{$opt}->{root_only};
+            raise_perm_exc() if ( $is_root_only && $authuser ne 'root@pam') ;
             delete $ids->{$section}->{$opt};
         }
 
-        my $plugin = PMG::Config::Base->lookup($section);
         my $config = $plugin->check_config($section, $param, 0, 1);
 
         foreach my $p (keys %$config) {
+            my $is_root_only = $plugin->options()->{$p}->{root_only};
+            raise_perm_exc() if ( $is_root_only && $authuser ne 'root@pam') ;
             $ids->{$section}->{$p} = $config->{$p};
         }
 
