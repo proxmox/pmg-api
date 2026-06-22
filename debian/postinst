@@ -40,8 +40,8 @@ migrate_pmg_smtp_filter() {
 
     printf "Adjusting group ownership of the mail spool, this might take a while\n"
     # no -v: the spool can hold millions of mails
-    chgrp -R pmg /var/spool/pmg
-    chmod -R g+w /var/spool/pmg
+    chgrp -R pmg /var/spool/pmg || true
+    chmod -R g+w /var/spool/pmg || true
 
     chgrp -Rv pmg /etc/pmg/dkim
     chmod -Rv g+rX /etc/pmg/dkim
