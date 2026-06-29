@@ -332,6 +332,14 @@ __PACKAGE__->register_method({
                 type => 'string',
                 optional => 1,
             },
+            priority => {
+                description => "Only print messages of this syslog priority: a single"
+                    . " level from 0 (emerg) to 7 (debug), selecting that level and"
+                    . " everything more severe, or a 'LOW..HIGH' range.",
+                type => 'string',
+                pattern => '^[0-7](\.\.[0-7])?$',
+                optional => 1,
+            },
         },
     },
     returns => {
@@ -350,6 +358,8 @@ __PACKAGE__->register_method({
         push @$cmd, '-f', PVE::Tools::shellquote($param->{startcursor})
             if $param->{startcursor};
         push @$cmd, '-t', PVE::Tools::shellquote($param->{endcursor}) if $param->{endcursor};
+        push @$cmd, '-p', PVE::Tools::shellquote($param->{priority})
+            if defined($param->{priority});
         push @$cmd, ' | gzip ';
 
         open(my $fh, "-|", join(' ', @$cmd))
