@@ -332,12 +332,59 @@ __PACKAGE__->register_method({
                 type => 'string',
                 optional => 1,
             },
+            structured => {
+                description => "Return one JSON object per entry with separate fields"
+                    . " (timestamp, identifier, message, priority, ...) instead of"
+                    . " pre-rendered text lines.",
+                type => 'boolean',
+                default => 0,
+                optional => 1,
+            },
             priority => {
                 description => "Only print messages of this syslog priority: a single"
                     . " level from 0 (emerg) to 7 (debug), selecting that level and"
-                    . " everything more severe, or a 'LOW..HIGH' range.",
+                    . " everything more severe, or a 'LOW..HIGH' range. Empty means no"
+                    . " priority filter.",
                 type => 'string',
-                pattern => '^[0-7](\.\.[0-7])?$',
+                pattern => '^([0-7](\.\.[0-7])?)?$',
+                optional => 1,
+            },
+            service => {
+                description => "Only print messages whose syslog identifier matches this"
+                    . " glob, for example 'postfix/*'.",
+                type => 'string',
+                pattern => '^[A-Za-z0-9_.@:*?!\[\]\/-]+$',
+                maxLength => 128,
+                optional => 1,
+            },
+            unit => {
+                description => "Only print messages of this systemd unit (the .service"
+                    . " suffix is implied).",
+                type => 'string',
+                pattern => '^[A-Za-z0-9_.@:-]+$',
+                maxLength => 256,
+                optional => 1,
+            },
+            kernel => {
+                description => "Only print kernel messages.",
+                type => 'boolean',
+                default => 0,
+                optional => 1,
+            },
+            identifiers => {
+                description => "Also return a record listing the distinct syslog"
+                    . " identifiers present, for filter completion. Only honored"
+                    . " together with 'structured'.",
+                type => 'boolean',
+                default => 0,
+                optional => 1,
+            },
+            units => {
+                description => "Also return a record listing the distinct systemd"
+                    . " units present, for filter completion. Only honored together"
+                    . " with 'structured'.",
+                type => 'boolean',
+                default => 0,
                 optional => 1,
             },
         },
@@ -351,7 +398,7 @@ __PACKAGE__->register_method({
     code => sub {
         my ($param) = @_;
 
-        my $cmd = ["/usr/bin/mini-journalreader", "-j"];
+        my $cmd = ["/usr/bin/mini-journalreader", $param->{structured} ? "-J" : "-j"];
         push @$cmd, '-n', $param->{lastentries} if $param->{lastentries};
         push @$cmd, '-b', $param->{since} if $param->{since};
         push @$cmd, '-e', $param->{until} if $param->{until};
@@ -359,7 +406,19 @@ __PACKAGE__->register_method({
             if $param->{startcursor};
         push @$cmd, '-t', PVE::Tools::shellquote($param->{endcursor}) if $param->{endcursor};
         push @$cmd, '-p', PVE::Tools::shellquote($param->{priority})
-            if defined($param->{priority});
+            if defined($param->{priority}) && $param->{priority} ne '';
+        push @$cmd, '-i', PVE::Tools::shellquote($param->{service})
+            if defined($param->{service});
+        if (defined($param->{unit})) {
+            # a few service names differ from the unit that actually logs (e.g. sshd is an alias of
+            # ssh.service), so map them to the name the journal records
+            my $unit_aliases = { postfix => 'postfix@-', sshd => 'ssh' };
+            my $unit = $unit_aliases->{ $param->{unit} } // $param->{unit};
+            push @$cmd, '-u', PVE::Tools::shellquote($unit);
+        }
+        push @$cmd, '-k' if $param->{kernel};
+        push @$cmd, '-I' if $param->{identifiers} && $param->{structured};
+        push @$cmd, '-U' if $param->{units} && $param->{structured};
         push @$cmd, ' | gzip ';
 
         open(my $fh, "-|", join(' ', @$cmd))
