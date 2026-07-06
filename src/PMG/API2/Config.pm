@@ -201,7 +201,7 @@ my $api_update_config_section = sub {
 
         foreach my $opt (PVE::Tools::split_list($delete_str)) {
             my $is_root_only = $plugin->options()->{$opt}->{root_only};
-            raise_perm_exc() if ( $is_root_only && $authuser ne 'root@pam') ;
+            raise_perm_exc() if ($is_root_only && $authuser ne 'root@pam');
             delete $ids->{$section}->{$opt};
         }
 
@@ -209,7 +209,7 @@ my $api_update_config_section = sub {
 
         foreach my $p (keys %$config) {
             my $is_root_only = $plugin->options()->{$p}->{root_only};
-            raise_perm_exc() if ( $is_root_only && $authuser ne 'root@pam') ;
+            raise_perm_exc() if ($is_root_only && $authuser ne 'root@pam');
             $ids->{$section}->{$p} = $config->{$p};
         }
 

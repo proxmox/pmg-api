@@ -175,7 +175,8 @@ EODESC
             default => '',
         },
         'log-tracker-base' => {
-            description => "Location of rotated mail logs, input-base argument for pmg-log-tracker",
+            description =>
+                "Location of rotated mail logs, input-base argument for pmg-log-tracker",
             type => 'string',
             format => 'pmg-log-tracker-base',
             default => '/var/log/syslog',
@@ -1901,7 +1902,8 @@ sub rewrite_postfix_welcomelist {
     $changes = 1 if $write_smtp_welcomelist->("/etc/postfix/senderaccess", $fromlist);
     $changes = 1 if $write_smtp_welcomelist->("/etc/postfix/rcptaccess", $tolist);
     $changes = 1 if $write_smtp_welcomelist->("/etc/postfix/clientaccess", $clientlist);
-    $changes = 1 if $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
+    $changes = 1
+        if $write_smtp_welcomelist->("/etc/postfix/postscreen_access", $clientlist, 'permit');
 
     return $changes;
 }
