@@ -210,7 +210,7 @@ sub options {
         email => { optional => 1 },
         http_proxy => { optional => 1 },
         custom_check => { optional => 1 },
-        custom_check_path => { optional => 1 },
+        custom_check_path => { optional => 1, root_only => 1 },
         dkim_sign => { optional => 1 },
         dkim_sign_all_mail => { optional => 1 },
         dkim_selector => { optional => 1 },
