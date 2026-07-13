@@ -61,7 +61,7 @@ PVE::JSONSchema::register_format('pmg-log-tracker-base', \&parse_log_tracker_bas
 sub parse_log_tracker_base {
     my ($path, $noerr) = @_;
 
-    if ($path !~ m!^/([^/\0]+/){0,6}[^/\0]+$! || $path =~ m!(?://|/\.{1,2}(?:/|$))!) {
+    if ($path !~ m!^/([^/\0]+/){0,6}[^/\0]+$! || $path =~ m!/\.{1,2}(?:/|$)!) {
         return undef if $noerr;
         die "log-tracker-base '$path' contains illegal characters\n";
     }
