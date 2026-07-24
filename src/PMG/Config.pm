@@ -56,6 +56,21 @@ use warnings;
 
 use base qw(PMG::Config::Base);
 
+PVE::JSONSchema::register_format('pmg-custom-check-path', \&parse_custom_check_path);
+
+sub parse_custom_check_path {
+    my ($path, $noerr) = @_;
+
+    # allow arbitrary nesting to not break backward compatibility further
+    # FIXME: MAJOR VERSION PMG 10 - unify with pmg-log-tracker-base above
+    if ($path !~ m!^/([^/\0]+/)+[^/\0]+$! || $path =~ m!/\.{1,2}(?:/|$)!) {
+        return undef if $noerr;
+        die "custom check patch '$path' contains illegal characters\n";
+    }
+
+    return $path;
+}
+
 sub type {
     return 'admin';
 }
@@ -123,7 +138,7 @@ EODESC
         custom_check_path => {
             description => "Absolute Path to the Custom Check Script",
             type => 'string',
-            pattern => '^/([^/\0]+\/)+[^/\0]+$',
+            format => 'pmg-custom-check-path',
             default => '/usr/local/bin/pmg-custom-check',
         },
         dkim_sign => {
@@ -169,7 +184,7 @@ sub options {
         email => { optional => 1 },
         http_proxy => { optional => 1 },
         custom_check => { optional => 1 },
-        custom_check_path => { optional => 1 },
+        custom_check_path => { optional => 1, root_only => 1 },
         dkim_sign => { optional => 1 },
         dkim_sign_all_mail => { optional => 1 },
         dkim_selector => { optional => 1 },
