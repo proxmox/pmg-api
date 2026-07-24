@@ -1,3 +1,27 @@
+pmg-api (9.1.1) trixie; urgency=medium
+
+  * utils: analyze custom check: remove trailing newline for error output
+
+  * d/postinst: do not error out on chown/chmod /var/spool/pmg/, in case
+    /var/spool/pmg is a filesystem of its own
+
+  * fix #3657: make log-base used by the Tracking Center configurable in the
+    API
+
+  * config: add root_only parameter option, to ensure some parameters can
+    only be configured by root@pam, and not every user with administrator
+    privileges.
+
+  * api: journal: optionally provide structured output to enable filtering
+    in the GUI.
+
+  * pmg-smtp-filter: log-headers: trim trailing whitespace
+
+  * config: add log-headers to pmg-smtp-filter parameters to ensure a change
+    of the option in the GUI triggers a reload of the service
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 24 Jul 2026 12:09:46 +0200
+
 pmg-api (9.1.0) trixie; urgency=medium
 
   * bump version for 9.1 stable release.
