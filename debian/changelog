@@ -1,3 +1,10 @@
+pmg-api (9.1.2) trixie; urgency=medium
+
+  * config: custom check path: mark parameter as only settable by root@pam, and
+    use a stricter validation.
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 24 Jul 2026 13:07:45 +0200
+
 pmg-api (9.1.1) trixie; urgency=medium
 
   * utils: analyze custom check: remove trailing newline for error output
