@@ -208,7 +208,7 @@ sub options {
         dailyreport => { optional => 1 },
         demo => { optional => 1 },
         email => { optional => 1 },
-        http_proxy => { optional => 1 },
+        http_proxy => { optional => 1, root_only => 1 },
         custom_check => { optional => 1 },
         custom_check_path => { optional => 1, root_only => 1 },
         dkim_sign => { optional => 1 },
