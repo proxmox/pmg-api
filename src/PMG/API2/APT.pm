@@ -9,6 +9,7 @@ use IO::File;
 use File::Basename;
 use JSON;
 use LWP::UserAgent;
+use URI qw();
 
 use PVE::Tools qw(extract_param);
 use PVE::SafeSyslog;
@@ -288,7 +289,8 @@ __PACKAGE__->register_method({
             my $http_proxy = $pmg_cfg->get('admin', 'http_proxy');
             my $aptconf = "// no proxy configured\n";
             if ($http_proxy) {
-                $aptconf = "Acquire::http::Proxy \"${http_proxy}\";\n";
+                my $http_proxy_uri = URI->new($http_proxy);
+                $aptconf = "Acquire::http::Proxy \"${http_proxy_uri}\";\n";
             }
             my $aptcfn = "/etc/apt/apt.conf.d/76pmgproxy";
             PVE::Tools::file_set_contents($aptcfn, $aptconf);
