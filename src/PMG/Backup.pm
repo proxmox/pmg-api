@@ -219,7 +219,7 @@ sub pmg_backup {
 
         my $extra = join(' ', @$extra_cfgs);
 
-        system("/bin/tar cf $dirname/$tarfn -C / " . "/etc/pmg $extra>/dev/null 2>&1") == 0
+        system("/bin/tar cf $dirname/$tarfn -C / -- " . "/etc/pmg $extra>/dev/null 2>&1") == 0
             || die "unable to create system configuration backup: ERROR";
 
         system("cd $dirname; md5sum $tarfn $dbfn $extradb $verfn> $sigfn") == 0
@@ -252,7 +252,7 @@ sub pmg_backup_pack {
 
         pmg_backup($dirname, $include_statistics);
 
-        system("rm -f $filename; tar czf $filename --strip-components=1 -C $dirname .") == 0
+        system("rm -f $filename; tar czf $filename --strip-components=1 -C $dirname -- .") == 0
             || die "unable to create backup archive: ERROR\n";
     };
     my $err = $@;
