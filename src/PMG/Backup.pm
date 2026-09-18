@@ -10,14 +10,18 @@ use POSIX qw(strftime);
 
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::Tools;
+use PVE::Cmd;
 
 use PMG::pmgcfg;
 use PMG::AtomicFile;
+use PMG::Ticket;
 use PMG::Utils qw(postgres_admin_cmd);
 
 my $sa_configs = [
     "/etc/mail/spamassassin/custom.cf", "/etc/mail/spamassassin/pmg-scores.cf",
 ];
+
+my $exclude_pmg_cfgs = ['pmg-csrf.key', 'pmg-authkey.key', 'pmg-authkey.pub'];
 
 sub get_restore_options {
     return (
@@ -211,16 +215,19 @@ sub pmg_backup {
         print $vfh "product: $pkg\nversion: $release\nbackuptime:$time:$now\n";
         $vfh->close(1);
 
-        my $extra_cfgs = [];
+        my $tar_cmd = ['/bin/tar', 'cf', "$dirname/$tarfn", '-C', '/'];
 
-        push @$extra_cfgs, @{$sa_configs};
+        for my $ex ($exclude_pmg_cfgs->@*) {
+            push($tar_cmd->@*, ('--exclude', "/etc/pmg/$ex"));
+        }
+        push($tar_cmd->@*, ('--', '/etc/pmg/'));
+
+        push($tar_cmd->@*, $sa_configs->@*);
+
+        eval { PVE::Cmd::run($tar_cmd, quiet => 1) };
+        die "unable to create system configuration backup: ERROR\n" if $@;
 
         my $extradb = $include_statistics ? $statfn : '';
-
-        my $extra = join(' ', @$extra_cfgs);
-
-        system("/bin/tar cf $dirname/$tarfn -C / -- " . "/etc/pmg $extra>/dev/null 2>&1") == 0
-            || die "unable to create system configuration backup: ERROR";
 
         system("cd $dirname; md5sum $tarfn $dbfn $extradb $verfn> $sigfn") == 0
             || die "unable to create backup signature: ERROR";
@@ -318,6 +325,7 @@ sub pmg_restore {
                 sub {
                     my $file = $File::Find::name;
                     return if -d $file;
+                    return if grep { "/etc/pmg/$_" eq  $file } $exclude_pmg_cfgs->@*;
                     unlink($file) || $! == POSIX::ENOENT || die "removing $file failed: $!\n";
                 },
                 '/etc/pmg',
@@ -349,6 +357,9 @@ sub pmg_restore {
                     PVE::Tools::file_set_contents($sa_cfg, $data);
                 }
             }
+
+            PMG::Ticket::generate_csrf_key();
+            PMG::Ticket::generate_auth_key();
 
             my $cfg = PMG::Config->new();
             my $ruledb = PMG::RuleDB->new();
