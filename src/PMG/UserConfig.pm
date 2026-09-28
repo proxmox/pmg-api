@@ -287,7 +287,7 @@ sub write_user_conf {
         if ($d->{userid} ne 'root@pam') {
             die "role 'root' is reserved\n" if $d->{role} eq 'root';
             die "unable to add users for realm '$d->{realm}'\n"
-                if $d->{realm} && $d->{realm} !~ m!(${realm_regex})!;
+                if $d->{realm} && !PMG::Auth::Plugin::is_valid_realm($d->{realm});
         }
 
         my $line;

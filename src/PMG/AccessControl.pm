@@ -65,8 +65,7 @@ sub authenticate_user : prototype($$$) {
         }
         die "ldap login failed\n";
     } else {
-        my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-        if ($realm =~ m!(${realm_regex})!) {
+        if (PMG::Auth::Plugin::is_valid_realm($realm)) {
             my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
             my $cfg = $realm_cfg->{ids}->{$realm};
             my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
@@ -112,8 +111,7 @@ sub set_user_password {
     } elsif ($realm eq 'pmg') {
         PMG::UserConfig->set_user_password($username, $password);
     } else {
-        my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-        if ($realm =~ m!(${realm_regex})!) {
+        if (PMG::Auth::Plugin::is_valid_realm($realm)) {
             my $realm_cfg = PVE::INotify::read_file(PMG::Auth::Plugin->realm_conf_id());
             my $cfg = $realm_cfg->{ids}->{$realm};
             my $plugin = PMG::Auth::Plugin->lookup($cfg->{type});
@@ -141,8 +139,7 @@ sub check_user_enabled {
         } elsif ($realm eq 'quarantine') {
             return 'quser';
         } else {
-            my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-            if ($realm =~ m!(${realm_regex})!) {
+            if (PMG::Auth::Plugin::is_valid_realm($realm)) {
                 my $usercfg = PMG::UserConfig->new();
                 my $data = $usercfg->lookup_user_data($username, $noerr);
                 return $data->{role} if $data && $data->{enable};
