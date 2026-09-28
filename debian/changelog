@@ -1,3 +1,19 @@
+pmg-api (9.1.3) trixie; urgency=medium
+
+  * config: mark http_proxy as only settable by root@pam, as it affects the
+    nodes network configuration.
+
+  * api: apt: allow (more) special characters in the password of a http_proxy,
+
+  * backup: cleanly split options and arguments in the invocation of `tar`
+
+  * backup: skip the key and certificate files used for the generation of API
+    tickets on backing up, keep existing ones upon restore.
+
+  * rule: spam: pass the envelope sender of a mail out of band to SpamAssassin.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 28 Sep 2026 20:26:39 +0200
+
 pmg-api (9.1.2) trixie; urgency=medium
 
   * config: custom check path: mark parameter as only settable by root@pam, and
