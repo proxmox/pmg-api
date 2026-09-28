@@ -243,7 +243,7 @@ sub read_user_conf {
                 eval {
                     $verify_entry->($d);
                     $cfg->{ $d->{userid} } = $d;
-                    if ($d->{role} eq 'root' && $d->{userid} !~ /^root@(pmg|pam)$/) {
+                    if ($d->{role} eq 'root' && $d->{userid} !~ /^root@(pmg|pam)\z/) {
                         die "role 'root' is reserved\n";
                     }
                 };

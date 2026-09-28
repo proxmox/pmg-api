@@ -87,7 +87,7 @@ PVE::JSONSchema::register_standard_option(
 sub pmg_verify_realm {
     my ($realm, $noerr) = @_;
 
-    if ($realm !~ m/^$PMG::Utils::realm_regex$/) {
+    if ($realm !~ m/^$PMG::Utils::realm_regex\z/) {
         return undef if $noerr;
         die "value does not look like a valid realm\n";
     }
@@ -108,7 +108,7 @@ sub private {
 sub parse_section_header {
     my ($class, $line) = @_;
 
-    if ($line =~ m/^(\S+):\s*(\S+)\s*$/) {
+    if ($line =~ m/^(\S+):\s*(\S+)\s*\z/) {
         my ($type, $realm) = (lc($1), $2);
         my $errmsg = undef; # set if you want to skip whole section
         eval { pmg_verify_realm($realm); };

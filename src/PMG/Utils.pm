@@ -93,7 +93,7 @@ sub verify_username {
     # we only allow a limited set of characters. Colons aren't allowed, because we store usernames
     # with colon separated lists! slashes aren't allowed because it is used as pve API delimiter
     # also see "man useradd"
-    if ($username =~ m!^(${user_regex})\@(${realm_regex})$!) {
+    if ($username =~ m!^(${user_regex})\@(${realm_regex})\z!) {
         return wantarray ? ($username, $1, $2) : $username;
     }
 

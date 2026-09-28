@@ -271,9 +271,9 @@ __PACKAGE__->register_method({
 
         my $username = $param->{username};
 
-        if ($username !~ m/\@(?:pam|pmg)$/) {
+        if ($username !~ m/\@(?:pam|pmg)\z/) {
             my $realm_regex = PMG::Auth::Plugin::valid_pmg_realm_regex();
-            if ($username !~ m/\@(${realm_regex})$/) {
+            if ($username !~ m/\@${realm_regex}\z/) {
                 my $realm = $param->{realm} // 'quarantine';
                 $username .= "\@$realm";
             }

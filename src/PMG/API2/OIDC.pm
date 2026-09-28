@@ -231,7 +231,7 @@ __PACKAGE__->register_method({
                                 $role = lc($role); # normalize to lower-case
                                 die
                                     "required '$role_attr' role-claim attribute not found, cannot autocreate user\n"
-                                    if $role !~ /^(?:admin|qmanager|audit|helpdesk)$/;
+                                    if $role !~ /^(?:admin|qmanager|audit|helpdesk)\z/;
                                 $entry->{role} = $role;
                             } else {
                                 die
