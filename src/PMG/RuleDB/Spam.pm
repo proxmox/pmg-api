@@ -418,10 +418,10 @@ sub analyze_spam {
             my @message = split(/^/m, $raw_str, -1);
             undef $raw_str; # free memory early
 
-            my $mail = $spamtest->parse(\@message, 0, $suppl_attrib);
+            # pass envelope sender to spamassassin
+            $suppl_attrib->{return_path} = $queue->{from};
 
-            # hack: pass envelope sender to spamassassin
-            $mail->header('X-Proxmox-Envelope-From', $queue->{from});
+            my $mail = $spamtest->parse(\@message, 0, $suppl_attrib);
 
             my $status = $spamtest->check($mail);
 

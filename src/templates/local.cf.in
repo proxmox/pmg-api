@@ -7,8 +7,6 @@ bayes_learn_to_journal 1
 ok_languages [% pmg.spam.languages %]
 [% END %]
 
-envelope_sender_header X-Proxmox-Envelope-From
-
 # use fast lock (non-nfs save)
 lock_method flock
 
