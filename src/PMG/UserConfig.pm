@@ -296,7 +296,7 @@ sub write_user_conf {
             $line = 'root@pam:';
             $d->{crypt_pass} = '', $d->{expire} = '0', $d->{role} = 'root';
         } else {
-            next if $userid !~ m/^(?<username>.+)\@(${realm_regex})$/;
+            next if $userid !~ m/^$PMG::Utils::user_regex\@${realm_regex}\z/;
             $line = "$d->{userid}:";
         }
 

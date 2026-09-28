@@ -49,7 +49,7 @@ our @EXPORT_OK = qw(
     try_decode_utf8
 );
 
-my $user_regex = qr![^\s:/]+!;
+our $user_regex = qr![^\s:/]+!;
 
 PVE::JSONSchema::register_standard_option(
     'pmg-starttime',
