@@ -50,6 +50,7 @@ our @EXPORT_OK = qw(
 );
 
 our $user_regex = qr![^\s:/]+!;
+our $realm_regex = qr![A-Za-z][A-Za-z0-9\.\-_]+!;
 
 PVE::JSONSchema::register_standard_option(
     'pmg-starttime',
@@ -92,7 +93,7 @@ sub verify_username {
     # we only allow a limited set of characters. Colons aren't allowed, because we store usernames
     # with colon separated lists! slashes aren't allowed because it is used as pve API delimiter
     # also see "man useradd"
-    if ($username =~ m!^(${user_regex})\@([A-Za-z][A-Za-z0-9\.\-_]+)$!) {
+    if ($username =~ m!^(${user_regex})\@(${realm_regex})$!) {
         return wantarray ? ($username, $1, $2) : $username;
     }
 

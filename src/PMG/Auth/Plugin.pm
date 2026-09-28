@@ -10,6 +10,7 @@ use PVE::INotify;
 use PVE::JSONSchema qw(get_standard_option);
 use PVE::SectionConfig;
 use PVE::Tools;
+use PMG::Utils;
 
 use base qw(PVE::SectionConfig);
 
@@ -83,12 +84,10 @@ PVE::JSONSchema::register_standard_option(
     },
 );
 
-my $realm_regex = qr/[A-Za-z][A-Za-z0-9\.\-_]+/;
-
 sub pmg_verify_realm {
     my ($realm, $noerr) = @_;
 
-    if ($realm !~ m/^${realm_regex}$/) {
+    if ($realm !~ m/^$PMG::Utils::realm_regex$/) {
         return undef if $noerr;
         die "value does not look like a valid realm\n";
     }
