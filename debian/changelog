@@ -1,3 +1,15 @@
+pmg-api (9.1.4) trixie; urgency=medium
+
+  * auth: reject user IDs and realm names with a trailing newline, which the
+    previous validation accepted.
+
+  * auth: only accept exact names of configured realms. Before, a realm name
+    that contained a configured one, or matched one with another character in
+    place of a dot, passed some of the realm checks. This led to unclear errors
+    on login or password change instead of reporting a non-existing realm.
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 03 Oct 2026 19:32:35 +0200
+
 pmg-api (9.1.3) trixie; urgency=medium
 
   * config: mark http_proxy as only settable by root@pam, as it affects the
