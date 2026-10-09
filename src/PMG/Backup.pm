@@ -225,7 +225,7 @@ sub pmg_backup {
         push($tar_cmd->@*, $sa_configs->@*);
 
         eval { PVE::Cmd::run($tar_cmd, quiet => 1) };
-        die "unable to create system configuration backup: ERROR\n" if $@;
+        die "unable to create system configuration backup: $@" if $@;
 
         my $extradb = $include_statistics ? $statfn : '';
 
