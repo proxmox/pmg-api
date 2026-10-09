@@ -224,7 +224,12 @@ sub pmg_backup {
 
         push($tar_cmd->@*, $sa_configs->@*);
 
-        eval { PVE::Cmd::run($tar_cmd, quiet => 1) };
+        my $errfunc = sub {
+            my ($msg) = @_;
+            return if $msg =~ m!Removing leading `/' from (member names|hard link targets)!;
+            warn "$msg\n";
+        };
+        eval { PVE::Cmd::run($tar_cmd, quiet => 1, errfunc => $errfunc) };
         die "unable to create system configuration backup: $@" if $@;
 
         my $extradb = $include_statistics ? $statfn : '';
