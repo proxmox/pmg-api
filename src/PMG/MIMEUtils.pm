@@ -23,6 +23,9 @@ sub new_mime_parser {
     $parser->max_parts($params->{maxfiles})
         if defined($params->{maxfiles});
 
+    # hardcode a reasonable maximal level of nesting within mime-parts
+    $parser->max_depth(200);
+
     my $dumpdir = $params->{dumpdir};
     if (!$dumpdir) {
         $parser->output_to_core(1);
