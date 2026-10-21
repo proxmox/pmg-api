@@ -317,7 +317,8 @@ sub entity_to_html {
 
     if ($mime_type eq 'text/plain') {
         my $raw = $read_part->($entity) // '';
-        my $html = "<pre>\n";
+        # keep the line breaks of the mail, but wrap lines that are wider than the preview
+        my $html = "<pre style='white-space: pre-wrap; overflow-wrap: break-word;'>\n";
 
         if (defined(my $cs = $entity->head->mime_attr("content-type.charset"))) {
             $html .= PMG::Utils::decode_to_html($cs, $raw);
