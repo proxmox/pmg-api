@@ -1,3 +1,20 @@
+pmg-api (9.1.5) trixie; urgency=medium
+
+  * html mail: wrap long lines in the preview of plain-text mails. Some MUAs
+    send text/plain representation of the mail with long lines, covering
+    a complete paragraph. Wrapping those in the pre-block used for rendering
+    text/plain mails improves readability of such mails on most screen setups.
+
+  * backup: display relevant error-messages from `tar`.
+
+  * mimeutils: limit maximal nexting level of MIME parts to 200:
+    MIME::Parser now has the option to reject mails based on the nesting level
+    of its MIME parts, in addition to the total number of parts. Use the
+    functionality with a fixed nesting depth of 200, as this should cover all
+    legitimate mail.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 02 Nov 2026 11:37:33 +0100
+
 pmg-api (9.1.4) trixie; urgency=medium
 
   * auth: reject user IDs and realm names with a trailing newline, which the
