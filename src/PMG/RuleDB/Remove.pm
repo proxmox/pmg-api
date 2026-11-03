@@ -162,7 +162,7 @@ sub delete_marked_parts {
 
         if ($found) {
 
-            my $on = PMG::Utils::extract_filename($part->head) || '';
+            my $on = PMG::Utils::extract_filename($part->head, 1) || '';
 
             my $text = PMG::Utils::subst_values($html, { FILENAME => $on });
 

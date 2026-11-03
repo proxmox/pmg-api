@@ -169,12 +169,13 @@ sub file_older_than {
 }
 
 sub extract_filename {
-    my ($head) = @_;
+    my ($head, $sanitize) = @_;
 
     if (my $value = $head->recommended_filename()) {
         chomp $value;
         if (my $decvalue = MIME::Words::decode_mimewords($value)) {
             $decvalue =~ s/\0/ /g;
+            $decvalue =~ s/(?:[^\p{XPosixPrint}]|\p{Cf})+/ /g if $sanitize;
             $decvalue = PVE::Tools::trim($decvalue);
             return $decvalue;
         }

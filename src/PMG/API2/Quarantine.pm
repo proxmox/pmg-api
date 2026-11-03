@@ -1330,7 +1330,7 @@ my $get_attachments = sub {
         $entity,
         sub {
             my ($part) = @_;
-            my $name = PMG::Utils::extract_filename($part->head) || "part-$id";
+            my $name = PMG::Utils::extract_filename($part->head, 1) || "part-$id";
             my $attachment_path = $part->{PMX_decoded_path};
             return if !$attachment_path || !-f $attachment_path;
             my $size = -s $attachment_path // 0;
