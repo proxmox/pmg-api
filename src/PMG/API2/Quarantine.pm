@@ -1441,7 +1441,10 @@ __PACKAGE__->register_method({
         if ($attachmentid) {
             my $attachments = $get_attachments->($mailid, $dumpdir, 1);
             if (my $attachment = $attachments->[$attachmentid]) {
-                $res->{download} = $attachment;
+                $res->{download} = {
+                    'content-type' => 'application/octet-stream',
+                    path => $attachment->{path},
+                };
             } else {
                 raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail." });
             }
