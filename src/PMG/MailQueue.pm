@@ -442,7 +442,15 @@ sub parse_mail {
     my $parse_time = time() - $ctime;
 
     # also save decoded data
-    decode_entities($parser, $logid, $entity);
+    eval { decode_entities($parser, $logid, $entity); };
+    if (my $err = $@) {
+        if ($accept_broken_mime) {
+            syslog('warn', "$logid: message causes decoding errors: $err adding header");
+            $entity->head()->add("X-Proxmox-Broken-Message", "broken encoding");
+        } else {
+            die "$logid: message has broken encoding\n";
+        }
+    }
 
     # we also remove all proxmox-marks from the mail and add an unique
     # id to each attachment.
@@ -460,47 +468,43 @@ sub decode_entities {
         $entity,
         sub {
             my ($part) = @_;
-            if ($part->bodyhandle && (my $path = $part->bodyhandle->path)) {
 
-                eval {
-                    my $head = $part->head;
-                    my $encoding = $head->mime_encoding;
-                    my $decoder = new MIME::Decoder $encoding;
+            return if !$part->bodyhandle();
 
-                    if (!$decoder || ($decoder eq 'none' || $decoder eq 'binary')) {
+            my $path = $part->bodyhandle()->path();
 
-                        $part->{PMX_decoded_path} = $path; # no need to decode
+            return if !$path;
 
-                    } else {
+            my $head = $part->head;
+            my $encoding = $head->mime_encoding;
+            my $decoder = new MIME::Decoder $encoding;
 
-                        my $body = $parser->new_body_for($head);
-                        $body->binmode(1);
-                        $body->is_encoded(0);
+            if (!$decoder || ($decoder eq 'none' || $decoder eq 'binary')) {
 
-                        my $in = $part->bodyhandle->open("r")
-                            || die "unable to read raw data '$path'";
-
-                        my $decfh = $body->open("w")
-                            || die "unable to open body: $!";
-
-                        $decoder->decode($in, $decfh);
-
-                        $in->close;
-
-                        $decfh->close
-                            || die "can't close bodyhandle: $!";
-
-                        $part->{PMX_decoded_path} = $body->path;
-                    }
-                };
-
-                my $err = $@;
-
-                if ($err) {
-                    syslog('err', "$logid: $err");
-                }
-
+                $part->{PMX_decoded_path} = $path; # no need to decode
+                return;
             }
+
+            my $body = $parser->new_body_for($head);
+            $body->binmode(1);
+            $body->is_encoded(0);
+
+            my $in = $part->bodyhandle->open("r")
+                || die "unable to read raw data '$path'";
+
+            my $decfh = $body->open("w")
+                || die "unable to open body: $!";
+
+            eval { $decoder->decode($in, $decfh); };
+            die "decoding mail failed: $@\n" if $@;
+
+            $in->close;
+
+            $decfh->close
+                || die "can't close bodyhandle: $!";
+
+            $part->{PMX_decoded_path} = $body->path;
+
         },
     );
 }
