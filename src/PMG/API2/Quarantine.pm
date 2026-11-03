@@ -1118,6 +1118,8 @@ my $get_and_check_mail = sub {
         my $quar_username = $ref->{pmail} . '@quarantine';
         raise_perm_exc("mail does not belong to user '$authuser' ($ref->{pmail})")
             if $authuser ne $quar_username;
+        raise_perm_exc("only Spam quarantine is available to '$authuser'")
+            if $ref->{qtype} ne 'S';
     }
 
     return $ref;
