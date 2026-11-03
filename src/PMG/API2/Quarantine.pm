@@ -297,7 +297,7 @@ __PACKAGE__->register_method({
     method => 'POST',
     proxyto => 'master',
     description => "Add user welcomelist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -328,7 +328,7 @@ __PACKAGE__->register_method({
     method => 'DELETE',
     proxyto => 'master',
     description => "Delete user welcomelist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -392,7 +392,7 @@ __PACKAGE__->register_method({
     method => 'POST',
     proxyto => 'master',
     description => "Add user blocklist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -423,7 +423,7 @@ __PACKAGE__->register_method({
     method => 'DELETE',
     proxyto => 'master',
     description => "Delete user blocklist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -489,7 +489,7 @@ __PACKAGE__->register_method({
     method => 'POST',
     proxyto => 'master',
     description => "Add user welcomelist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -520,7 +520,7 @@ __PACKAGE__->register_method({
     method => 'DELETE',
     proxyto => 'master',
     description => "Delete user welcomelist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -584,7 +584,7 @@ __PACKAGE__->register_method({
     method => 'POST',
     proxyto => 'master',
     description => "Add user blocklist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
@@ -615,7 +615,7 @@ __PACKAGE__->register_method({
     method => 'DELETE',
     proxyto => 'master',
     description => "Delete user blocklist entries.",
-    permissions => { check => ['admin', 'qmanager', 'audit', 'quser'] },
+    permissions => { check => ['admin', 'qmanager', 'quser'] },
     protected => 1,
     parameters => {
         additionalProperties => 0,
