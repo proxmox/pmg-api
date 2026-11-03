@@ -479,13 +479,14 @@ sub decode_entities {
             my $encoding = $head->mime_encoding;
             my $decoder = new MIME::Decoder $encoding;
 
+            # default to encoded path if no decoding needed or if it fails
+            $part->{PMX_decoded_path} = $path;
+
             if (
                 !$decoder
                 || ($decoder->encoding() eq 'none' || $decoder->encoding() eq 'binary')
             ) {
-
-                $part->{PMX_decoded_path} = $path; # no need to decode
-                return;
+                return; # no need to decode
             }
 
             my $body = $parser->new_body_for($head);
