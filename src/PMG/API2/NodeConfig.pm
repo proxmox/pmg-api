@@ -48,7 +48,7 @@ __PACKAGE__->register_method({
     description => "Set node configuration options.",
     protected => 1,
     proxyto => 'node',
-    permissions => { check => ['admin', 'audit'] },
+    permissions => { check => ['admin'] },
     parameters => PMG::NodeConfig::acme_config_schema({
         delete => {
             type => 'string',

@@ -243,7 +243,7 @@ __PACKAGE__->register_method({
     description => "Forget a snapshot",
     proxyto => 'node',
     protected => 1,
-    permissions => { check => ['admin', 'audit'] },
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -375,7 +375,7 @@ __PACKAGE__->register_method({
     description => "Create a new backup and prune the backup group afterwards, if configured.",
     proxyto => 'node',
     protected => 1,
-    permissions => { check => ['admin', 'audit'] },
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -553,7 +553,7 @@ __PACKAGE__->register_method({
     description => "Create backup schedule",
     proxyto => 'node',
     protected => 1,
-    permissions => { check => ['admin', 'audit'] },
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => {
@@ -607,7 +607,7 @@ __PACKAGE__->register_method({
     description => "Delete backup schedule",
     proxyto => 'node',
     protected => 1,
-    permissions => { check => ['admin', 'audit'] },
+    permissions => { check => ['admin'] },
     parameters => {
         additionalProperties => 0,
         properties => {
