@@ -1323,7 +1323,9 @@ my $get_attachments = sub {
 
     my $entity = $parser->parse_open("$spooldir/$filename");
     PMG::MIMEUtils::fixup_multipart($entity);
-    PMG::MailQueue::decode_entities($parser, 'attachmentquarantine', $entity);
+    # ignore decoding errors, the mail was already accepted and its parts are only offered as plain
+    # downloads
+    PMG::MailQueue::decode_entities($parser, $entity);
 
     my $res = [];
     my $id = 0;

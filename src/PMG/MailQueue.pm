@@ -441,14 +441,13 @@ sub parse_mail {
     # fixme: add parse_time to statistic database
     my $parse_time = time() - $ctime;
 
-    # also save decoded data
-    eval { decode_entities($parser, $logid, $entity); };
-    if (my $err = $@) {
+    # also save decoded data, a mail that gets refused does not need its remaining parts decoded
+    if (defined(my $err = decode_entities($parser, $entity, !$accept_broken_mime))) {
         if ($accept_broken_mime) {
-            syslog('warn', "$logid: message causes decoding errors: $err adding header");
+            syslog('warn', "%s: message causes decoding errors: %s, adding header", $logid, $err);
             $entity->head()->add("X-Proxmox-Broken-Message", "broken encoding");
         } else {
-            die "$logid: message has broken encoding\n";
+            die "$logid: message has broken encoding - $err\n";
         }
     }
 
@@ -461,13 +460,20 @@ sub parse_mail {
     return ($entity, $max_aid);
 }
 
+# Returns the first decoding error, if any. With $stop_on_error set the remaining parts are skipped
+# after it, otherwise they are still decoded, as the content-type and archive filters depend on
+# their decoded data.
 sub decode_entities {
-    my ($parser, $logid, $entity) = @_;
+    my ($parser, $entity, $stop_on_error) = @_;
+
+    my $decode_err;
 
     PMG::MIMEUtils::traverse_mime_parts(
         $entity,
         sub {
             my ($part) = @_;
+
+            return if $stop_on_error && defined($decode_err);
 
             return if !$part->bodyhandle();
 
@@ -500,7 +506,11 @@ sub decode_entities {
                 || die "unable to open body: $!";
 
             eval { $decoder->decode($in, $decfh); };
-            die "decoding mail failed: $@\n" if $@;
+            if (my $err = $@) {
+                chomp $err;
+                $decode_err //= $err;
+                return;
+            }
 
             $in->close;
 
@@ -511,6 +521,8 @@ sub decode_entities {
 
         },
     );
+
+    return $decode_err;
 }
 
 1;
