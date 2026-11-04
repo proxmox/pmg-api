@@ -1447,7 +1447,7 @@ __PACKAGE__->register_method({
         my $res;
 
         eval {
-            if ($attachmentid) {
+            if (defined($attachmentid)) {
                 my $attachments = $get_attachments->($mailid, $dumpdir, 1);
                 if (my $attachment = $attachments->[$attachmentid]) {
                     $res->{download} = {
