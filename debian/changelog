@@ -1,3 +1,34 @@
+pmg-api (9.1.6) trixie; urgency=medium
+
+  * quarantine: always serve attachment downloads as generic binary data
+    instead of using the type stated in the mail, so that browsers download
+    them rather than displaying them.
+
+  * attachments: replace control and formatting characters in file names shown
+    in the quarantine, in the removed-attachment note, and in the logs.
+
+  * quarantine: limit quarantine users to the spam quarantine for viewing,
+    downloading and acting on mails too, not only for listing them.
+
+  * api: Auditor role: disallow changes to the user block- and welcomelists,
+    the node configuration, and PBS backups and schedules, as the role is meant
+    to be read-only. The Helpdesk role also loses write access to the node
+    configuration and PBS backups and schedules, but keeps read access there
+    and its quarantine permissions.
+
+  * mail queue: treat mails that fail to decode as broken MIME instead of
+    continuing with incomplete information. Such mails are deferred by default.
+    If `accept-broken-mime` is enabled, they get a `X-Proxmox-Broken-Message`
+    header that rules can match on.
+
+  * quarantine: fix downloading the first attachment of a mail, which returned
+    the raw mail instead.
+
+  * quarantine: remove temporary attachment data also if listing or downloading
+    attachments fails.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 04 Nov 2026 22:26:52 +0100
+
 pmg-api (9.1.5) trixie; urgency=medium
 
   * html mail: wrap long lines in the preview of plain-text mails. Some MUAs
