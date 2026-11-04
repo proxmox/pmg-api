@@ -1399,8 +1399,12 @@ __PACKAGE__->register_method({
         my ($param) = @_;
 
         my $dumpdir = "/run/pmgproxy/pmg-$param->{id}-$$";
-        my $res = $get_attachments->($param->{id}, $dumpdir);
+        my $res = eval { $get_attachments->($param->{id}, $dumpdir) };
+        my $err = $@;
+
         rmtree $dumpdir;
+
+        die $err if $err;
 
         return $res;
 
@@ -1442,34 +1446,39 @@ __PACKAGE__->register_method({
         my $dumpdir = "/run/pmgproxy/pmg-$mailid-$$/";
         my $res;
 
-        if ($attachmentid) {
-            my $attachments = $get_attachments->($mailid, $dumpdir, 1);
-            if (my $attachment = $attachments->[$attachmentid]) {
-                $res->{download} = {
-                    'content-type' => 'application/octet-stream',
-                    path => $attachment->{path},
-                };
+        eval {
+            if ($attachmentid) {
+                my $attachments = $get_attachments->($mailid, $dumpdir, 1);
+                if (my $attachment = $attachments->[$attachmentid]) {
+                    $res->{download} = {
+                        'content-type' => 'application/octet-stream',
+                        path => $attachment->{path},
+                    };
+                } else {
+                    raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail." });
+                }
             } else {
-                raise_param_exc({ attachmentid => "Invalid Attachment ID for Mail." });
+                my $rpcenv = PMG::RESTEnvironment->get();
+                my $ref = $get_and_check_mail->($mailid, $rpcenv);
+                my $spooldir = $PMG::MailQueue::spooldir;
+
+                $res->{download} = {
+                    'content-type' => 'message/rfc822',
+                    path => "$spooldir/$ref->{file}",
+                };
             }
-        } else {
-            my $rpcenv = PMG::RESTEnvironment->get();
-            my $ref = $get_and_check_mail->($mailid, $rpcenv);
-            my $spooldir = $PMG::MailQueue::spooldir;
 
-            $res->{download} = {
-                'content-type' => 'message/rfc822',
-                path => "$spooldir/$ref->{file}",
-            };
-        }
+            $res->{download}->{fh} = IO::File->new($res->{download}->{path}, '<')
+                || die "unable to open file '$res->{download}->{path}' - $!\n";
 
-        $res->{download}->{fh} = IO::File->new($res->{download}->{path}, '<')
-            || die "unable to open file '$res->{download}->{path}' - $!\n";
-
-        # we've opened a FH above, we no longer need a path (it might be invalid later)
-        delete $res->{download}->{path};
+            # we've opened a FH above, we no longer need a path (it might be invalid later)
+            delete $res->{download}->{path};
+        };
+        my $err = $@;
 
         rmtree $dumpdir if -e $dumpdir;
+
+        die $err if $err;
 
         return $res;
 
