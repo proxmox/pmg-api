@@ -41,11 +41,13 @@ my $confdesc = {
     comments => {
         description => "Comments",
         type => 'string',
+        pattern => '(?s)(?!.*(?:<%|\$\{)).*',
         optional => 1,
     },
     comments6 => {
         description => "Comments",
         type => 'string',
+        pattern => '(?s)(?!.*(?:<%|\$\{)).*',
         optional => 1,
     },
     autostart => {
