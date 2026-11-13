@@ -83,6 +83,12 @@ case "$1" in
             fi
 
             # TODO: remove with 10.0
+            # restart rrdached to pick up the new group and permissions once
+            if test -n "$2" && dpkg --compare-versions "$2" 'lt' '9.1.7~'; then
+                deb-systemd-invoke reload-or-try-restart rrdcached.service rrdcached.socket >/dev/null || true
+            fi
+
+            # TODO: remove with 10.0
             if test -n "$2" && dpkg --compare-versions "$2" 'lt' '9.0.11~'; then
                 migrate_pmg_smtp_filter
             fi

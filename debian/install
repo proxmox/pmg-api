@@ -11,3 +11,4 @@ debian/pmgreport.service /usr/lib/systemd/system/
 debian/pmgspamreport.service /usr/lib/systemd/system/
 debian/pmgsync.service /usr/lib/systemd/system/
 debian/pmgtunnel.service /usr/lib/systemd/system/
+debian/rrdcached.socket.d /usr/lib/systemd/system/
