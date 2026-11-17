@@ -330,7 +330,7 @@ sub pmg_restore {
                 sub {
                     my $file = $File::Find::name;
                     return if -d $file;
-                    return if grep { "/etc/pmg/$_" eq  $file } $exclude_pmg_cfgs->@*;
+                    return if grep { "/etc/pmg/$_" eq $file } $exclude_pmg_cfgs->@*;
                     unlink($file) || $! == POSIX::ENOENT || die "removing $file failed: $!\n";
                 },
                 '/etc/pmg',

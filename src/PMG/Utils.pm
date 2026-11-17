@@ -406,7 +406,7 @@ sub analyze_custom_check {
 
         my $log_err = sub {
             my ($errmsg) = @_;
-            chomp ($errmsg);
+            chomp($errmsg);
             syslog('err', '%s', "$queue->{logid}: custom check: $errmsg");
         };
 

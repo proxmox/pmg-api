@@ -115,7 +115,7 @@ sub update_stats_generic {
             $dbh->do("INSERT INTO StatInfo VALUES ('$statinfoid', $endid)");
         }
 
-    COMMIT:
+        COMMIT:
         $dbh->commit;
     };
 
