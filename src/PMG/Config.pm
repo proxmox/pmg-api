@@ -184,10 +184,12 @@ EODESC
             default => 'Proxmox Mail Gateway <postmaster>',
         },
         'consent-text' => {
-            description => "Consent text that is displayed before logging in.",
+            description =>
+                "Consent text that is displayed before logging in. Needs to be base64 encoded.",
             type => 'string',
             maxLength => 64 * 1024,
             default => '',
+            pattern => "[A-Za-z0-9\+\/]+\={0,2}",
         },
         'log-tracker-base' => {
             description =>
